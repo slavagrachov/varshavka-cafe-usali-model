@@ -21,38 +21,38 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p diagnostics /tmp/chunks
-          cp .bootstrap/bundle/chunk_000.b64part /tmp/chunks/chunk_000.b64part
-          cp .bootstrap/bundle/chunk_001.b64part /tmp/chunks/chunk_001.b64part
-          cp .bootstrap/bundle/chunk_002.b64part /tmp/chunks/chunk_002.b64part
-          cat .bootstrap/fixed/fix_003_0_*.b64part > /tmp/chunks/chunk_003.b64part
-          cp .bootstrap/bundle/chunk_004.b64part /tmp/chunks/chunk_004.b64part
-          cp .bootstrap/bundle/chunk_005.b64part /tmp/chunks/chunk_005.b64part
-          cp .bootstrap/bundle/chunk_006.b64part /tmp/chunks/chunk_006.b64part
-          cp .bootstrap/bundle/chunk_007.b64part /tmp/chunks/chunk_007.b64part
-          cp .bootstrap/bundle/chunk_008.b64part /tmp/chunks/chunk_008.b64part
-          cp .bootstrap/bundle/chunk_009.b64part /tmp/chunks/chunk_009.b64part
+          mkdir -p diagnostics/chunks
+          cp .bootstrap/bundle/chunk_000.b64part diagnostics/chunks/chunk_000.b64part
+          cp .bootstrap/bundle/chunk_001.b64part diagnostics/chunks/chunk_001.b64part
+          cp .bootstrap/bundle/chunk_002.b64part diagnostics/chunks/chunk_002.b64part
+          cat .bootstrap/fixed/fix_003_0_*.b64part > diagnostics/chunks/chunk_003.b64part
+          cp .bootstrap/bundle/chunk_004.b64part diagnostics/chunks/chunk_004.b64part
+          cp .bootstrap/bundle/chunk_005.b64part diagnostics/chunks/chunk_005.b64part
+          cp .bootstrap/bundle/chunk_006.b64part diagnostics/chunks/chunk_006.b64part
+          cp .bootstrap/bundle/chunk_007.b64part diagnostics/chunks/chunk_007.b64part
+          cp .bootstrap/bundle/chunk_008.b64part diagnostics/chunks/chunk_008.b64part
+          cp .bootstrap/bundle/chunk_009.b64part diagnostics/chunks/chunk_009.b64part
 
           {
             echo 'EXPECTED_LENGTH=163580'
             echo 'EXPECTED_BUNDLE_SHA256=2f8ffc4ffae3bf6c531f966a1b2a2de7e3f59d1443233b1e843fe0573cd6497c'
-            for f in /tmp/chunks/chunk_*.b64part; do
+            for f in diagnostics/chunks/chunk_*.b64part; do
               printf '%s ' "$(basename "$f")"
               wc -c < "$f" | tr -d '\n'
               printf ' '
               git hash-object "$f"
             done
-            cat /tmp/chunks/chunk_*.b64part > /tmp/assembled.b64
+            cat diagnostics/chunks/chunk_*.b64part > diagnostics/assembled.b64
             printf 'ASSEMBLED_LENGTH='
-            wc -c < /tmp/assembled.b64 | tr -d '\n'
+            wc -c < diagnostics/assembled.b64 | tr -d '\n'
             echo
-            base64 --decode /tmp/assembled.b64 > /tmp/assembled.bundle || true
+            base64 --decode diagnostics/assembled.b64 > diagnostics/assembled.bundle || true
             printf 'ASSEMBLED_BUNDLE_SHA256='
-            sha256sum /tmp/assembled.bundle | awk '{print $1}'
+            sha256sum diagnostics/assembled.bundle | awk '{print $1}'
           } | tee diagnostics/bundle-parts-report.txt
 
       - name: Upload diagnostics
         uses: actions/upload-artifact@v4
         with:
-          name: bundle-parts-diagnostics
-          path: diagnostics/bundle-parts-report.txt
+          name: bundle-parts-diagnostics-full
+          path: diagnostics/
