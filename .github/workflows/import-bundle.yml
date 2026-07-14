@@ -51,8 +51,12 @@ jobs:
           echo "96b3164b583bd0493041250f7951be0148fcbed08f33cb545e119bbcb1602569  models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx" | sha256sum --check --strict
 
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push --force origin refs/heads/main:refs/heads/main
+
+          # Publish an independently addressable safety ref first. This uploads
+          # every object even if replacing the default branch is restricted.
+          git push --force origin refs/heads/main:refs/heads/imported-v0.1.0
           git push --force origin refs/tags/v0.1.0:refs/tags/v0.1.0
+          git push --force origin refs/heads/main:refs/heads/main
 
       - name: Verify remote refs
         shell: bash
@@ -61,6 +65,7 @@ jobs:
         run: |
           set -euo pipefail
           REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          test "$(git ls-remote "$REMOTE" refs/heads/imported-v0.1.0 | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
           test "$(git ls-remote "$REMOTE" refs/heads/main | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
           test "$(git ls-remote "$REMOTE" refs/tags/v0.1.0 | cut -f1)" = "03a9636dae585be65e4e80ee74f3e00f98731ead"
           test "$(git ls-remote "$REMOTE" 'refs/tags/v0.1.0^{}' | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
