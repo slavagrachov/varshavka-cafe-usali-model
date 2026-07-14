@@ -1,0 +1,63 @@
+name: Import prepared repository bundle
+
+on:
+  push:
+    paths:
+      - '.bootstrap/bundle/chunk_009.b64part'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-prepared-bundle
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout bootstrap branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assemble and verify bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find .bootstrap/bundle -maxdepth 1 -name 'chunk_*.b64part' | wc -l)" -eq 10
+          cat .bootstrap/bundle/chunk_*.b64part > /tmp/varshavka.bundle.b64
+          base64 --decode /tmp/varshavka.bundle.b64 > /tmp/varshavka.bundle
+          echo "2f8ffc4ffae3bf6c531f966a1b2a2de7e3f59d1443233b1e843fe0573cd6497c  /tmp/varshavka.bundle" | sha256sum --check --strict
+          git bundle verify /tmp/varshavka.bundle
+
+      - name: Restore exact prepared history
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git clone /tmp/varshavka.bundle /tmp/imported
+          cd /tmp/imported
+
+          test "$(git rev-parse refs/heads/main)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git rev-parse refs/tags/v0.1.0)" = "03a9636dae585be65e4e80ee74f3e00f98731ead"
+          test "$(git rev-parse 'refs/tags/v0.1.0^{}')" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git ls-tree -r --name-only refs/heads/main | wc -l)" -eq 41
+          echo "96b3164b583bd0493041250f7951be0148fcbed08f33cb545e119bbcb1602569  models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx" | sha256sum --check --strict
+
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force origin refs/heads/main:refs/heads/main
+          git push --force origin refs/tags/v0.1.0:refs/tags/v0.1.0
+
+      - name: Verify remote refs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          test "$(git ls-remote "$REMOTE" refs/heads/main | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git ls-remote "$REMOTE" refs/tags/v0.1.0 | cut -f1)" = "03a9636dae585be65e4e80ee74f3e00f98731ead"
+          test "$(git ls-remote "$REMOTE" 'refs/tags/v0.1.0^{}' | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
