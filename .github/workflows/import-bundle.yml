@@ -5,6 +5,8 @@ on:
     paths:
       - '.bootstrap/bundle/chunk_009.b64part'
       - '.github/workflows/import-bundle.yml'
+  pull_request:
+    types: [opened, synchronize, reopened]
   issues:
     types: [opened]
   schedule:
