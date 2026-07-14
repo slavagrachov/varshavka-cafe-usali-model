@@ -1,4 +1,4 @@
-name: Diagnose prepared repository bundle parts
+name: Import verified repository v0.1.0
 
 on:
   pull_request:
@@ -6,53 +6,122 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: import-verified-v0-1-0
+  cancel-in-progress: false
 
 jobs:
-  diagnose:
+  import:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout bootstrap repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Build diagnostics
+      - name: Reconstruct exact Git Bundle
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p diagnostics/chunks
-          cp .bootstrap/bundle/chunk_000.b64part diagnostics/chunks/chunk_000.b64part
-          cp .bootstrap/bundle/chunk_001.b64part diagnostics/chunks/chunk_001.b64part
-          cp .bootstrap/bundle/chunk_002.b64part diagnostics/chunks/chunk_002.b64part
-          cat .bootstrap/fixed/fix_003_0_*.b64part > diagnostics/chunks/chunk_003.b64part
-          cp .bootstrap/bundle/chunk_004.b64part diagnostics/chunks/chunk_004.b64part
-          cp .bootstrap/bundle/chunk_005.b64part diagnostics/chunks/chunk_005.b64part
-          cp .bootstrap/bundle/chunk_006.b64part diagnostics/chunks/chunk_006.b64part
-          cp .bootstrap/bundle/chunk_007.b64part diagnostics/chunks/chunk_007.b64part
-          cp .bootstrap/bundle/chunk_008.b64part diagnostics/chunks/chunk_008.b64part
-          cp .bootstrap/bundle/chunk_009.b64part diagnostics/chunks/chunk_009.b64part
+          mkdir -p /tmp/chunks
+          cp .bootstrap/bundle/chunk_000.b64part /tmp/chunks/chunk_000.b64part
+          cp .bootstrap/bundle/chunk_001.b64part /tmp/chunks/chunk_001.b64part
+          cp .bootstrap/bundle/chunk_002.b64part /tmp/chunks/chunk_002.b64part
+          cat .bootstrap/fixed/fix_003_0_*.b64part > /tmp/chunks/chunk_003.b64part
+          cp .bootstrap/bundle/chunk_004.b64part /tmp/chunks/chunk_004.b64part
+          cp .bootstrap/bundle/chunk_005.b64part /tmp/chunks/chunk_005.b64part
+          cp .bootstrap/bundle/chunk_006.b64part /tmp/chunks/chunk_006.b64part
+          cp .bootstrap/bundle/chunk_007.b64part /tmp/chunks/chunk_007.b64part
+          cp .bootstrap/bundle/chunk_008.b64part /tmp/chunks/chunk_008.b64part
+          cp .bootstrap/bundle/chunk_009.b64part /tmp/chunks/chunk_009.b64part
 
-          {
-            echo 'EXPECTED_LENGTH=163580'
-            echo 'EXPECTED_BUNDLE_SHA256=2f8ffc4ffae3bf6c531f966a1b2a2de7e3f59d1443233b1e843fe0573cd6497c'
-            for f in diagnostics/chunks/chunk_*.b64part; do
-              printf '%s ' "$(basename "$f")"
-              wc -c < "$f" | tr -d '\n'
-              printf ' '
-              git hash-object "$f"
-            done
-            cat diagnostics/chunks/chunk_*.b64part > diagnostics/assembled.b64
-            printf 'ASSEMBLED_LENGTH='
-            wc -c < diagnostics/assembled.b64 | tr -d '\n'
-            echo
-            base64 --decode diagnostics/assembled.b64 > diagnostics/assembled.bundle || true
-            printf 'ASSEMBLED_BUNDLE_SHA256='
-            sha256sum diagnostics/assembled.bundle | awk '{print $1}'
-          } | tee diagnostics/bundle-parts-report.txt
+          python - <<'PY'
+          from pathlib import Path
+          root = Path('/tmp/chunks')
 
-      - name: Upload diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: bundle-parts-diagnostics-full
-          path: diagnostics/
+          def read(i):
+              return (root / f'chunk_{i:03d}.b64part').read_text()
+          def write(i, value):
+              (root / f'chunk_{i:03d}.b64part').write_text(value)
+
+          s = read(4)
+          assert s[10861] == 'a'
+          write(4, s[:10861] + 'e' + s[10862:])
+
+          s = read(5)
+          assert s[1888] == 'W'
+          write(5, s[:1888] + 'm' + s[1889:])
+
+          s = read(7)
+          write(7, s[:14097] + 'M' + s[14097:])
+
+          s = read(8)
+          assert s[4394] == 'a'
+          s = s[:4394] + 'e' + s[4395:]
+          assert s[13965] == 'i'
+          write(8, s[:13965] + s[13966:])
+          PY
+
+          cat > /tmp/expected-blobs.txt <<'EOF'
+          799979ae651c01978e5e80acab7a46bbf85adcdf  /tmp/chunks/chunk_000.b64part
+          201244d2e270e09d22505cb9b07c76ee453cece3  /tmp/chunks/chunk_001.b64part
+          a472ed031e475f85bf8c41140c375a206505d68d  /tmp/chunks/chunk_002.b64part
+          d8ad3be2ceac3e02a0934ebba8cfb88e018ec817  /tmp/chunks/chunk_003.b64part
+          aceca50f84267f2fc645293bbb7b4a0a44160400  /tmp/chunks/chunk_004.b64part
+          66ddf8bdc60382db324059fa4d82437c4c7726f4  /tmp/chunks/chunk_005.b64part
+          071cfea1ec99f1f8ef6297c445df0b1dbaa8dc14  /tmp/chunks/chunk_006.b64part
+          62deb0c5f8770105ae9857848fb2be6df5bac8a3  /tmp/chunks/chunk_007.b64part
+          e09ac13ebdff96e18e644424fd258a27455a09a8  /tmp/chunks/chunk_008.b64part
+          ba8e81ba0c61eaa1c75fdda439de6f11d85d3ce1  /tmp/chunks/chunk_009.b64part
+          EOF
+
+          while read -r expected file; do
+            actual="$(git hash-object "$file")"
+            test "$actual" = "$expected"
+          done < /tmp/expected-blobs.txt
+
+          cat /tmp/chunks/chunk_*.b64part > /tmp/varshavka.bundle.b64
+          test "$(wc -c < /tmp/varshavka.bundle.b64)" -eq 163580
+          base64 --decode /tmp/varshavka.bundle.b64 > /tmp/varshavka.bundle
+          echo "2f8ffc4ffae3bf6c531f966a1b2a2de7e3f59d1443233b1e843fe0573cd6497c  /tmp/varshavka.bundle" | sha256sum --check --strict
+          git bundle verify /tmp/varshavka.bundle
+
+      - name: Validate prepared release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone /tmp/varshavka.bundle /tmp/imported
+          cd /tmp/imported
+          test "$(git rev-parse refs/heads/main)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git rev-parse 'refs/heads/main^{tree}')" = "97ae8f92774c9b34599c397582c1877ef7e8f015"
+          test "$(git rev-parse refs/tags/v0.1.0)" = "03a9636dae585be65e4e80ee74f3e00f98731ead"
+          test "$(git rev-parse 'refs/tags/v0.1.0^{}')" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git ls-tree -r --name-only refs/heads/main | wc -l)" -eq 41
+          echo "96b3164b583bd0493041250f7951be0148fcbed08f33cb545e119bbcb1602569  models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx" | sha256sum --check --strict
+          test ! -e .bootstrap
+
+      - name: Publish exact history, tag and files
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd /tmp/imported
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force origin refs/heads/main:refs/heads/imported-v0.1.0
+          git push --force origin refs/tags/v0.1.0:refs/tags/v0.1.0
+          git push --force origin refs/heads/main:refs/heads/main
+
+      - name: Verify remote publication
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          test "$(git ls-remote "$REMOTE" refs/heads/main | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git ls-remote "$REMOTE" refs/heads/imported-v0.1.0 | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git ls-remote "$REMOTE" refs/tags/v0.1.0 | cut -f1)" = "03a9636dae585be65e4e80ee74f3e00f98731ead"
+          test "$(git ls-remote "$REMOTE" 'refs/tags/v0.1.0^{}' | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
