@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - '.bootstrap/bundle/chunk_009.b64part'
+      - '.github/workflows/import-bundle.yml'
+  schedule:
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
