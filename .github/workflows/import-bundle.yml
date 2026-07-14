@@ -7,8 +7,6 @@ on:
       - '.github/workflows/import-bundle.yml'
   pull_request:
     types: [opened, synchronize, reopened]
-  issues:
-    types: [opened]
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
@@ -22,7 +20,6 @@ concurrency:
 
 jobs:
   import:
-    if: github.event_name != 'issues' || github.event.issue.title == 'BOOTSTRAP: import prepared v0.1.0 bundle'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout bootstrap branch
