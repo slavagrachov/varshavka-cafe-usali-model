@@ -3,12 +3,7 @@ name: Import prepared repository bundle
 on:
   push:
     paths:
-      - '.bootstrap/bundle/chunk_009.b64part'
       - '.github/workflows/import-bundle.yml'
-  pull_request:
-    types: [opened, synchronize, reopened]
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -22,22 +17,35 @@ jobs:
   import:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout bootstrap branch
+      - name: Checkout bootstrap repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Assemble and verify bundle
+      - name: Assemble and verify prepared Git Bundle
         shell: bash
         run: |
           set -euo pipefail
-          test "$(find .bootstrap/bundle -maxdepth 1 -name 'chunk_*.b64part' | wc -l)" -eq 10
-          cat .bootstrap/bundle/chunk_*.b64part > /tmp/varshavka.bundle.b64
+          mkdir -p /tmp/chunks
+          cp .bootstrap/bundle/chunk_000.b64part /tmp/chunks/chunk_000.b64part
+          cp .bootstrap/bundle/chunk_001.b64part /tmp/chunks/chunk_001.b64part
+          cp .bootstrap/bundle/chunk_002.b64part /tmp/chunks/chunk_002.b64part
+          cat .bootstrap/fixed/fix_003_0_*.b64part > /tmp/chunks/chunk_003.b64part
+          cp .bootstrap/bundle/chunk_004.b64part /tmp/chunks/chunk_004.b64part
+          cp .bootstrap/bundle/chunk_005.b64part /tmp/chunks/chunk_005.b64part
+          cp .bootstrap/bundle/chunk_006.b64part /tmp/chunks/chunk_006.b64part
+          cp .bootstrap/bundle/chunk_007.b64part /tmp/chunks/chunk_007.b64part
+          cp .bootstrap/bundle/chunk_008.b64part /tmp/chunks/chunk_008.b64part
+          cp .bootstrap/bundle/chunk_009.b64part /tmp/chunks/chunk_009.b64part
+
+          test "$(find /tmp/chunks -maxdepth 1 -name 'chunk_*.b64part' | wc -l)" -eq 10
+          cat /tmp/chunks/chunk_*.b64part > /tmp/varshavka.bundle.b64
+          test "$(wc -c < /tmp/varshavka.bundle.b64)" -eq 163580
           base64 --decode /tmp/varshavka.bundle.b64 > /tmp/varshavka.bundle
           echo "2f8ffc4ffae3bf6c531f966a1b2a2de7e3f59d1443233b1e843fe0573cd6497c  /tmp/varshavka.bundle" | sha256sum --check --strict
           git bundle verify /tmp/varshavka.bundle
 
-      - name: Restore exact prepared history
+      - name: Restore exact prepared repository history
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -47,6 +55,7 @@ jobs:
           cd /tmp/imported
 
           test "$(git rev-parse refs/heads/main)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git rev-parse 'refs/heads/main^{tree}')" = "97ae8f92774c9b34599c397582c1877ef7e8f015"
           test "$(git rev-parse refs/tags/v0.1.0)" = "03a9636dae585be65e4e80ee74f3e00f98731ead"
           test "$(git rev-parse 'refs/tags/v0.1.0^{}')" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
           test "$(git ls-tree -r --name-only refs/heads/main | wc -l)" -eq 41
@@ -57,14 +66,14 @@ jobs:
           git push --force origin refs/tags/v0.1.0:refs/tags/v0.1.0
           git push --force origin refs/heads/main:refs/heads/main
 
-      - name: Verify remote refs
+      - name: Verify remote publication
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          test "$(git ls-remote "$REMOTE" refs/heads/imported-v0.1.0 | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
           test "$(git ls-remote "$REMOTE" refs/heads/main | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
+          test "$(git ls-remote "$REMOTE" refs/heads/imported-v0.1.0 | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
           test "$(git ls-remote "$REMOTE" refs/tags/v0.1.0 | cut -f1)" = "03a9636dae585be65e4e80ee74f3e00f98731ead"
           test "$(git ls-remote "$REMOTE" 'refs/tags/v0.1.0^{}' | cut -f1)" = "7a43168b3b4b8e4ddf5282ca9f43ae9812bcb841"
