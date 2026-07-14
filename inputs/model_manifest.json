@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "repository": "slavagrachov/varshavka-cafe-usali-model",
+  "model": {
+    "name": "VARSHAVKA Cafe USALI Model",
+    "version": "0.1.0",
+    "status": "operational-baseline",
+    "file": "models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx",
+    "sha256": "96b3164b583bd0493041250f7951be0148fcbed08f33cb545e119bbcb1602569",
+    "size_bytes": 106910,
+    "period_start": "2026-09-01",
+    "period_end": "2027-08-31",
+    "currency": "RUB",
+    "investment_module_included": false,
+    "sheets": [
+      "00_РЕЗЮМЕ",
+      "01_ВВОД",
+      "02_КАЛЕНДАРЬ",
+      "03_ДОХОДЫ",
+      "04_СЕБЕСТОИМОСТЬ",
+      "05_ФОТ",
+      "06_OPEX_USALI",
+      "07_PNL_НАЛОГИ",
+      "08_ПРОВЕРКИ"
+    ]
+  },
+  "businesses": [
+    "CAFE",
+    "BANQUETS"
+  ],
+  "key_outputs": {
+    "cafe_revenue": 32989000,
+    "banquet_revenue": 3600000,
+    "project_revenue": 36589000,
+    "cafe_net_result": -10463876.108374383,
+    "banquet_net_result": 1710000,
+    "project_net_result": -8753876.108374383,
+    "tax_payable": 365890,
+    "lost_cafe_revenue_due_to_banquets": 6082000
+  },
+  "validation": {
+    "formula_error_scan": "PASS",
+    "control_sheet": "PASS",
+    "known_limitations": [
+      "VAT not finalized",
+      "2027 holiday transfers require update",
+      "several OPEX items are assumptions",
+      "investment module excluded"
+    ]
+  },
+  "created_at": "2026-07-14"
+}
