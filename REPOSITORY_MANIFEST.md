@@ -1,5 +1,7 @@
 # Состав репозитория
 
+## Базовый релиз v0.1.0
+
 - `.gitattributes`
 - `.github/ISSUE_TEMPLATE/data-update.md`
 - `.github/ISSUE_TEMPLATE/model-change.md`
@@ -41,3 +43,22 @@
 - `scripts/publish_to_github.ps1`
 - `scripts/publish_to_github.sh`
 - `sources/README.md`
+
+## Сценарий S02
+
+- `docs/04-decisions/ADR-0004-S02-BANQUET-DAY-OPERATIONS.md`
+- `docs/06-validation/SCENARIO_S02_VALIDATION.md`
+- `docs/07-operations/SCENARIO_S02_PUBLICATION.md`
+- `docs/08-releases/S02-v0.1.0.md`
+- `docs/scenarios/SCENARIO_REGISTER.md`
+- `docs/scenarios/SCENARIO_S02.md`
+- `docs/scenarios/SCENARIO_S02_RESULTS.md`
+- `inputs/scenarios/S02_inputs.csv`
+- `models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx`
+- `models/scenarios/S02/SHA256SUMS.txt`
+
+## Итого
+
+- Базовых файлов: 41
+- Новых файлов S02: 10
+- Всего отслеживаемых файлов после merge: 51
