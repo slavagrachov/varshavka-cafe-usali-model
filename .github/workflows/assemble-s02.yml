@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/2-banquet-day-and-hotel-dinners
     paths:
-      - '.s02_upload/chunk_14.b64'
+      - '.s02_upload/chunk_141.b64'
 
 permissions:
   contents: write
