@@ -1,13 +1,12 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "repository": "slavagrachov/varshavka-cafe-usali-model",
-  "model": {
+  "baseline": {
     "name": "VARSHAVKA Cafe USALI Model",
     "version": "0.1.0",
     "status": "operational-baseline",
     "file": "models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx",
     "sha256": "96b3164b583bd0493041250f7951be0148fcbed08f33cb545e119bbcb1602569",
-    "size_bytes": 106910,
     "period_start": "2026-09-01",
     "period_end": "2027-08-31",
     "currency": "RUB",
@@ -24,29 +23,55 @@
       "08_ПРОВЕРКИ"
     ]
   },
-  "businesses": [
-    "CAFE",
-    "BANQUETS"
+  "scenarios": [
+    {
+      "code": "S02",
+      "version": "0.1.0",
+      "status": "ready-for-review",
+      "issue": 4,
+      "branch": "scenario/2-banquet-day-and-hotel-dinners",
+      "file": "models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx",
+      "sha256": "1023889898d46a17efd1457b883ac33342c71f74a836edc54e9264103caf2eb8",
+      "size_bytes": 111523,
+      "sheets": [
+        "00_РЕЗЮМЕ",
+        "01_ВВОД",
+        "02_КАЛЕНДАРЬ",
+        "03_ДОХОДЫ",
+        "04_СЕБЕСТОИМОСТЬ",
+        "05_ФОТ",
+        "06_OPEX_USALI",
+        "07_PNL_НАЛОГИ",
+        "08_ПРОВЕРКИ",
+        "09_СРАВНЕНИЕ_S02"
+      ],
+      "key_rules": {
+        "hotel_breakfasts_on_banquet_day": 1.0,
+        "business_lunch_on_banquet_workday": 1.0,
+        "a_la_carte_on_banquet_day": 0.2,
+        "delivery_on_banquet_day": 1.0,
+        "pickup_on_banquet_day": 1.0,
+        "hotel_dinner_ratio_to_breakfasts": 0.5
+      },
+      "key_outputs": {
+        "cafe_revenue": 38497700,
+        "banquet_revenue": 3600000,
+        "project_revenue": 42097700,
+        "cafe_cogs": 14006708.485714287,
+        "cafe_gop": -6214655.451231526,
+        "cafe_net_result": -7670432.451231524,
+        "banquet_net_result": 1710000,
+        "project_net_result": -5960432.451231525,
+        "hotel_dinner_revenue": 2007500,
+        "lost_cafe_revenue_due_to_banquets": 2580800
+      },
+      "validation": {
+        "formula_count": 6588,
+        "formula_error_scan": "PASS",
+        "control_checks": "20/20 PASS",
+        "baseline_unchanged": true
+      }
+    }
   ],
-  "key_outputs": {
-    "cafe_revenue": 32989000,
-    "banquet_revenue": 3600000,
-    "project_revenue": 36589000,
-    "cafe_net_result": -10463876.108374383,
-    "banquet_net_result": 1710000,
-    "project_net_result": -8753876.108374383,
-    "tax_payable": 365890,
-    "lost_cafe_revenue_due_to_banquets": 6082000
-  },
-  "validation": {
-    "formula_error_scan": "PASS",
-    "control_sheet": "PASS",
-    "known_limitations": [
-      "VAT not finalized",
-      "2027 holiday transfers require update",
-      "several OPEX items are assumptions",
-      "investment module excluded"
-    ]
-  },
-  "created_at": "2026-07-14"
+  "updated_at": "2026-07-15"
 }

@@ -1,0 +1,42 @@
+name: Assemble S02 Excel model
+
+on:
+  push:
+    branches:
+      - scenario/2-banquet-day-and-hotel-dinners
+    paths:
+      - '.s02_upload/chunk_141.b64'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scenario branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assemble and validate Excel file
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .s02_upload/chunk_*.b64 > /tmp/s02.xlsx.b64
+          test "$(wc -c < /tmp/s02.xlsx.b64)" -eq 148700
+          base64 --decode /tmp/s02.xlsx.b64 > models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx
+          echo "1023889898d46a17efd1457b883ac33342c71f74a836edc54e9264103caf2eb8  models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx" | sha256sum --check --strict
+          test "$(stat -c %s models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx)" -eq 111523
+
+      - name: Commit final package and remove transport files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf .s02_upload
+          rm -f .github/workflows/assemble-s02.yml
+          git add -A
+          git commit -m "model: add S02 banquet-day operations and hotel dinners"
+          git push origin HEAD:scenario/2-banquet-day-and-hotel-dinners
