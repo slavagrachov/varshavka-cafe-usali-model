@@ -27,9 +27,13 @@
     {
       "code": "S02",
       "version": "0.1.0",
-      "status": "ready-for-review",
+      "status": "approved",
       "issue": 4,
-      "branch": "scenario/2-banquet-day-and-hotel-dinners",
+      "pull_request": 5,
+      "merged_to": "main",
+      "merged_at": "2026-07-15",
+      "development_branch": "scenario/2-banquet-day-and-hotel-dinners",
+      "development_branch_status": "deleted-after-merge",
       "file": "models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx",
       "sha256": "1023889898d46a17efd1457b883ac33342c71f74a836edc54e9264103caf2eb8",
       "size_bytes": 111523,
@@ -69,7 +73,8 @@
         "formula_count": 6588,
         "formula_error_scan": "PASS",
         "control_checks": "20/20 PASS",
-        "baseline_unchanged": true
+        "baseline_unchanged": true,
+        "repository_cleanup": "PASS after corrective PR"
       }
     }
   ],
