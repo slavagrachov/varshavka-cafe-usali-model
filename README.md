@@ -18,9 +18,9 @@
 
 ## Альтернативные сценарии
 
-| Код | Описание | Статус | Issue | Файл |
-|---|---|---|---:|---|
-| `S02` | Банкетный день с дневной работой кафе и ужинами гостиницы | ready for review | #4 | `models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx` |
+| Код | Описание | Статус | Issue | Публикация | Файл |
+|---|---|---|---:|---|---|
+| `S02` | Банкетный день с дневной работой кафе и ужинами гостиницы | approved | #4 | merged into `main` via PR #5 | `models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx` |
 
 ### Ключевые правила S02
 
