@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(find .s02_upload -maxdepth 1 -name 'chunk_*.b64' | wc -l)" -eq 16
+          test "$(find .s02_upload -maxdepth 1 -name 'chunk_*.b64' | wc -l)" -eq 17
           cat .s02_upload/chunk_*.b64 > /tmp/s02.xlsx.b64
           test "$(wc -c < /tmp/s02.xlsx.b64)" -eq 148700
           base64 --decode /tmp/s02.xlsx.b64 > models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx
