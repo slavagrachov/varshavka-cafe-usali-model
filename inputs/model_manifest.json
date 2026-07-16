@@ -1,27 +1,12 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "repository": "slavagrachov/varshavka-cafe-usali-model",
   "baseline": {
-    "name": "VARSHAVKA Cafe USALI Model",
     "version": "0.1.0",
-    "status": "operational-baseline",
+    "status": "approved",
     "file": "models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx",
     "sha256": "96b3164b583bd0493041250f7951be0148fcbed08f33cb545e119bbcb1602569",
-    "period_start": "2026-09-01",
-    "period_end": "2027-08-31",
-    "currency": "RUB",
-    "investment_module_included": false,
-    "sheets": [
-      "00_РЕЗЮМЕ",
-      "01_ВВОД",
-      "02_КАЛЕНДАРЬ",
-      "03_ДОХОДЫ",
-      "04_СЕБЕСТОИМОСТЬ",
-      "05_ФОТ",
-      "06_OPEX_USALI",
-      "07_PNL_НАЛОГИ",
-      "08_ПРОВЕРКИ"
-    ]
+    "period": "2026-09-01/2027-08-31"
   },
   "scenarios": [
     {
@@ -30,54 +15,39 @@
       "status": "approved",
       "issue": 4,
       "pull_request": 5,
-      "cleanup_pull_request": 6,
-      "merged_to": "main",
-      "merged_at": "2026-07-15",
-      "development_branch": "scenario/2-banquet-day-and-hotel-dinners",
-      "development_branch_status": "deleted-after-merge",
       "file": "models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx",
       "sha256": "1023889898d46a17efd1457b883ac33342c71f74a836edc54e9264103caf2eb8",
-      "size_bytes": 111523,
-      "sheets": [
-        "00_РЕЗЮМЕ",
-        "01_ВВОД",
-        "02_КАЛЕНДАРЬ",
-        "03_ДОХОДЫ",
-        "04_СЕБЕСТОИМОСТЬ",
-        "05_ФОТ",
-        "06_OPEX_USALI",
-        "07_PNL_НАЛОГИ",
-        "08_ПРОВЕРКИ",
-        "09_СРАВНЕНИЕ_S02"
-      ],
-      "key_rules": {
-        "hotel_breakfasts_on_banquet_day": 1.0,
-        "business_lunch_on_banquet_workday": 1.0,
-        "a_la_carte_on_banquet_day": 0.2,
-        "delivery_on_banquet_day": 1.0,
-        "pickup_on_banquet_day": 1.0,
-        "hotel_dinner_ratio_to_breakfasts": 0.5
-      },
-      "key_outputs": {
-        "cafe_revenue": 38497700,
-        "banquet_revenue": 3600000,
-        "project_revenue": 42097700,
-        "cafe_cogs": 14006708.485714287,
-        "cafe_gop": -6214655.451231526,
-        "cafe_net_result": -7670432.451231524,
-        "banquet_net_result": 1710000,
-        "project_net_result": -5960432.451231525,
-        "hotel_dinner_revenue": 2007500,
-        "lost_cafe_revenue_due_to_banquets": 2580800
-      },
-      "validation": {
-        "formula_count": 6588,
-        "formula_error_scan": "PASS",
-        "control_checks": "20/20 PASS",
-        "baseline_unchanged": true,
-        "repository_cleanup": "PASS"
-      }
+      "project_revenue": 42097700,
+      "project_net_result": -5960432.451231525,
+      "formula_count": 6588,
+      "checks": "21/21 PASS"
+    },
+    {
+      "code": "S03",
+      "version": "0.1.0-draft",
+      "status": "draft",
+      "issue": 8,
+      "branch": "scenario/3-opex-optimization-and-dinner-check",
+      "source_file": "models/scenarios/S03/source/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.2.0.xlsx",
+      "source_internal_code": "S02",
+      "sha256": "800085ab2feea74ebaf5a038c50f8283ff6e2f1a0ef13362985433279b1b0a8f",
+      "size_bytes": 137029,
+      "changed_inputs": 11,
+      "formula_changes_vs_s02": 0,
+      "project_revenue": 43740200,
+      "project_net_result": -4355032.451231525,
+      "delta_project_revenue_vs_s02": 1642500,
+      "delta_project_net_result_vs_s02": 1605400,
+      "annual_opex_without_personnel": 5170800,
+      "hotel_dinner_check": 1000,
+      "formula_count": 6588,
+      "checks": "21/21 PASS",
+      "blocking_issues": [
+        "LUNCH_CHECK is 750 while confirmed value is 650",
+        "workbook internal labels still identify scenario S02",
+        "zero OPEX values require evidence"
+      ]
     }
   ],
-  "updated_at": "2026-07-15"
+  "updated_at": "2026-07-16"
 }
