@@ -30,6 +30,7 @@
       "status": "approved",
       "issue": 4,
       "pull_request": 5,
+      "cleanup_pull_request": 6,
       "merged_to": "main",
       "merged_at": "2026-07-15",
       "development_branch": "scenario/2-banquet-day-and-hotel-dinners",
@@ -75,6 +76,7 @@
         "control_checks": "20/20 PASS",
         "baseline_unchanged": true,
         "repository_cleanup": "PASS after corrective PR"
+        "repository_cleanup": "PASS"
       }
     }
   ],
