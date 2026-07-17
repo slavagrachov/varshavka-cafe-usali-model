@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/9-revised-dinner-pricing-and-opex
     paths:
-      - '.s03_publish/part_11.b64'
+      - '.s03_publish/package.b64'
 
 permissions:
   contents: write
@@ -23,8 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .s03_publish/part_*.b64 > /tmp/s03_overlay.zip.b64
-          base64 --decode /tmp/s03_overlay.zip.b64 > /tmp/s03_overlay.zip
+          base64 --decode .s03_publish/package.b64 > /tmp/s03_overlay.zip
           test "$(stat -c %s /tmp/s03_overlay.zip)" -eq 121136
           echo "bbaf3fd76977a52e46cc028e080ae9b0d69af237634154fc7b0364ef040a0ef6  /tmp/s03_overlay.zip" | sha256sum --check --strict
           mkdir -p /tmp/s03_overlay
