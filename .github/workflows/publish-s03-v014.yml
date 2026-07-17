@@ -1,0 +1,49 @@
+name: Publish S03 v0.1.4 package
+
+on:
+  push:
+    branches:
+      - scenario/9-revised-dinner-pricing-and-opex
+    paths:
+      - '.s03_publish/part_05.b64'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assemble and verify package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .s03_publish/part_*.b64 > /tmp/s03_overlay.zip.b64
+          base64 --decode /tmp/s03_overlay.zip.b64 > /tmp/s03_overlay.zip
+          test "$(stat -c %s /tmp/s03_overlay.zip)" -eq 121136
+          echo "bbaf3fd76977a52e46cc028e080ae9b0d69af237634154fc7b0364ef040a0ef6  /tmp/s03_overlay.zip" | sha256sum --check --strict
+          mkdir -p /tmp/s03_overlay
+          unzip -q /tmp/s03_overlay.zip -d /tmp/s03_overlay
+
+      - name: Apply package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -a /tmp/s03_overlay/. .
+          rm -rf .s03_publish
+          rm -f .github/workflows/publish-s03-v014.yml
+
+      - name: Commit published S03
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "model: add S03 v0.1.4 with dinner COGS link"
+          git push origin HEAD:scenario/9-revised-dinner-pricing-and-opex
