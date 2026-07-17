@@ -75,6 +75,7 @@
         "formula_error_scan": "PASS",
         "control_checks": "20/20 PASS",
         "baseline_unchanged": true,
+        "repository_cleanup": "PASS after corrective PR"
         "repository_cleanup": "PASS"
       }
     }
