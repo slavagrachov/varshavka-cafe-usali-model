@@ -1,0 +1,8 @@
+code,section,parameter,value,unit,status,source
+S02_BANQ_ALA_SHARE,Scenario S02,A-la carte share on banquet day,0.20,share,confirmed,User / Issue #4
+S02_DAY_END,Scenario S02,Day operations end time,17,hour,confirmed,User / Issue #4
+S02_DINNER_RATIO,Hotel dinners,Dinners as share of breakfasts,0.50,share,confirmed,User / Issue #4
+S02_DINNER_CHECK,Hotel dinners,Average dinner check,550,RUB per dinner,working assumption,Equal to breakfast check until approved
+S02_DINNER_COGS,Hotel dinners,Dinner food cost,0.50,share of revenue,working assumption,Equal to hotel breakfast food cost until approved
+S02_DINNER_PACK,Hotel dinners,Dinner packaging,0,RUB per dinner,working assumption,Zero until packaging is confirmed
+S02_DINNER_CASHLESS,Hotel dinners,Cashless payment share,1.00,share,working assumption,100 percent until clarified
