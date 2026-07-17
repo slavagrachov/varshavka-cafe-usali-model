@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/9-revised-dinner-pricing-and-opex
     paths:
-      - '.s03_publish/part_09.hex'
+      - '.s03_publish/part_16.hex'
 
 permissions:
   contents: write
@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .s03_publish/part_*.hex > /tmp/s03_bootstrap.hex
+          cat .s03_publish/test_000.hex .s03_publish/test_001.hex .s03_publish/test_002.hex .s03_publish/test_003.hex .s03_publish/part_*.hex > /tmp/s03_bootstrap.hex
           python - <<'PY'
           from pathlib import Path
           data = bytes.fromhex(Path('/tmp/s03_bootstrap.hex').read_text().strip())
