@@ -47,6 +47,47 @@
         "workbook internal labels still identify scenario S02",
         "zero OPEX values require evidence"
       ]
+      "size_bytes": 111523,
+      "sheets": [
+        "00_РЕЗЮМЕ",
+        "01_ВВОД",
+        "02_КАЛЕНДАРЬ",
+        "03_ДОХОДЫ",
+        "04_СЕБЕСТОИМОСТЬ",
+        "05_ФОТ",
+        "06_OPEX_USALI",
+        "07_PNL_НАЛОГИ",
+        "08_ПРОВЕРКИ",
+        "09_СРАВНЕНИЕ_S02"
+      ],
+      "key_rules": {
+        "hotel_breakfasts_on_banquet_day": 1.0,
+        "business_lunch_on_banquet_workday": 1.0,
+        "a_la_carte_on_banquet_day": 0.2,
+        "delivery_on_banquet_day": 1.0,
+        "pickup_on_banquet_day": 1.0,
+        "hotel_dinner_ratio_to_breakfasts": 0.5
+      },
+      "key_outputs": {
+        "cafe_revenue": 38497700,
+        "banquet_revenue": 3600000,
+        "project_revenue": 42097700,
+        "cafe_cogs": 14006708.485714287,
+        "cafe_gop": -6214655.451231526,
+        "cafe_net_result": -7670432.451231524,
+        "banquet_net_result": 1710000,
+        "project_net_result": -5960432.451231525,
+        "hotel_dinner_revenue": 2007500,
+        "lost_cafe_revenue_due_to_banquets": 2580800
+      },
+      "validation": {
+        "formula_count": 6588,
+        "formula_error_scan": "PASS",
+        "control_checks": "20/20 PASS",
+        "baseline_unchanged": true,
+        "repository_cleanup": "PASS after corrective PR"
+        "repository_cleanup": "PASS"
+      }
     }
   ],
   "updated_at": "2026-07-16"
