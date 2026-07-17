@@ -1,0 +1,49 @@
+name: Assemble S03 source workbook
+
+on:
+  push:
+    branches:
+      - scenario/3-opex-optimization-and-dinner-check
+    paths:
+      - '.s03_upload/part_13.hex'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scenario branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assemble and validate source workbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .s03_upload/part_*.hex > /tmp/s03.hex
+          test "$(wc -c < /tmp/s03.hex)" -eq 274058
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          data = bytes.fromhex(Path('/tmp/s03.hex').read_text().strip())
+          target = Path('models/scenarios/S03/source/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.2.0.xlsx')
+          target.parent.mkdir(parents=True, exist_ok=True)
+          target.write_bytes(data)
+          assert len(data) == 137029
+          assert hashlib.sha256(data).hexdigest() == '800085ab2feea74ebaf5a038c50f8283ff6e2f1a0ef13362985433279b1b0a8f'
+          PY
+
+      - name: Commit workbook and remove transport files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf .s03_upload
+          rm -f .github/workflows/assemble-s03.yml
+          git add -A
+          git commit -m "model: add S03 source workbook"
+          git push origin HEAD:scenario/3-opex-optimization-and-dinner-check
