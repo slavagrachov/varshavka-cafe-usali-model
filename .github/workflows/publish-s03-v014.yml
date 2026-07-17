@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/9-revised-dinner-pricing-and-opex
     paths:
-      - '.s03_publish/part_05.b64'
+      - '.s03_publish/part_11.b64'
 
 permissions:
   contents: write
