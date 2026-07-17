@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/9-revised-dinner-pricing-and-opex
     paths:
-      - '.s03_publish/docs_01.b64'
+      - '.s03_publish/part_09.hex'
 
 permissions:
   contents: write
@@ -19,19 +19,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode and verify payloads
+      - name: Decode and verify bootstrap package
         shell: bash
         run: |
           set -euo pipefail
-          cat .s03_publish/model_*.b64 > /tmp/s03_model.patch.b64
-          base64 --decode /tmp/s03_model.patch.b64 > /tmp/s03_model.patch
-          test "$(stat -c %s /tmp/s03_model.patch)" -eq 57371
-          echo "bd5075e998a98d307ca1c8d3feb268f7998a74f7bdd6bb02e33c21f2651fbd61  /tmp/s03_model.patch" | sha256sum --check --strict
-
-          cat .s03_publish/docs_*.b64 > /tmp/s03_docs.zip.b64
-          base64 --decode /tmp/s03_docs.zip.b64 > /tmp/s03_docs.zip
-          test "$(stat -c %s /tmp/s03_docs.zip)" -eq 16596
-          echo "5507b2abd6849c91916807d0f355bbe350734964d60f1e0f3463add969d4399b  /tmp/s03_docs.zip" | sha256sum --check --strict
+          cat .s03_publish/part_*.hex > /tmp/s03_bootstrap.hex
+          python - <<'PY'
+          from pathlib import Path
+          data = bytes.fromhex(Path('/tmp/s03_bootstrap.hex').read_text().strip())
+          Path('/tmp/s03_bootstrap.zip').write_bytes(data)
+          PY
+          test "$(stat -c %s /tmp/s03_bootstrap.zip)" -eq 74071
+          echo "c88bbd443dd6c4e11a168094d6d0d4896d0e4ca86d247d63b7b038cb70368a09  /tmp/s03_bootstrap.zip" | sha256sum --check --strict
+          mkdir -p /tmp/s03_bootstrap
+          unzip -q /tmp/s03_bootstrap.zip -d /tmp/s03_bootstrap
 
       - name: Reconstruct exact S03 workbook
         shell: bash
@@ -43,8 +44,8 @@ jobs:
           import bsdiff4, hashlib
 
           base = Path('models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx')
-          patch = Path('/tmp/s03_model.patch')
-          target = Path('models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx')
+          patch = Path('/tmp/s03_bootstrap/_payload/model.patch')
+          target = Path('/tmp/s03_bootstrap/models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx')
           target.parent.mkdir(parents=True, exist_ok=True)
 
           result = bsdiff4.patch(base.read_bytes(), patch.read_bytes())
@@ -54,13 +55,12 @@ jobs:
           assert hashlib.sha256(result).hexdigest() == '4af4208da64b4dcf721edb626e590c1c57e2de6588d564409ec6a4b383bd29f3'
           PY
 
-      - name: Apply documentation package
+      - name: Apply package
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/s03_docs
-          unzip -q /tmp/s03_docs.zip -d /tmp/s03_docs
-          cp -a /tmp/s03_docs/. .
+          rm -rf /tmp/s03_bootstrap/_payload
+          cp -a /tmp/s03_bootstrap/. .
           rm -rf .s03_publish
           rm -f .github/workflows/publish-s03-v014.yml
 
