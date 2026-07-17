@@ -7,7 +7,7 @@
 - Issue: `#4 — model: разработать альтернативный операционный сценарий`
 - Рабочая ветка: `scenario/2-banquet-day-and-hotel-dinners`
 - Статус ветки: удалена после merge
-- Pull Request: `#5 — Scenario/2 banquet day and hotel dinners`
+- Pull Request публикации: `#5 — model: add S02 banquet-day operations and hotel dinners`
 - Дата merge: 15 июля 2026 года
 - Pull Request публикации: `#5 — model: add S02 banquet-day operations and hotel dinners`
 - Дата merge: 15 июля 2026 года
