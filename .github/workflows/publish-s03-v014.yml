@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/9-revised-dinner-pricing-and-opex
     paths:
-      - '.s03_publish/docs.zip.b64'
+      - '.s03_publish/docs_01.b64'
 
 permissions:
   contents: write
@@ -28,7 +28,8 @@ jobs:
           test "$(stat -c %s /tmp/s03_model.patch)" -eq 57371
           echo "bd5075e998a98d307ca1c8d3feb268f7998a74f7bdd6bb02e33c21f2651fbd61  /tmp/s03_model.patch" | sha256sum --check --strict
 
-          base64 --decode .s03_publish/docs.zip.b64 > /tmp/s03_docs.zip
+          cat .s03_publish/docs_*.b64 > /tmp/s03_docs.zip.b64
+          base64 --decode /tmp/s03_docs.zip.b64 > /tmp/s03_docs.zip
           test "$(stat -c %s /tmp/s03_docs.zip)" -eq 16596
           echo "5507b2abd6849c91916807d0f355bbe350734964d60f1e0f3463add969d4399b  /tmp/s03_docs.zip" | sha256sum --check --strict
 
