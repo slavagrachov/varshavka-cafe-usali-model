@@ -9,3 +9,9 @@ __pycache__/
 .env.*
 secrets/
 private/
+
+# Jupyter Book build output
+book/_build/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
