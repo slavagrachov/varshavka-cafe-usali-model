@@ -18,7 +18,9 @@
 |---|---:|---|---:|---|
 | BASE | 0.1.0 | approved | — | `models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx` |
 | S02 | 0.1.0 | approved | #4 | `models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx` |
-| S03 | 0.1.4 | ready for review | #9 | `models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx` |
+| S03 | 0.1.4 | approved | #9 | `models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx` |
+
+S03 v0.1.4 объединён с `main` через Pull Request №18 и подготовлен к созданию Tag и GitHub Release.
 
 ## S03 v0.1.4
 
