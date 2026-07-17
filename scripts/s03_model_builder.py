@@ -2,8 +2,9 @@ from copy import copy
 from pathlib import Path
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.workbook.properties import CalcProperties
 
-SOURCE=Path('models/scenarios/S03/source/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.2.0.xlsx')
+SOURCE=Path('models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx')
 TARGET=Path('models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx')
 BRANCH='scenario/9-revised-dinner-pricing-and-opex'
 
@@ -12,6 +13,7 @@ def put(ws, values):
 
 def build_model():
     wb=load_workbook(SOURCE,data_only=False)
+    if wb.calculation is None: wb.calculation=CalcProperties()
     wb.calculation.calcMode='auto'; wb.calculation.fullCalcOnLoad=True; wb.calculation.forceFullCalc=True
     wb['00_РЕЗЮМЕ']['A1']='VARSHAVKA — Сценарий S03'
     i=wb['01_ВВОД']
@@ -29,7 +31,8 @@ def build_model():
       'G123':'Наследовано из S02; требует подтверждения.','G124':'Наследовано из S02; требует подтверждения.',
       'D27':0.25,'F27':'Подтверждено','G27':'Пользователь, 17.07.2026; скидка 25% от среднего чека a-la carte',
       'D28':'=D18*(1-D27)','F28':'Расчёт','G28':'Средний чек a-la carte × (1 − скидка) = 1 000 × 75% = 750 руб.',
-      'G29':'30% / (1 − 25%)'})
+      'G29':'30% / (1 − 25%)','D88':0,'D89':0,'D90':0,'D91':2000,'D93':2000,'D95':5000,
+      'D101':0,'D102':0,'D107':0,'D116':15000,'D121':1000})
     i['D122'].font=copy(i['D29'].font); i['D122'].fill=copy(i['D29'].fill)
     wb['03_ДОХОДЫ']['A2']='Сценарий S03 наследует бизнес-ланч S02. Чек ужина — 1 000 руб.; food cost ужина равен food cost a-la carte; пересмотрены OPEX-inputs.'
     wb['04_СЕБЕСТОИМОСТЬ']['C42']='Food cost ужинов 30% — как a-la carte'
