@@ -1,11 +1,9 @@
 name: Publish S03 v0.1.4
 
 on:
-  push:
-    branches:
-      - scenario/9-revised-dinner-pricing-and-opex
-    paths:
-      - '.s03_publish/go.txt'
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [main]
 
 permissions:
   contents: write
@@ -14,9 +12,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Checkout target branch
         uses: actions/checkout@v4
         with:
+          ref: scenario/9-revised-dinner-pricing-and-opex
           fetch-depth: 0
 
       - name: Build and validate S03
@@ -38,13 +37,12 @@ jobs:
           size = len(data)
           write_data_docs(sha, size, core, total)
 
-          files = [
+          for path in [
               Path('README.md'),
               Path('docs/scenarios/SCENARIO_S03_v0.1.4.md'),
               Path('docs/06-validation/SCENARIO_S03_v0.1.4_VALIDATION.md'),
               Path('docs/08-releases/S03-v0.1.4.md'),
-          ]
-          for path in files:
+          ]:
               text = path.read_text(encoding='utf-8')
               text = text.replace('__S03_SHA__', sha).replace('__S03_SIZE__', str(size))
               path.write_text(text, encoding='utf-8')
