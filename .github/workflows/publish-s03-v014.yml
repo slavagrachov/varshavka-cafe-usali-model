@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/9-revised-dinner-pricing-and-opex
     paths:
-      - '.s03_publish/package.b64'
+      - '.s03_publish/docs.zip.b64'
 
 permissions:
   contents: write
@@ -19,70 +19,47 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode and verify bootstrap package
+      - name: Decode and verify payloads
         shell: bash
         run: |
           set -euo pipefail
-          base64 --decode .s03_publish/package.b64 > /tmp/s03_bootstrap.zip
-          test "$(stat -c %s /tmp/s03_bootstrap.zip)" -eq 74062
-          echo "e1d8e4b00d56638d2a0fdccf58007bc2d4399fee6d9a5a0ad1e1cbbd12ab8291  /tmp/s03_bootstrap.zip" | sha256sum --check --strict
-          mkdir -p /tmp/s03_bootstrap
-          unzip -q /tmp/s03_bootstrap.zip -d /tmp/s03_bootstrap
+          cat .s03_publish/model_*.b64 > /tmp/s03_model.patch.b64
+          base64 --decode /tmp/s03_model.patch.b64 > /tmp/s03_model.patch
+          test "$(stat -c %s /tmp/s03_model.patch)" -eq 57371
+          echo "bd5075e998a98d307ca1c8d3feb268f7998a74f7bdd6bb02e33c21f2651fbd61  /tmp/s03_model.patch" | sha256sum --check --strict
 
-      - name: Reconstruct exact S03 workbook content
+          base64 --decode .s03_publish/docs.zip.b64 > /tmp/s03_docs.zip
+          test "$(stat -c %s /tmp/s03_docs.zip)" -eq 16596
+          echo "5507b2abd6849c91916807d0f355bbe350734964d60f1e0f3463add969d4399b  /tmp/s03_docs.zip" | sha256sum --check --strict
+
+      - name: Reconstruct exact S03 workbook
         shell: bash
         run: |
           set -euo pipefail
+          python -m pip install --quiet bsdiff4
           python - <<'PY'
           from pathlib import Path
-          from zipfile import ZipFile, ZIP_DEFLATED
-          import hashlib
+          import bsdiff4, hashlib
 
           base = Path('models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx')
-          patch = Path('/tmp/s03_bootstrap/_payload/s03_xlsx_patch.zip')
-          target = Path('/tmp/s03_bootstrap/models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx')
+          patch = Path('/tmp/s03_model.patch')
+          target = Path('models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx')
           target.parent.mkdir(parents=True, exist_ok=True)
 
-          with ZipFile(base, 'r') as zb, ZipFile(patch, 'r') as zp, ZipFile(target, 'w', ZIP_DEFLATED) as zo:
-              patch_names = set(zp.namelist())
-              base_names = zb.namelist()
-              for name in base_names:
-                  data = zp.read(name) if name in patch_names else zb.read(name)
-                  zo.writestr(name, data)
-              for name in zp.namelist():
-                  if name not in base_names:
-                      zo.writestr(name, zp.read(name))
+          result = bsdiff4.patch(base.read_bytes(), patch.read_bytes())
+          target.write_bytes(result)
 
-          data = target.read_bytes()
-          sha = hashlib.sha256(data).hexdigest()
-          size = len(data)
-
-          root = Path('/tmp/s03_bootstrap')
-          for path in root.rglob('*'):
-              if not path.is_file() or '_payload' in path.parts or path == target:
-                  continue
-              try:
-                  text = path.read_text(encoding='utf-8')
-              except UnicodeDecodeError:
-                  continue
-              text = text.replace('__S03_SHA__', sha).replace('__S03_SIZE__', str(size))
-              path.write_text(text, encoding='utf-8')
-
-          sha_file = root / 'models/scenarios/S03/SHA256SUMS.txt'
-          if sha_file.exists():
-              text = sha_file.read_text(encoding='utf-8').replace('__S03_SHA__', sha)
-              sha_file.write_text(text, encoding='utf-8')
-
-          print(f'S03_SHA={sha}')
-          print(f'S03_SIZE={size}')
+          assert len(result) == 118378
+          assert hashlib.sha256(result).hexdigest() == '4af4208da64b4dcf721edb626e590c1c57e2de6588d564409ec6a4b383bd29f3'
           PY
 
-      - name: Apply package
+      - name: Apply documentation package
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf /tmp/s03_bootstrap/_payload
-          cp -a /tmp/s03_bootstrap/. .
+          mkdir -p /tmp/s03_docs
+          unzip -q /tmp/s03_docs.zip -d /tmp/s03_docs
+          cp -a /tmp/s03_docs/. .
           rm -rf .s03_publish
           rm -f .github/workflows/publish-s03-v014.yml
 
