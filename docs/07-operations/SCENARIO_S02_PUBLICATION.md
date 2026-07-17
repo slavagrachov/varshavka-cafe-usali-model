@@ -7,6 +7,8 @@
 - Issue: `#4 — model: разработать альтернативный операционный сценарий`
 - Рабочая ветка: `scenario/2-banquet-day-and-hotel-dinners`
 - Статус ветки: удалена после merge
+- Pull Request: `#5 — Scenario/2 banquet day and hotel dinners`
+- Дата merge: 15 июля 2026 года
 - Pull Request публикации: `#5 — model: add S02 banquet-day operations and hotel dinners`
 - Дата merge: 15 июля 2026 года
 - Техническая очистка: Pull Request #6
@@ -33,6 +35,7 @@
 - все 20 проверок имеют статус `OK`;
 - README, CHANGELOG и manifest обновлены;
 - присутствуют ADR, validation report и release notes;
+- временные транспортные файлы удаляются отдельным корректирующим Pull Request.
 - временные транспортные файлы удалены;
 - временный workflow сборки удалён;
 - итоговое количество файлов соответствует `REPOSITORY_MANIFEST.md`.
