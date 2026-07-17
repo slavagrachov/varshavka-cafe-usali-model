@@ -5,7 +5,7 @@ on:
     branches:
       - scenario/9-revised-dinner-pricing-and-opex
     paths:
-      - '.s03_publish/part_11.b64'
+      - '.s03_publish/package.b64'
 
 permissions:
   contents: write
@@ -19,22 +19,70 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Assemble and verify package
+      - name: Decode and verify bootstrap package
         shell: bash
         run: |
           set -euo pipefail
-          cat .s03_publish/part_*.b64 > /tmp/s03_overlay.zip.b64
-          base64 --decode /tmp/s03_overlay.zip.b64 > /tmp/s03_overlay.zip
-          test "$(stat -c %s /tmp/s03_overlay.zip)" -eq 121136
-          echo "bbaf3fd76977a52e46cc028e080ae9b0d69af237634154fc7b0364ef040a0ef6  /tmp/s03_overlay.zip" | sha256sum --check --strict
-          mkdir -p /tmp/s03_overlay
-          unzip -q /tmp/s03_overlay.zip -d /tmp/s03_overlay
+          base64 --decode .s03_publish/package.b64 > /tmp/s03_bootstrap.zip
+          test "$(stat -c %s /tmp/s03_bootstrap.zip)" -eq 74062
+          echo "e1d8e4b00d56638d2a0fdccf58007bc2d4399fee6d9a5a0ad1e1cbbd12ab8291  /tmp/s03_bootstrap.zip" | sha256sum --check --strict
+          mkdir -p /tmp/s03_bootstrap
+          unzip -q /tmp/s03_bootstrap.zip -d /tmp/s03_bootstrap
+
+      - name: Reconstruct exact S03 workbook content
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+          import hashlib
+
+          base = Path('models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx')
+          patch = Path('/tmp/s03_bootstrap/_payload/s03_xlsx_patch.zip')
+          target = Path('/tmp/s03_bootstrap/models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.4.xlsx')
+          target.parent.mkdir(parents=True, exist_ok=True)
+
+          with ZipFile(base, 'r') as zb, ZipFile(patch, 'r') as zp, ZipFile(target, 'w', ZIP_DEFLATED) as zo:
+              patch_names = set(zp.namelist())
+              base_names = zb.namelist()
+              for name in base_names:
+                  data = zp.read(name) if name in patch_names else zb.read(name)
+                  zo.writestr(name, data)
+              for name in zp.namelist():
+                  if name not in base_names:
+                      zo.writestr(name, zp.read(name))
+
+          data = target.read_bytes()
+          sha = hashlib.sha256(data).hexdigest()
+          size = len(data)
+
+          root = Path('/tmp/s03_bootstrap')
+          for path in root.rglob('*'):
+              if not path.is_file() or '_payload' in path.parts or path == target:
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              text = text.replace('__S03_SHA__', sha).replace('__S03_SIZE__', str(size))
+              path.write_text(text, encoding='utf-8')
+
+          sha_file = root / 'models/scenarios/S03/SHA256SUMS.txt'
+          if sha_file.exists():
+              text = sha_file.read_text(encoding='utf-8').replace('__S03_SHA__', sha)
+              sha_file.write_text(text, encoding='utf-8')
+
+          print(f'S03_SHA={sha}')
+          print(f'S03_SIZE={size}')
+          PY
 
       - name: Apply package
         shell: bash
         run: |
           set -euo pipefail
-          cp -a /tmp/s03_overlay/. .
+          rm -rf /tmp/s03_bootstrap/_payload
+          cp -a /tmp/s03_bootstrap/. .
           rm -rf .s03_publish
           rm -f .github/workflows/publish-s03-v014.yml
 
