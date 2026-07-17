@@ -1,0 +1,45 @@
+version: 1
+
+project:
+  title: Финансовая модель кафе VARSHAVKA
+  description: Документация, сценарии, методология и результаты финансовой модели кафе VARSHAVKA
+  keywords:
+    - финансовая модель
+    - кафе
+    - VARSHAVKA
+    - USALI
+    - сценарный анализ
+  authors:
+    - name: Вячеслав Грачёв
+  github: slavagrachov/varshavka-cafe-usali-model
+  toc:
+    - file: index.md
+    - title: О проекте
+      children:
+        - file: project.md
+    - title: Финансовая модель
+      children:
+        - file: model.md
+    - title: Сценарии
+      children:
+        - file: scenarios.md
+    - title: Финансовые результаты
+      children:
+        - file: results.md
+    - title: Проверка модели
+      children:
+        - file: validation.md
+    - title: Управление проектом
+      children:
+        - file: governance.md
+
+site:
+  template: book-theme
+  title: Финансовая модель VARSHAVKA
+  options:
+    folders: true
+  actions:
+    - title: Репозиторий GitHub
+      url: https://github.com/slavagrachov/varshavka-cafe-usali-model
+    - title: Релизы модели
+      url: https://github.com/slavagrachov/varshavka-cafe-usali-model/releases
