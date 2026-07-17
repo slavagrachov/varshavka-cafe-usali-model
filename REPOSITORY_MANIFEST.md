@@ -12,8 +12,8 @@
 
 Исторические материалы:
 
-- `models/scenarios/S03/source/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.2.0.xlsx`;
-- draft-документация S03 v0.1.0.
+- документация draft S03 v0.1.0;
+- прежняя ссылка на отсутствующий source workbook сохранена только в истории Git.
 
 Актуальная редакция S03 v0.1.4:
 
@@ -30,8 +30,10 @@
 - `inputs/scenarios/S03_v0.1.4_changes.csv`;
 - `outputs/scenarios/S03_v0.1.4_vs_S02_monthly.csv`;
 - `scripts/s03_model_builder.py`;
-- `scripts/s03_docs_data.py`.
+- `scripts/s03_docs_data.py`;
+- `scripts/run_s03_publication.py`;
+- `S03_BUILD_SUCCESS.json` — технический отчёт успешной воспроизводимой сборки.
 
 ## Правило
 
-Source workbook сохраняется как исторический источник. Для работы используется нормализованный Excel S03 v0.1.4.
+S03 v0.1.4 воспроизводимо строится из утверждённой S02 скриптом `scripts/s03_model_builder.py`. Для работы используется нормализованный Excel S03 v0.1.4.
