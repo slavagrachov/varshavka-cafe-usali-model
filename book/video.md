@@ -2,17 +2,19 @@
 
 Краткая видеопрезентация результатов разработки финансовой модели проекта кафе VARSHAVKA на 2026–2027 годы.
 
-<div style="max-width: 1100px; margin: 1.5rem auto;">
-  <video controls playsinline preload="metadata" style="width:100%; height:auto; border-radius:14px; box-shadow:0 8px 28px rgba(0,0,0,.16);" poster="">
-    <source src="https://files2.heygen.ai/aws_pacific/avatar_tmp/263814b9d63d4eebaa880589d6a9be17/v0d14b3a0dd704227a504da108c30cf20/78221602639a4d0888ec48e1a08fd329.mp4?Expires=1785001873&Signature=ewX-9cQG33BX4IfDQpHMLj8daj3R37XiiKu3N4X9szUvlQ2goWy219KhdpVSYZzY-wxs2aVXiT29zmE~q8YsamfDWvMckU608BBAy-gkh12R~gXdPYI3rtnDkfnf5AQ5lQIs7pm1svI0LBVpsu17eEeeUa~Def2XLkFASl~qtYMO1LvFsUe7Szsc6vYopTNzYyt3dalxos7eF7AWMoWTcAch8VLm3Ukwf3xe4gVfIaPsyFvGmfqKCzitqqWHbVBiKaRrt6I5Dx9x0lfQcWd~BVYbpMrMxHsStwWChT8M710R-q~GNBdXHuFcVLslxZfbIai2oVFNa9Wxa1bQxRoopA__&Key-Pair-Id=K38HBHX5LX3X2H" type="video/mp4">
-    Ваш браузер не поддерживает встроенное воспроизведение видео.
-  </video>
+<div style="max-width: 900px; margin: 2rem auto; padding: 2rem; text-align:center; border:1px solid #d8dee8; border-radius:16px; box-shadow:0 8px 28px rgba(0,0,0,.10);">
+  <h2 style="margin-top:0;">Финансовая модель VARSHAVKA 2026–2027</h2>
+  <p>Нажмите кнопку ниже, чтобы открыть видеопрезентацию в HeyGen.</p>
+  <p style="margin:1.75rem 0;">
+    <a href="https://app.heygen.com/videos/varshavka-2026-2027-3baf37dc24f1488980b588872cbfcc25" target="_blank" rel="noopener noreferrer" style="display:inline-block; padding:14px 24px; border-radius:10px; background:#1769aa; color:#fff; text-decoration:none; font-weight:700;">▶ Смотреть видеопрезентацию</a>
+  </p>
+  <p style="font-size:.95rem; color:#5f6b7a;">При открытии из Telegram при необходимости выберите «Открыть во внешнем браузере».</p>
 </div>
 
-[Открыть видео отдельным файлом](https://files2.heygen.ai/aws_pacific/avatar_tmp/263814b9d63d4eebaa880589d6a9be17/v0d14b3a0dd704227a504da108c30cf20/78221602639a4d0888ec48e1a08fd329.mp4?Expires=1785001873&Signature=ewX-9cQG33BX4IfDQpHMLj8daj3R37XiiKu3N4X9szUvlQ2goWy219KhdpVSYZzY-wxs2aVXiT29zmE~q8YsamfDWvMckU608BBAy-gkh12R~gXdPYI3rtnDkfnf5AQ5lQIs7pm1svI0LBVpsu17eEeeUa~Def2XLkFASl~qtYMO1LvFsUe7Szsc6vYopTNzYyt3dalxos7eF7AWMoWTcAch8VLm3Ukwf3xe4gVfIaPsyFvGmfqKCzitqqWHbVBiKaRrt6I5Dx9x0lfQcWd~BVYbpMrMxHsStwWChT8M710R-q~GNBdXHuFcVLslxZfbIai2oVFNa9Wxa1bQxRoopA__&Key-Pair-Id=K38HBHX5LX3X2H)
+## Прямая ссылка на видео
+
+[Открыть видео в HeyGen](https://app.heygen.com/videos/varshavka-2026-2027-3baf37dc24f1488980b588872cbfcc25)
 
 ## Материалы проекта
 
 [Открыть финансовую модель и описание проекта](project.md)
-
-> Примечание: текущий видеофайл размещён на временном CDN HeyGen. После переноса MP4 в постоянное хранилище ссылка на этой странице должна быть заменена без изменения адреса самой страницы.
