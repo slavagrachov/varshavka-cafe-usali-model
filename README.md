@@ -10,6 +10,14 @@
 
 Исходные страницы книги находятся в папке `book/`. После изменения книги и объединения Pull Request с `main` GitHub Actions автоматически пересобирает сайт.
 
+## Видеопрезентация и публикация
+
+- [Открыть видеопрезентацию](https://slavagrachov.github.io/varshavka-cafe-usali-model/video/)
+- [Открыть итоговый паспорт настройки публикации](https://slavagrachov.github.io/varshavka-cafe-usali-model/video-publication/)
+- [Открыть прямой MP4-файл](https://narqdnyjnqqekdjpysye.supabase.co/storage/v1/object/public/varshavka-video/varshavka-2026-2027.mp4)
+
+Итоговый паспорт фиксирует конфигурацию HeyGen → Supabase Storage → GitHub Pages → Telegram, параметры хранилища, CI/CD-проверки, эксплуатационный регламент и утверждённую карточку Telegram.
+
 ## Базовая модель
 
 | Параметр | Значение |
