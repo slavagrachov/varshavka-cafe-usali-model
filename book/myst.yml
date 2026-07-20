@@ -17,6 +17,9 @@ project:
     - title: О проекте
       children:
         - file: project.md
+    - title: Видеопрезентация
+      children:
+        - file: video.md
     - title: Финансовая модель
       children:
         - file: model.md
