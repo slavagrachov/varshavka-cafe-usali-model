@@ -20,6 +20,7 @@ project:
     - title: Видеопрезентация
       children:
         - file: video.md
+        - file: video-publication.md
     - title: Финансовая модель
       children:
         - file: model.md
