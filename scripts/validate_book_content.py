@@ -4,6 +4,8 @@
 Checks:
 1. A Markdown heading must not repeat the normalized text of any ancestor heading.
 2. Every external HTTP(S) URL rendered from book Markdown/YAML must be reachable.
+3. Legacy display-math delimiters are forbidden in rendered Markdown because
+   the current MyST configuration displays them as raw source text.
 
 The script uses only the Python standard library so it can run before project
 dependencies are installed in GitHub Actions.
@@ -141,7 +143,7 @@ def visible_lines(path: Path) -> Iterable[tuple[int, str]]:
 
 
 def validate_headings(path: Path) -> list[str]:
-    """Reject headings that repeat any ancestor heading."""
+    """Reject duplicate headings and unsupported display-math delimiters."""
     if path.suffix.lower() != ".md":
         return []
 
@@ -149,6 +151,14 @@ def validate_headings(path: Path) -> list[str]:
     ancestors: dict[int, Heading] = {}
 
     for line_number, line in visible_lines(path):
+        if line.strip() in {r"\[", r"\]"}:
+            errors.append(
+                f"{path}:{line_number}: unsupported legacy display-math "
+                f"delimiter {line.strip()!r}; use plain Markdown text or "
+                "a supported MyST math directive"
+            )
+            continue
+
         match = HEADING_RE.match(line)
         if not match:
             continue
