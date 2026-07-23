@@ -23,6 +23,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  statuses: write
 
 concurrency:
   group: github-pages
@@ -193,6 +194,21 @@ jobs:
     needs: build
 
     steps:
+      - name: Record publication pending status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          gh api \
+            --method POST \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -f state=pending \
+            -f context='site/publication' \
+            -f description='GitHub Pages deployment and live validation are in progress' \
+            -f target_url="$RUN_URL"
+
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
@@ -266,3 +282,33 @@ jobs:
           fi
 
           echo "Published website validation completed successfully."
+
+      - name: Record verified publication status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          gh api \
+            --method POST \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -f state=success \
+            -f context='site/publication' \
+            -f description='GitHub Pages was published and the live pages were verified' \
+            -f target_url="$SITE_URL"
+
+      - name: Record failed publication status
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh api \
+            --method POST \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -f state=failure \
+            -f context='site/publication' \
+            -f description='GitHub Pages publication or live validation failed' \
+            -f target_url="$RUN_URL"
