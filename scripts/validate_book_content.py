@@ -2,10 +2,11 @@
 """Validate public book structure and external links before publication.
 
 Checks:
-1. A Markdown heading must not repeat the normalized text of any ancestor heading.
-2. Every external HTTP(S) URL rendered from book Markdown/YAML must be reachable.
-3. Legacy display-math delimiters are forbidden in rendered Markdown because
-   the current MyST configuration displays them as raw source text.
+1. A Markdown heading must not repeat the normalized text of an ancestor heading.
+2. A MyST TOC child label must not repeat its immediate parent label.
+3. Every external HTTP(S) URL rendered from book Markdown/YAML must be reachable.
+4. Legacy display-math delimiters are forbidden because the current MyST
+   configuration displays them as raw source text.
 
 The script uses only the Python standard library so it can run before project
 dependencies are installed in GitHub Actions.
@@ -30,10 +31,13 @@ from urllib.request import Request, urlopen
 
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
-URL_RE = re.compile(r"""https?://[^\s<>"'\[\]{}|]+""", re.IGNORECASE)
+URL_RE = re.compile(r'''https?://[^\s<>"'\[\]{}|]+''', re.IGNORECASE)
 MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 INLINE_CODE_RE = re.compile(r"`([^`]+)`")
 LEADING_NUMBER_RE = re.compile(r"^\s*\d+(?:\.\d+)*[.)]?\s*")
+TOC_START_RE = re.compile(r"^(\s*)toc:\s*$")
+TOC_ENTRY_RE = re.compile(r"^(\s*)-\s+(title|file):\s*(.+?)\s*$")
+FRONT_TITLE_RE = re.compile(r"^\s*title:\s*(.+?)\s*$")
 TRAILING_URL_PUNCTUATION = ".,;:!?)]}"
 
 
@@ -42,6 +46,13 @@ class Heading:
     level: int
     text: str
     normalized: str
+    line: int
+
+
+@dataclass(frozen=True)
+class TocParent:
+    indent: int
+    label: str
     line: int
 
 
@@ -56,7 +67,7 @@ class LinkResult:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate Jupyter Book headings and external links."
+        description="Validate Jupyter Book headings, navigation, and external links."
     )
     parser.add_argument(
         "--book-dir",
@@ -91,7 +102,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def normalize_heading(text: str) -> str:
-    """Normalize a heading for semantic duplicate comparison."""
+    """Normalize visible text for duplicate comparison."""
     text = MARKDOWN_LINK_RE.sub(r"\1", text)
     text = INLINE_CODE_RE.sub(r"\1", text)
     text = html.unescape(text)
@@ -104,7 +115,7 @@ def normalize_heading(text: str) -> str:
 
 
 def visible_lines(path: Path) -> Iterable[tuple[int, str]]:
-    """Yield lines that are rendered, excluding Markdown front matter and fences."""
+    """Yield rendered lines, excluding Markdown front matter and code fences."""
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
 
@@ -142,7 +153,7 @@ def visible_lines(path: Path) -> Iterable[tuple[int, str]]:
         yield line_number, line
 
 
-def validate_headings(path: Path) -> list[str]:
+def validate_markdown(path: Path) -> list[str]:
     """Reject duplicate headings and unsupported display-math delimiters."""
     if path.suffix.lower() != ".md":
         return []
@@ -192,17 +203,118 @@ def validate_headings(path: Path) -> list[str]:
     return errors
 
 
+def yaml_scalar(value: str) -> str:
+    """Return a simple YAML scalar without matching outer quotes."""
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1]
+    return value
+
+
+def resolve_page_title(path: Path) -> str | None:
+    """Resolve the navigation label from front matter, then from the first H1."""
+    if not path.is_file() or path.suffix.lower() != ".md":
+        return None
+
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if lines and lines[0].strip() == "---":
+        for line in lines[1:]:
+            if line.strip() == "---":
+                break
+            match = FRONT_TITLE_RE.match(line)
+            if match:
+                title = yaml_scalar(match.group(1))
+                if title:
+                    return title
+
+    for _, line in visible_lines(path):
+        match = HEADING_RE.match(line)
+        if match and len(match.group(1)) == 1:
+            return match.group(2).strip()
+
+    return None
+
+
+def validate_toc_navigation(book_dir: Path) -> list[str]:
+    """Reject a TOC child whose visible label repeats its immediate parent."""
+    config_path = book_dir / "myst.yml"
+    if not config_path.is_file():
+        return [f"{config_path}: missing MyST configuration"]
+
+    lines = config_path.read_text(encoding="utf-8").splitlines()
+    toc_start: int | None = None
+    toc_indent = 0
+
+    for line_number, line in enumerate(lines, start=1):
+        match = TOC_START_RE.match(line)
+        if match:
+            toc_start = line_number
+            toc_indent = len(match.group(1))
+            break
+
+    if toc_start is None:
+        return [f"{config_path}: project TOC was not found"]
+
+    errors: list[str] = []
+    parents: list[TocParent] = []
+
+    for line_number in range(toc_start + 1, len(lines) + 1):
+        line = lines[line_number - 1]
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+
+        indent = len(line) - len(line.lstrip(" "))
+        if indent <= toc_indent:
+            break
+
+        match = TOC_ENTRY_RE.match(line)
+        if not match:
+            continue
+
+        entry_indent = len(match.group(1))
+        kind = match.group(2)
+        value = yaml_scalar(match.group(3))
+
+        while parents and parents[-1].indent >= entry_indent:
+            parents.pop()
+        parent = parents[-1] if parents else None
+
+        if kind == "title":
+            label = value
+            if parent and normalize_heading(label) == normalize_heading(parent.label):
+                errors.append(
+                    f"{config_path}:{line_number}: navigation label {label!r} "
+                    f"duplicates parent {parent.label!r} from line {parent.line}"
+                )
+            parents.append(TocParent(entry_indent, label, line_number))
+            continue
+
+        page_path = book_dir / value
+        label = resolve_page_title(page_path)
+        if label is None:
+            errors.append(
+                f"{config_path}:{line_number}: cannot resolve title for TOC file {value!r}"
+            )
+            continue
+
+        if parent and normalize_heading(label) == normalize_heading(parent.label):
+            errors.append(
+                f"{config_path}:{line_number}: page {value!r} has label {label!r}, "
+                f"which duplicates parent {parent.label!r} from line {parent.line}"
+            )
+
+    return errors
+
+
 def extract_urls(path: Path) -> set[str]:
     """Extract public HTTP(S) URLs from rendered source lines."""
     urls: set[str] = set()
-
     for _, line in visible_lines(path):
         for match in URL_RE.finditer(line):
             url = match.group(0).rstrip(TRAILING_URL_PUNCTUATION)
             url, _ = urldefrag(url)
             if url:
                 urls.add(url)
-
     return urls
 
 
@@ -289,22 +401,22 @@ def main() -> int:
         print(f"ERROR: no book source files found in {book_dir}", file=sys.stderr)
         return 2
 
-    heading_errors: list[str] = []
+    structure_errors: list[str] = validate_toc_navigation(book_dir)
     urls: set[str] = set()
 
     for path in sources:
-        heading_errors.extend(validate_headings(path))
+        structure_errors.extend(validate_markdown(path))
         urls.update(extract_urls(path))
 
     print(f"Checked {len(sources)} source files.")
     print(f"Found {len(urls)} unique external URLs.")
 
-    if heading_errors:
-        print("\nHeading validation failed:", file=sys.stderr)
-        for error in heading_errors:
+    if structure_errors:
+        print("\nHeading and navigation validation failed:", file=sys.stderr)
+        for error in structure_errors:
             print(f"- {error}", file=sys.stderr)
     else:
-        print("Heading validation passed.")
+        print("Heading and navigation validation passed.")
 
     failed_links: list[LinkResult] = []
     if not args.skip_links:
@@ -312,13 +424,13 @@ def main() -> int:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max(1, args.workers)
         ) as executor:
-            future_map = {
-                executor.submit(check_url, url, args.timeout, max(1, args.retries)): url
+            futures = [
+                executor.submit(check_url, url, args.timeout, max(1, args.retries))
                 for url in sorted(urls)
-            }
+            ]
             results = [
                 future.result()
-                for future in concurrent.futures.as_completed(future_map)
+                for future in concurrent.futures.as_completed(futures)
             ]
 
         for result in sorted(results, key=lambda item: item.url):
@@ -331,12 +443,9 @@ def main() -> int:
                 print(f"[OK {result.status}] {result.url}{redirect_note}")
             else:
                 failed_links.append(result)
-                print(
-                    f"[FAIL] {result.url}: {result.error}",
-                    file=sys.stderr,
-                )
+                print(f"[FAIL] {result.url}: {result.error}", file=sys.stderr)
 
-    if heading_errors or failed_links:
+    if structure_errors or failed_links:
         if failed_links:
             print(
                 f"\nExternal link validation failed for {len(failed_links)} URL(s).",
