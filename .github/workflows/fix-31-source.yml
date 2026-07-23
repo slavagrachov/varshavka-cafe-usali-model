@@ -1,0 +1,140 @@
+name: Apply rendering fix for issue 31
+
+on:
+  push:
+    branches:
+      - fix/31-plain-text-rendering
+    paths:
+      - ".github/workflows/fix-31-source.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-source:
+    name: Replace raw LaTeX with plain text
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/31-plain-text-rendering
+
+      - name: Patch page and validation rule
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          page_path = Path("book/legal-risks.md")
+          page = page_path.read_text(encoding="utf-8")
+
+          old_operator = r'''\[
+          \boxed{
+          \text{одно операционное ООО}
+          =
+          \text{пользователь помещений}
+          +
+          \text{работодатель}
+          +
+          \text{владелец сырья}
+          +
+          \text{изготовитель}
+          +
+          \text{продавец}
+          +
+          \text{пользователь ККТ}
+          }
+          \]'''
+          new_operator = '''**Одно операционное ООО одновременно выполняет функции:**
+
+          - законного пользователя помещений;
+          - работодателя;
+          - владельца сырья;
+          - изготовителя готовых блюд;
+          - продавца;
+          - пользователя ККТ.'''
+
+          old_salary = r'''\[
+          \text{заработная плата}
+          =
+          \text{фиксированная часть}
+          +
+          \text{сдельная часть}
+          +
+          \text{премия по KPI}
+          \]'''
+          new_salary = '''**Рекомендуемая структура оплаты труда:** фиксированная часть, сдельная часть и премия по KPI.'''
+
+          if old_operator not in page:
+              raise SystemExit("ERROR: operator formula block was not found")
+          if old_salary not in page:
+              raise SystemExit("ERROR: salary formula block was not found")
+
+          page = page.replace(old_operator, new_operator, 1)
+          page = page.replace(old_salary, new_salary, 1)
+          page_path.write_text(page, encoding="utf-8")
+
+          validator_path = Path("scripts/validate_book_content.py")
+          validator = validator_path.read_text(encoding="utf-8")
+
+          docstring_needle = '''2. Every external HTTP(S) URL rendered from book Markdown/YAML must be reachable.
+          '''
+          docstring_replacement = '''2. Every external HTTP(S) URL rendered from book Markdown/YAML must be reachable.
+          3. Legacy display-math delimiters are forbidden in rendered Markdown because
+             the current MyST configuration displays them as raw source text.
+          '''
+          if docstring_needle not in validator:
+              raise SystemExit("ERROR: validator docstring insertion point was not found")
+          validator = validator.replace(docstring_needle, docstring_replacement, 1)
+
+          loop_needle = '''    for line_number, line in visible_lines(path):
+              match = HEADING_RE.match(line)
+          '''
+          loop_replacement = '''    for line_number, line in visible_lines(path):
+              if line.strip() in {r"\\[", r"\\]"}:
+                  errors.append(
+                      f"{path}:{line_number}: unsupported legacy display-math "
+                      f"delimiter {line.strip()!r}; use plain Markdown text or "
+                      "a supported MyST math directive"
+                  )
+                  continue
+
+              match = HEADING_RE.match(line)
+          '''
+          if loop_needle not in validator:
+              raise SystemExit("ERROR: heading validation insertion point was not found")
+          validator = validator.replace(loop_needle, loop_replacement, 1)
+          validator_path.write_text(validator, encoding="utf-8")
+
+          governance_path = Path("book/governance.md")
+          governance = governance_path.read_text(encoding="utf-8")
+          governance_needle = "Проверка ссылки подтверждает техническую доступность адреса и переходы по перенаправлениям. Для нормативных правовых актов дополнительно требуется содержательная проверка действующей редакции, даты вступления в силу и срока действия документа.\n"
+          governance_replacement = governance_needle + "\nПубличные Markdown-страницы не должны использовать legacy-delimiters `\\[` и `\\]`: при текущей конфигурации MyST они могут отображаться как рабочий LaTeX-код и попадать в оглавление. Для управленческих формул используется обычный текст, а для математических выражений — только поддерживаемые MyST-конструкции.\n"
+          if governance_needle not in governance:
+              raise SystemExit("ERROR: governance insertion point was not found")
+          governance = governance.replace(governance_needle, governance_replacement, 1)
+          governance_path.write_text(governance, encoding="utf-8")
+
+          updated_page = page_path.read_text(encoding="utf-8")
+          for forbidden in (r"\[", r"\]", r"\boxed{", r"\text{"):
+              if forbidden in updated_page:
+                  raise SystemExit(f"ERROR: raw LaTeX marker remains: {forbidden}")
+          PY
+
+      - name: Run structural validation
+        run: |
+          set -euo pipefail
+          python scripts/validate_book_content.py --book-dir book --skip-links
+          git diff --check
+
+      - name: Commit source fix and remove temporary workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/fix-31-source.yml
+          git add book/legal-risks.md book/governance.md scripts/validate_book_content.py
+          git commit -m "fix: render regulatory formulas as plain text"
+          git push origin HEAD:fix/31-plain-text-rendering
