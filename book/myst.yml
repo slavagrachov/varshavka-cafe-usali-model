@@ -16,31 +16,19 @@ project:
   github: slavagrachov/varshavka-cafe-usali-model
   toc:
     - file: index.md
-    - title: О проекте
-      children:
-        - file: project.md
+    - file: project.md
     - title: Видеопрезентация
       children:
         - file: video.md
         - file: video-publication.md
-    - title: Финансовая модель
-      children:
-        - file: model.md
-    - title: Сценарии
-      children:
-        - file: scenarios.md
-    - title: Финансовые результаты
-      children:
-        - file: results.md
-    - title: Проверка модели
-      children:
-        - file: validation.md
+    - file: model.md
+    - file: scenarios.md
+    - file: results.md
+    - file: validation.md
     - title: Правовая модель и контроль
       children:
         - file: legal-risks.md
-    - title: Управление проектом
-      children:
-        - file: governance.md
+    - file: governance.md
 
 site:
   template: book-theme
