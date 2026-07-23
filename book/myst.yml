@@ -9,6 +9,8 @@ project:
     - VARSHAVKA
     - USALI
     - сценарный анализ
+    - регуляторные риски
+    - общественное питание
   authors:
     - name: Вячеслав Грачёв
   github: slavagrachov/varshavka-cafe-usali-model
@@ -33,6 +35,9 @@ project:
     - title: Проверка модели
       children:
         - file: validation.md
+    - title: Правовая модель и контроль
+      children:
+        - file: legal-risks.md
     - title: Управление проектом
       children:
         - file: governance.md
