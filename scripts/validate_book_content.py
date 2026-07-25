@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 from urllib.error import HTTPError, URLError
-from urllib.parse import urldefrag
+from urllib.parse import unquote, urldefrag, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -39,6 +39,10 @@ TOC_START_RE = re.compile(r"^(\s*)toc:\s*$")
 TOC_ENTRY_RE = re.compile(r"^(\s*)-\s+(title|file):\s*(.+?)\s*$")
 FRONT_TITLE_RE = re.compile(r"^\s*title:\s*(.+?)\s*$")
 TRAILING_URL_PUNCTUATION = ".,;:!?)]}"
+GITHUB_MAIN_BLOB_PREFIX = (
+    "https://github.com/slavagrachov/"
+    "varshavka-cafe-usali-model/blob/main/"
+)
 
 
 @dataclass(frozen=True)
@@ -376,6 +380,25 @@ def check_url(url: str, timeout: float, retries: int) -> LinkResult:
     )
 
 
+def resolve_local_main_blob(url: str, repository_root: Path) -> Path | None:
+    """Resolve this repository's future ``main`` blob links during PR checks.
+
+    A pull request can legitimately add a file and link to its eventual stable
+    ``main`` URL in the same change. GitHub returns 404 for that URL until the
+    PR is merged, so validate the corresponding checked-out file locally.
+    """
+    if not url.startswith(GITHUB_MAIN_BLOB_PREFIX):
+        return None
+
+    relative_path = unquote(urlparse(url).path).split("/blob/main/", 1)[-1]
+    candidate = (repository_root / relative_path).resolve()
+    try:
+        candidate.relative_to(repository_root.resolve())
+    except ValueError:
+        return None
+    return candidate
+
+
 def discover_sources(book_dir: Path) -> list[Path]:
     patterns = ("*.md", "*.yml", "*.yaml")
     sources: set[Path] = set()
@@ -397,6 +420,7 @@ def main() -> int:
         return 2
 
     sources = discover_sources(book_dir)
+    repository_root = book_dir.resolve().parent
     if not sources:
         print(f"ERROR: no book source files found in {book_dir}", file=sys.stderr)
         return 2
@@ -421,14 +445,36 @@ def main() -> int:
     failed_links: list[LinkResult] = []
     if not args.skip_links:
         print("\nChecking external links...")
+        local_results: list[LinkResult] = []
+        remote_urls: list[str] = []
+        for url in sorted(urls):
+            local_path = resolve_local_main_blob(url, repository_root)
+            if local_path is None:
+                remote_urls.append(url)
+                continue
+            if local_path.is_file():
+                local_results.append(
+                    LinkResult(url, True, 200, url, None)
+                )
+            else:
+                local_results.append(
+                    LinkResult(
+                        url,
+                        False,
+                        None,
+                        url,
+                        f"repository file not found: {local_path}",
+                    )
+                )
+
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max(1, args.workers)
         ) as executor:
             futures = [
                 executor.submit(check_url, url, args.timeout, max(1, args.retries))
-                for url in sorted(urls)
+                for url in remote_urls
             ]
-            results = [
+            results = local_results + [
                 future.result()
                 for future in concurrent.futures.as_completed(futures)
             ]
