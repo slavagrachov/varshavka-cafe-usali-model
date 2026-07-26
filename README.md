@@ -34,7 +34,7 @@
 |---|---:|---|---:|---|
 | BASE | 0.1.0 | approved | — | `models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx` |
 | S02 | 0.1.0 | approved | #4 | `models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx` |
-| S03 | 0.1.6 | release candidate | #36, #52 | `models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx` |
+| S03 | 0.1.6 | approved | #36, #52 | `models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx` |
 
 S03 v0.1.6 синхронизирует утверждённую операционную модель каналов,
 питание сотрудников и производственную программу Кухни.
