@@ -4,7 +4,7 @@
 |---|---|---:|---|---:|---|---|
 | BASE | Базовая операционная модель | 0.1.0 | approved | — | `main` | `models/FINMODEL_VARSHAVKA_USALI_2026-2027_v0.1.0.xlsx` |
 | S02 | Банкетный день с дневной работой кафе и ужинами гостиницы | 0.1.0 | approved | #4 | merged via PR #5 | `models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx` |
-| S03 | Каналы VARSHAVKA 3.0.0 и производственная программа Кухни | 0.1.6 | release candidate | #36, #52 | PR pending | `models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx` |
+| S03 | Каналы VARSHAVKA 3.0.0 и производственная программа Кухни | 0.1.6 | approved | #36, #52 | merged via PR #55 | `models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx` |
 
 S03 v0.1.4 объединён с `main` через Pull Request №18. S03 v0.1.5 добавила
 посуду и барное стекло. S03 v0.1.6 разделяет потоки Гостиницы, добавляет
@@ -12,5 +12,8 @@ S03 v0.1.4 объединён с `main` через Pull Request №18. S03 v0.1.
 
 Предыдущая редакция S03 v0.1.5: PR №35,
 merge commit `fb0ed257944e3d95a7b08ab7a23fa9625365d411`.
+
+Редакция S03 v0.1.6 опубликована через PR №55; merge commit
+`9078997b0d27674df0aca274dc882ca34a6d74f1`.
 
 Исходные подборки посуды сохранены в `sources/tableware/`.
