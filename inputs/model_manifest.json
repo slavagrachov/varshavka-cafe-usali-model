@@ -16,24 +16,24 @@
     },
     {
       "code": "S03",
-      "version": "0.1.6",
-      "status": "approved",
-      "issue": 36,
-      "related_issues": [36, 52],
-      "pull_request": 55,
-      "merged_to": "main",
-      "merge_commit": "9078997b0d27674df0aca274dc882ca34a6d74f1",
-      "development_branch": "agent/s03-channels-sync",
-      "file": "models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx",
-      "sha256": "1ad3258200ccc2293a4167961a144262aae34299e0b4ed54a2bc124e95c6d7b8",
-      "size_bytes": 149045,
+      "version": "0.1.7",
+      "status": "release_candidate",
+      "issue": 52,
+      "related_issues": [52],
+      "pull_request": null,
+      "merged_to": null,
+      "merge_commit": null,
+      "development_branch": "agent/hotel-breakfast-31",
+      "file": "models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.7.xlsx",
+      "sha256": "ceda757588e824065da0389d98cabcd62a85a74692a4fc0b19f66e1e87225f80",
+      "size_bytes": 158652,
       "formula_count_core": 7469,
-      "formula_count_total": 7686,
-      "checks": 32,
+      "formula_count_total": 7755,
+      "checks": 40,
       "predecessor": {
-        "version": "0.1.5",
-        "pull_request": 35,
-        "merge_commit": "fb0ed257944e3d95a7b08ab7a23fa9625365d411"
+        "version": "0.1.6",
+        "pull_request": 55,
+        "merge_commit": "9078997b0d27674df0aca274dc882ca34a6d74f1"
       },
       "business_lunch": {
         "a_la_carte_check": 1000,
@@ -52,7 +52,25 @@
       },
       "hotel_breakfast": {
         "daily_services": 20,
-        "annual_services": 7300
+        "annual_services": 7300,
+        "internal_tariff_vat_included": 550,
+        "external_sale": 0,
+        "surcharge": 0,
+        "packaging": 0,
+        "active_variants": 3,
+        "mix": {
+          "fried_eggs": 0.375,
+          "omelet": 0.375,
+          "oatmeal": 0.25,
+          "eggs_benedict_salmon": 0,
+          "salmon_croissant": 0
+        },
+        "kitchen_unit_cogs_preliminary": 133.28625,
+        "barista_drink_cogs": 60,
+        "full_unit_cogs_preliminary": 193.28625,
+        "food_cost_preliminary": 0.35142954545454547,
+        "annual_revenue": 4015000,
+        "annual_cogs_preliminary": 1410989.625
       },
       "coffee_tea": {
         "guest_share": 0.5,
@@ -71,11 +89,15 @@
         "monthly_control_budget": 15000
       },
       "kitchen_program": {
-        "launch_week_kg": 661.5,
+        "active_menu_positions": 31,
+        "training_batches": 63,
+        "training_units": 636,
+        "training_kg": 171.3,
+        "launch_week_kg": 662.9,
         "launch_week_units": 2533,
-        "steady_week_kg": 638.075,
+        "steady_week_kg": 638.725,
         "steady_week_units": 2444,
-        "peak_launch_day_kg": 109.525
+        "peak_launch_day_kg": 109.725
       },
       "tableware": {
         "positions": 21,
@@ -91,10 +113,10 @@
       },
       "key_outputs": {
         "project_revenue": 49065800,
-        "cafe_cogs": 15186205.885714285,
+        "cafe_cogs": 14577765.303214284,
         "cafe_opex": 5301415.56,
-        "cafe_pbt": -945102.4112315234,
-        "project_net_result": 364239.58876847645
+        "cafe_pbt": -276436.82873152586,
+        "project_net_result": 1032905.171268474
       }
     }
   ]

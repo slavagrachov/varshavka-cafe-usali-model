@@ -1,0 +1,49 @@
+name: Validate S03 v0.1.7
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "models/scenarios/S03/**"
+      - "inputs/**"
+      - "docs/**"
+      - "scripts/releases/validate_s03_v0_1_7_ci.py"
+      - "scripts/validate_issue_register.py"
+      - ".github/workflows/validate-s03-v0.1.7.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate workbook and manifest
+        run: python scripts/releases/validate_s03_v0_1_7_ci.py
+
+      - name: Validate issue register
+        run: python scripts/validate_issue_register.py
+
+      - name: Validate CSV inputs
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          for name in [
+              "inputs/input_dictionary.csv",
+              "inputs/scenarios/S03_inputs.csv",
+          ]:
+              rows = list(csv.reader(Path(name).open(encoding="utf-8")))
+              assert rows, name
+              width = len(rows[0])
+              assert all(len(row) == width for row in rows), name
+              print(f"{name}: {len(rows) - 1} data rows, {width} columns")
+          PY
