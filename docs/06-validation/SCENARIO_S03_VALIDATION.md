@@ -1,5 +1,9 @@
 # Validation report — Scenario S03 draft
 
+> Исторический отчёт draft-версии. Ошибка 650/750 и комментарий
+> `STAFF_MEALS` устранены в S03 v0.1.6; актуальная проверка находится в
+> `SCENARIO_S03_v0.1.6_VALIDATION.md`.
+
 ## Проверенные файлы
 
 - S02: `models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx`;
