@@ -16,19 +16,25 @@
     },
     {
       "code": "S03",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "status": "approved",
-      "issue": 9,
+      "issue": 36,
+      "related_issues": [36, 52],
       "pull_request": null,
       "merged_to": "main",
       "merge_commit": null,
-      "development_branch": "agent/s03-v0.1.5-tableware",
-      "file": "models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.5.xlsx",
-      "sha256": "a6a5fdba787d389e43349216e1b49035d034d4f15c21f61da48979ae6da8fd74",
-      "size_bytes": 132160,
-      "formula_count_core": 6771,
-      "formula_count_total": 6807,
-      "checks": 26,
+      "development_branch": "agent/s03-channels-sync",
+      "file": "models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx",
+      "sha256": "1ad3258200ccc2293a4167961a144262aae34299e0b4ed54a2bc124e95c6d7b8",
+      "size_bytes": 149045,
+      "formula_count_core": 7469,
+      "formula_count_total": 7686,
+      "checks": 32,
+      "predecessor": {
+        "version": "0.1.5",
+        "pull_request": 35,
+        "merge_commit": "fb0ed257944e3d95a7b08ab7a23fa9625365d411"
+      },
       "business_lunch": {
         "a_la_carte_check": 1000,
         "discount": 0.25,
@@ -36,12 +42,40 @@
         "food_cost": 0.4
       },
       "hotel_dinner": {
+        "daily_services": 10,
         "average_check": 1000,
         "food_cost_source": "ALA_COGS",
         "food_cost_rate": 0.3,
         "unit_cogs": 300,
         "annual_revenue": 3650000,
         "annual_cogs": 1095000
+      },
+      "hotel_breakfast": {
+        "daily_services": 20,
+        "annual_services": 7300
+      },
+      "coffee_tea": {
+        "guest_share": 0.5,
+        "unit_check": 300,
+        "unit_cogs": 60,
+        "annual_drinks": 17752,
+        "annual_revenue": 5325600,
+        "annual_cogs": 1065120,
+        "kitchen_output": 0
+      },
+      "staff_meals": {
+        "weekly_complexes": 84,
+        "annual_52_week_complexes": 4368,
+        "weekly_food_kg": 54.6,
+        "weekly_drinks_l": 16.8,
+        "monthly_control_budget": 15000
+      },
+      "kitchen_program": {
+        "launch_week_kg": 661.5,
+        "launch_week_units": 2533,
+        "steady_week_kg": 638.075,
+        "steady_week_units": 2444,
+        "peak_launch_day_kg": 109.525
       },
       "tableware": {
         "positions": 21,
@@ -56,11 +90,11 @@
         "reorder_risk_positions_at_6_months": 5
       },
       "key_outputs": {
-        "project_revenue": 43740200,
-        "cafe_cogs": 14099783.485714287,
-        "cafe_opex": 4230615.56,
-        "cafe_gop": -3978846.011231525,
-        "project_net_result": -3741048.011231525
+        "project_revenue": 49065800,
+        "cafe_cogs": 15186205.885714285,
+        "cafe_opex": 5301415.56,
+        "cafe_pbt": -945102.4112315234,
+        "project_net_result": 364239.58876847645
       }
     }
   ]
