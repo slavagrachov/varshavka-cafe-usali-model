@@ -1,0 +1,41 @@
+name: Assemble S03 v0.1.6 workbook
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.s03_xlsx/final.ready'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout merged release
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify workbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .s03_xlsx/part_* | base64 --decode > /tmp/S03-v0.1.6.xlsx
+          test "$(wc -c < /tmp/S03-v0.1.6.xlsx)" -eq 149045
+          test "$(sha256sum /tmp/S03-v0.1.6.xlsx | cut -d' ' -f1)" = "1ad3258200ccc2293a4167961a144262aae34299e0b4ed54a2bc124e95c6d7b8"
+          install -m 0644 /tmp/S03-v0.1.6.xlsx models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx
+
+      - name: Commit workbook and remove transport files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf .s03_xlsx
+          rm -f .github/workflows/assemble-s03-v016.xlsx.yml
+          git add -A
+          git commit -m "release: publish S03 v0.1.6 workbook"
+          git push origin HEAD:main
