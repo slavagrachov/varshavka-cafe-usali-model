@@ -1,0 +1,25 @@
+name: Validate S04 v3.0.0
+
+on:
+  pull_request:
+    paths:
+      - "models/scenarios/S04/**"
+      - "scripts/releases/validate_s04_v3_0_0_ci.py"
+      - "inputs/**"
+      - "docs/09-procurement/**"
+  push:
+    paths:
+      - "models/scenarios/S04/**"
+      - "scripts/releases/validate_s04_v3_0_0_ci.py"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install openpyxl
+      - run: python scripts/releases/validate_s04_v3_0_0_ci.py
+

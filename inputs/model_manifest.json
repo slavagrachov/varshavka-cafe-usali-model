@@ -15,8 +15,8 @@
       "file": "models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx"
     },
     {
-      "code": "S03",
-      "version": "0.1.7",
+      "code": "S04",
+      "version": "3.0.0",
       "status": "release_candidate",
       "issue": 52,
       "related_issues": [52],
@@ -24,13 +24,14 @@
       "merged_to": null,
       "merge_commit": null,
       "development_branch": "agent/hotel-breakfast-31",
-      "file": "models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.7.xlsx",
-      "sha256": "ceda757588e824065da0389d98cabcd62a85a74692a4fc0b19f66e1e87225f80",
-      "size_bytes": 158652,
+      "file": "models/scenarios/S04/FINMODEL_VARSHAVKA_USALI_SCENARIO_S04_v3.0.0.xlsx",
+      "sha256": "815b22d6203a303638682a3e00a6b9c2d78557bf55024e7b2971d7af3064fdc3",
+      "size_bytes": 168547,
       "formula_count_core": 7469,
-      "formula_count_total": 7755,
+      "formula_count_total": 7837,
       "checks": 40,
       "predecessor": {
+        "code": "S03",
         "version": "0.1.6",
         "pull_request": 55,
         "merge_commit": "9078997b0d27674df0aca274dc882ca34a6d74f1"
@@ -65,12 +66,15 @@
           "eggs_benedict_salmon": 0,
           "salmon_croissant": 0
         },
-        "kitchen_unit_cogs_preliminary": 133.28625,
+        "kitchen_unit_cogs_preliminary": 143.7999302778,
         "barista_drink_cogs": 60,
-        "full_unit_cogs_preliminary": 193.28625,
-        "food_cost_preliminary": 0.35142954545454547,
+        "full_unit_cogs_preliminary": 203.7999302778,
+        "food_cost_preliminary": 0.3705453277777778,
         "annual_revenue": 4015000,
-        "annual_cogs_preliminary": 1410989.625
+        "annual_cogs_preliminary": 1487739.4910278,
+        "price_register_status": "preliminary",
+        "fontina_price_status": "sensitivity_only",
+        "rfq_status": "prepared_not_sent"
       },
       "coffee_tea": {
         "guest_share": 0.5,
@@ -113,10 +117,10 @@
       },
       "key_outputs": {
         "project_revenue": 49065800,
-        "cafe_cogs": 14577765.303214284,
+        "cafe_cogs": 14656050.166562619,
         "cafe_opex": 5301415.56,
-        "cafe_pbt": -276436.82873152586,
-        "project_net_result": 1032905.171268474
+        "cafe_pbt": -354721.69207985856,
+        "project_net_result": 954620.3079201413
       }
     }
   ]
