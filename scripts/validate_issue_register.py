@@ -20,7 +20,7 @@ ALLOWED_STATUSES = {
 }
 ALLOWED_PRIORITIES = {"P0", "P1", "P2", "P3"}
 EXPECTED_TOTAL = 97
-EXPECTED_UNCLOSED = 96
+EXPECTED_UNCLOSED = 87
 
 
 def parse_rows() -> list[list[str]]:
