@@ -22,4 +22,3 @@ jobs:
           python-version: "3.12"
       - run: pip install openpyxl
       - run: python scripts/releases/validate_s04_v3_0_0_ci.py
-
