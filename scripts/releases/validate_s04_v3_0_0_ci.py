@@ -35,6 +35,12 @@ assert "'04_СЕБЕСТОИМОСТЬ'!$P$15" in checks["D46"].value
 assert checks["A47"].value == "CHK.BREAKFAST.NORMS"
 for row in range(4, 20):
     assert f"'BREAKFAST_COSTING'!D{row}-'BREAKFAST_RECIPES'!F{row}" in checks["D47"].value
+recipes = wb["BREAKFAST_RECIPES"]
+assert [recipes[f"J{row}"].value for row in range(11, 17)] == [45, 108, 86, 5, 5, 1]
+assert sum(recipes[f"J{row}"].value for row in range(11, 17)) == 250
+assert [recipes[f"F{row}"].value for row in range(11, 17)] == [45, 125, 100, 5, 5, 1]
+assert checks["A48"].value == "CHK.BREAKFAST.OATMEAL_250"
+assert checks["D48"].value == "=ABS(SUM('BREAKFAST_RECIPES'!J11:J16)-250)"
 
 pnl = wb["07_PNL_НАЛОГИ"]
 assert pnl["A49"].value == "PNL.HOTEL.BREAKFAST.REV"

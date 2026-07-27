@@ -35,9 +35,17 @@ if (JSON.stringify(normFormulas) !== JSON.stringify(expectedNormFormulas)) {
 }
 
 const checks = workbook.worksheets.getItem("08_ПРОВЕРКИ");
-const checkValues = checks.getRange("A46:F47").values;
+const checkValues = checks.getRange("A46:F48").values;
 for (const row of checkValues) {
   if (row[5] !== "OK") throw new Error(`Failed breakfast check: ${JSON.stringify(row)}`);
+}
+const recipes = workbook.worksheets.getItem("BREAKFAST_RECIPES");
+const oatmealOutputs = recipes.getRange("J11:J16").values.flat();
+if (JSON.stringify(oatmealOutputs) !== JSON.stringify([45, 108, 86, 5, 5, 1])) {
+  throw new Error(`Unexpected oatmeal output allocation: ${JSON.stringify(oatmealOutputs)}`);
+}
+if (oatmealOutputs.reduce((sum, value) => sum + value, 0) !== 250) {
+  throw new Error(`Oatmeal output does not total 250 g: ${JSON.stringify(oatmealOutputs)}`);
 }
 
 const pnl = workbook.worksheets.getItem("07_PNL_НАЛОГИ");

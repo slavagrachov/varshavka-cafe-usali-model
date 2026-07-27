@@ -23,6 +23,7 @@
 - [форма проработки сырной порции](CONTROL_TRIAL_CHEESE_PORTION.md);
 - [форма проверки напитка бариста](CONTROL_TRIAL_BARISTA_DRINK.md);
 - [единое правило органолептической приёмки](ORGANOLEPTIC_ACCEPTANCE_RULE.md);
+- [проект раздела ППК по температурному контролю](PPK_BREAKFAST_TEMPERATURE_CONTROL_DRAFT.md);
 - [протокол Fontina DOP / Fontal](TASTING_PROTOCOL_FONTINA_FONTAL.md);
 - [протокол сравнения круассанов](TASTING_PROTOCOL_CROISSANTS.md);
 - [проект автоматических проверок](ISSUE_52_FINAL_RECALC_CHECKS.md).
