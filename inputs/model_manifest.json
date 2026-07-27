@@ -15,25 +15,26 @@
       "file": "models/scenarios/S02/FINMODEL_VARSHAVKA_USALI_SCENARIO_S02_v0.1.0.xlsx"
     },
     {
-      "code": "S03",
-      "version": "0.1.6",
-      "status": "approved",
-      "issue": 36,
-      "related_issues": [36, 52],
-      "pull_request": 55,
-      "merged_to": "main",
-      "merge_commit": "9078997b0d27674df0aca274dc882ca34a6d74f1",
-      "development_branch": "agent/s03-channels-sync",
-      "file": "models/scenarios/S03/FINMODEL_VARSHAVKA_USALI_SCENARIO_S03_v0.1.6.xlsx",
-      "sha256": "1ad3258200ccc2293a4167961a144262aae34299e0b4ed54a2bc124e95c6d7b8",
-      "size_bytes": 149045,
+      "code": "S04",
+      "version": "3.0.0",
+      "status": "release_candidate",
+      "issue": 52,
+      "related_issues": [52],
+      "pull_request": 57,
+      "merged_to": null,
+      "merge_commit": null,
+      "development_branch": "agent/hotel-breakfast-31",
+      "file": "models/scenarios/S04/FINMODEL_VARSHAVKA_USALI_SCENARIO_S04_v3.0.0.xlsx",
+      "sha256": "c72fdd6a84a08ebd9610cf89fe3db1833a6fa265310ab6bb093e260d9174b937",
+      "size_bytes": 170597,
       "formula_count_core": 7469,
-      "formula_count_total": 7686,
-      "checks": 32,
+      "formula_count_total": 7982,
+      "checks": 42,
       "predecessor": {
-        "version": "0.1.5",
-        "pull_request": 35,
-        "merge_commit": "fb0ed257944e3d95a7b08ab7a23fa9625365d411"
+        "code": "S03",
+        "version": "0.1.6",
+        "pull_request": 55,
+        "merge_commit": "9078997b0d27674df0aca274dc882ca34a6d74f1"
       },
       "business_lunch": {
         "a_la_carte_check": 1000,
@@ -52,7 +53,37 @@
       },
       "hotel_breakfast": {
         "daily_services": 20,
-        "annual_services": 7300
+        "annual_services": 7300,
+        "confirmed_daily_services": 20,
+        "launch_daily_production": 22,
+        "steady_daily_production": 21,
+        "internal_tariff_vat_included": 550,
+        "external_sale": 0,
+        "surcharge": 0,
+        "packaging": 0,
+        "active_variants": 3,
+        "mix": {
+          "fried_eggs": 0.375,
+          "omelet": 0.375,
+          "oatmeal": 0.25,
+          "eggs_benedict_salmon": 0,
+          "salmon_croissant": 0
+        },
+        "kitchen_unit_cogs_preliminary": 143.7999302778,
+        "barista_drink_cogs": 60,
+        "full_unit_cogs_preliminary": 203.7999302778,
+        "food_cost_preliminary": 0.3705453277777778,
+        "annual_revenue": 4015000,
+        "annual_cogs_preliminary": 1487739.4910278,
+        "annual_direct_result_preliminary": 2527260.5089722,
+        "price_register_status": "preliminary",
+        "fontina_price_status": "sensitivity_only",
+        "rfq_status": "prepared_not_sent"
+      },
+      "hotel_total": {
+        "annual_revenue": 7665000,
+        "annual_cogs_preliminary": 2582739.4910278,
+        "annual_direct_result_preliminary": 5082260.5089722
       },
       "coffee_tea": {
         "guest_share": 0.5,
@@ -71,11 +102,15 @@
         "monthly_control_budget": 15000
       },
       "kitchen_program": {
-        "launch_week_kg": 661.5,
+        "active_menu_positions": 31,
+        "training_batches": 63,
+        "training_units": 636,
+        "training_kg": 171.3,
+        "launch_week_kg": 662.9,
         "launch_week_units": 2533,
-        "steady_week_kg": 638.075,
+        "steady_week_kg": 638.725,
         "steady_week_units": 2444,
-        "peak_launch_day_kg": 109.525
+        "peak_launch_day_kg": 109.725
       },
       "tableware": {
         "positions": 21,
@@ -91,10 +126,10 @@
       },
       "key_outputs": {
         "project_revenue": 49065800,
-        "cafe_cogs": 15186205.885714285,
+        "cafe_cogs": 14656050.166562619,
         "cafe_opex": 5301415.56,
-        "cafe_pbt": -945102.4112315234,
-        "project_net_result": 364239.58876847645
+        "cafe_pbt": -354721.69207985856,
+        "project_net_result": 954620.3079201413
       }
     }
   ]

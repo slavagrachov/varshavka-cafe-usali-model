@@ -38,6 +38,27 @@ S03 v0.1.4 воспроизводимо строится из утверждён
 `scripts/s03_model_builder.py`. S03 v0.1.5 строится из S03 v0.1.4, а
 S03 v0.1.6 — из S03 v0.1.5 скриптами в `scripts/releases/`.
 
+## Сценарий S04 v3.0.0
+
+Текущий release candidate в draft PR #57:
+
+- `models/scenarios/S04/FINMODEL_VARSHAVKA_USALI_SCENARIO_S04_v3.0.0.xlsx`;
+- `models/scenarios/S04/SHA256SUMS.txt`;
+- `inputs/scenarios/S04_inputs.csv`;
+- `inputs/model_manifest.json`;
+- `scripts/releases/build_s04_v3_0_0_breakfast_costing.mjs`;
+- `scripts/releases/validate_s04_v3_0_0.mjs`;
+- `scripts/releases/validate_s04_v3_0_0_ci.py`;
+- `docs/scenarios/SCENARIO_S04_v3.0.0.md`;
+- `docs/06-validation/SCENARIO_S04_v3.0.0_VALIDATION.md`;
+- `docs/07-operations/HOTEL_BREAKFAST_DECISION_2026-07-27.md`;
+- `docs/09-procurement/rfq-breakfast/` — шаблоны запросов, не отправлены.
+
+S04 воспроизводимо строится из переходной технической книги S03 v0.1.7.
+Расчёт гостиничного завтрака находится на листах `PRICE_REGISTER`,
+`BREAKFAST_RECIPES` и `BREAKFAST_COSTING`; мемо-контур Гостиницы находится
+на листе `07_PNL_НАЛОГИ`.
+
 ## Операционная разработка VARSHAVKA 3.0.0
 
 - `docs/05-data/ISSUE_REGISTER.md` — единый полный реестр вопросов,
