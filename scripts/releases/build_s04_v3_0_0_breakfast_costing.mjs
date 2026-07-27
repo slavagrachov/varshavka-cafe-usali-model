@@ -122,10 +122,10 @@ const recipeRows = [
   ["R-OML-03", "Омлет", "Основное блюдо", "Масло сливочное", "P-BUTTER", 5, "г", 5, "смесь омлета", 4, ""],
   ["R-OML-04", "Омлет", "Основное блюдо", "Соль", "P-SALT", 1, "г", 1, "смесь омлета", 1, ""],
   ["R-OAT-01", "Овсяная каша", "Основное блюдо", "Овсяные хлопья", "P-OATS", 45, "г", 45, "каша", 45, ""],
-  ["R-OAT-02", "Овсяная каша", "Основное блюдо", "Молоко", "P-MILK-DS", 125, "мл", 125, "каша", 111, "Стоимость по литрам; масса нетто требует КП"],
-  ["R-OAT-03", "Овсяная каша", "Основное блюдо", "Вода", "нет", 100, "г", 100, "каша", 88, "Коммунальный ресурс; продуктовая стоимость 0"],
-  ["R-OAT-04", "Овсяная каша", "Основное блюдо", "Сахар", "P-SUGAR", 5, "г", 5, "каша", 4, ""],
-  ["R-OAT-05", "Овсяная каша", "Основное блюдо", "Масло сливочное", "P-BUTTER", 5, "г", 5, "каша", 4, ""],
+  ["R-OAT-02", "Овсяная каша", "Основное блюдо", "Молоко", "P-MILK-DS", 125, "мл", 125, "каша", 108, "Аналитическое распределение выхода; стоимость по брутто 125 мл"],
+  ["R-OAT-03", "Овсяная каша", "Основное блюдо", "Вода", "нет", 100, "г", 100, "каша", 86, "Аналитическое распределение выхода; коммунальный ресурс, стоимость 0"],
+  ["R-OAT-04", "Овсяная каша", "Основное блюдо", "Сахар", "P-SUGAR", 5, "г", 5, "каша", 5, "Аналитическое распределение готового выхода"],
+  ["R-OAT-05", "Овсяная каша", "Основное блюдо", "Масло сливочное", "P-BUTTER", 5, "г", 5, "каша", 5, "Аналитическое распределение готового выхода"],
   ["R-OAT-06", "Овсяная каша", "Основное блюдо", "Соль", "P-SALT", 1, "г", 1, "каша", 1, ""],
   ["R-COM-01", "Все варианты", "Общий компонент", "Круассан 80 г", "P-CROISSANT-80", 1, "шт.", 80, "выпеченный круассан", 65, "Одна целая заготовка"],
   ["R-COM-02", "Все варианты", "Общий компонент", "Чеддер", "P-CHEDDAR", 20, "г", 20, "ломтик", 20, "Один ломтик"],
@@ -246,6 +246,107 @@ for (const [column, width] of Object.entries({
 // Link the financial model to the formula-based costing.
 const inputs = workbook.worksheets.getItem("01_ВВОД");
 inputs.getRange("A137").values = [["S04 v3.0.0 — ГОСТИНИЧНЫЙ ЗАВТРАК: 3 АКТИВНЫХ ВАРИАНТА"]];
+inputs.getRange("C11:G11").values = [[
+  "Предельное число мест, требующее подтверждения планировкой",
+  26,
+  "мест",
+  "Требует подтверждения",
+  "V-I-040: подтвердить планировкой и эвакуационными требованиями; расчётная база остаётся 20 мест",
+]];
+inputs.getRange("C15:G15").values = [[
+  "Ставка НДС — блокирующий налоговый input",
+  0,
+  "%",
+  "Блокирующий input",
+  "V-I-054: временно 0%; расчёты выполняются в ценах с НДС до отдельного налогового решения",
+]];
+inputs.getRange("C24:G24").values = [[
+  "Плановый food cost À la carte до рецептурного расчёта",
+  0.3,
+  "% выручки",
+  "Предварительный норматив",
+  "V-I-053: заменить расчётом сырья брутто по 31 активной позиции",
+]];
+inputs.getRange("C29:G29").values = [[
+  "Предварительный food cost Бизнес-ланча",
+  null,
+  "% выручки",
+  "Предварительный расчёт",
+  "Прокси от планового food cost À la carte и скидки; заменить рецептурным расчётом по V-I-053",
+]];
+inputs.getRange("D29").formulas = [["='01_ВВОД'!$D$24/(1-'01_ВВОД'!$D$27)"]];
+inputs.getRange("C35:G35").values = [[
+  "Плановый food cost Доставки до рецептурного расчёта",
+  0.3,
+  "% выручки",
+  "Предварительный норматив",
+  "V-I-053: заменить рецептурной себестоимостью доставочного ассортимента после испытаний",
+]];
+inputs.getRange("C42:G42").values = [[
+  "Временный прокси food cost Навыноса",
+  null,
+  "% выручки",
+  "Предварительный прокси",
+  "V-I-027/V-I-053: текущая формула не является рецептурной себестоимостью хлеба и десертов",
+]];
+inputs.getRange("D42").formulas = [["='01_ВВОД'!$D$24/(1-'01_ВВОД'!$D$41)"]];
+inputs.getRange("F49:G49").values = [[
+  "Требует документа",
+  "Нулевой эквайринг следует из внутреннего тарифа; подтвердить договорным порядком расчётов с Гостиницей",
+]];
+inputs.getRange("C55:G55").values = [[
+  "Предельный food cost БАНКЕТОВ до фактической калькуляции",
+  0.4,
+  "% выручки",
+  "Предварительный норматив",
+  "V-I-053: лимит 40%; заменить фактической себестоимостью стандартного банкета после контрольной проработки",
+]];
+inputs.getRange("F101:G102").values = [
+  ["Требует расчёта", "Нулевое значение временно; получить договор/тариф и включить фактический расход"],
+  ["Требует расчёта", "Нулевое значение временно; определить текстиль, периодичность и тариф стирки"],
+];
+inputs.getRange("F88:G90").values = [
+  ["Требует основания", "Нулевое значение требует подтверждения гарантией или договором обслуживания"],
+  ["Требует основания", "Нулевое значение требует подтверждения договором аренды кассового оборудования"],
+  ["Требует основания", "Нулевое значение требует подтверждения договором поставщика кофемашины"],
+];
+inputs.getRange("F107:G107").values = [[
+  "Требует расчёта",
+  "Нулевое значение временно; определить формат юридического сопровождения и тариф",
+]];
+inputs.getRange("A117").values = [[
+  "S04 v3.0.0 — НАСЛЕДОВАННЫЕ ОПЕРАЦИОННЫЕ ПРАВИЛА S02/S03",
+]];
+inputs.getRange("B118:B119").values = [["Операционные правила"], ["Операционные правила"]];
+inputs.getRange("F119:G119").values = [[
+  "Операционное правило",
+  "Граница 17:00 применяется в расписании банкетного дня; дневная P&L не содержит почасового расчёта",
+]];
+inputs.getRange("C122:G122").values = [[
+  "Предварительный food cost гостиничного ужина",
+  null,
+  "% выручки",
+  "Предварительный расчёт",
+  "Прокси от À la carte; заменить рецептурным расчётом по V-I-053",
+]];
+inputs.getRange("D122").formulas = [["='01_ВВОД'!$D$24"]];
+inputs.getRange("D6").formulas = [["=DATE(YEAR(D5)+1,MONTH(D5),DAY(D5))-1"]];
+inputs.getRange("D5:D6").format.numberFormat = "dd.mm.yyyy";
+inputs.getRange("D50").format.numberFormat = "dd.mm.yyyy";
+inputs.getRange("D47").formulas = [["='01_ВВОД'!$D$143"]];
+inputs.getRange("G47").values = [[
+  "Канонический food cost завтрака; формула от полной прямой себестоимости и тарифа",
+]];
+inputs.getRange("D133").formulas = [["=SUM(D169:D175)"]];
+inputs.getRange("D134").formulas = [[
+  "=COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,1)*D169+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,2)*D170+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,3)*D171+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,4)*D172+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,5)*D173+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,6)*D174+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,7)*D175",
+]];
+inputs.getRange("G134").values = [[
+  "Сумма календарных дневных программ; не укрупнённое 84 × 52",
+]];
+inputs.getRange("D135").formulas = [["=D133*0.65"]];
+inputs.getRange("D136").formulas = [["=D133*0.2"]];
+inputs.getRange("D138").formulas = [["=COUNTIF(D144:D146,\">0\")"]];
 inputs.getRange("D141").formulas = [["=BREAKFAST_COSTING!$E$27"]];
 inputs.getRange("D142").formulas = [["=BREAKFAST_COSTING!$G$27"]];
 inputs.getRange("D143").formulas = [["=BREAKFAST_COSTING!$I$27"]];
@@ -259,15 +360,83 @@ inputs.getRange("G141:G143").values = [
   ["Кухня + напиток бариста"],
   ["Предварительно до КП и документов поставщиков"],
 ];
+inputs.getRange("F141:F143").values = [
+  ["Предварительно"],
+  ["Предварительный расчёт"],
+  ["Предварительный расчёт"],
+];
 inputs.getRange("G147:G149").values = [
   ["Кухня 131,282668 + напиток 60"],
   ["Кухня 163,194668 + напиток 60"],
   ["Кухня 133,483718 + напиток 60"],
 ];
-inputs.getRange("A1:A159").format.columnWidth = 34;
-inputs.getRange("B1:B159").format.columnWidth = 24;
-inputs.getRange("C1:C159").format.columnWidth = 42;
-inputs.getRange("G1:G159").format.columnWidth = 54;
+inputs.getRange("D153").formulas = [["=65-(33-D152)"]];
+inputs.getRange("D154").formulas = [["=656-(33-D152)*10"]];
+inputs.getRange("D155").formulas = [["=176.3-3-2"]];
+inputs.getRange("D164").formulas = [["=(8*D160+8*D161+6*D162)/1000"]];
+inputs.getRange("D165").formulas = [["=(8*D160+8*D161+5*D162)/1000"]];
+inputs.getRange("D166").formulas = [["=(8*D160+7*D161+5*D162)/1000"]];
+inputs.getRange("D167").formulas = [["=(7*D160+8*D161+5*D162)/1000"]];
+inputs.getRange("A168:G168").values = [[
+  "S04 v3.0.0 — ДНЕВНАЯ ПРОГРАММА ПИТАНИЯ СОТРУДНИКОВ",
+  null, null, null, null, null, null,
+]];
+inputs.getRange("A168:G168").format = {
+  fill: "#17365D",
+  font: { bold: true, color: "#FFFFFF", name: "Arial" },
+};
+const staffMealDayRows = [
+  [169, "STAFF_MEALS_MON", "Понедельник", 12],
+  [170, "STAFF_MEALS_TUE", "Вторник", 12],
+  [171, "STAFF_MEALS_WED", "Среда", 11],
+  [172, "STAFF_MEALS_THU", "Четверг", 11],
+  [173, "STAFF_MEALS_FRI", "Пятница", 13],
+  [174, "STAFF_MEALS_SAT", "Суббота", 14],
+  [175, "STAFF_MEALS_SUN", "Воскресенье", 11],
+];
+for (const [row, code, day, quantity] of staffMealDayRows) {
+  setRow(inputs, row, {
+    A: code,
+    B: "Питание сотрудников",
+    C: `Комплексов — ${day}`,
+    D: quantity,
+    E: "комплексов/день",
+    F: "Подтверждено",
+    G: "Утверждённая базовая недельная программа; резерв не применяется",
+  });
+  inputs.getRange(`A${row}:G${row}`).format = {
+    font: { name: "Arial" },
+    wrapText: true,
+    verticalAlignment: "top",
+    borders: { preset: "all", style: "thin", color: "#D9E2F3" },
+  };
+}
+inputs.getRange("A1:A175").format.columnWidth = 34;
+inputs.getRange("B1:B175").format.columnWidth = 24;
+inputs.getRange("C1:C175").format.columnWidth = 42;
+inputs.getRange("G1:G175").format.columnWidth = 64;
+
+// Calendar dates are governed by START_DATE/END_DATE; banquet dates remain
+// explicit day-level inputs and are reconciled to the approved annual targets.
+const calendar = workbook.worksheets.getItem("02_КАЛЕНДАРЬ");
+calendar.getRange("A1").formulas = [[
+  '="Календарь операционной модели: "&RIGHT("0"&DAY(\'01_ВВОД\'!$D$5),2)&"."&RIGHT("0"&MONTH(\'01_ВВОД\'!$D$5),2)&"."&YEAR(\'01_ВВОД\'!$D$5)&"–"&RIGHT("0"&DAY(\'01_ВВОД\'!$D$6),2)&"."&RIGHT("0"&MONTH(\'01_ВВОД\'!$D$6),2)&"."&YEAR(\'01_ВВОД\'!$D$6)',
+]];
+calendar.getRange("A5").formulas = [["='01_ВВОД'!$D$5"]];
+for (let row = 5; row <= 369; row += 1) {
+  if (row > 5) calendar.getRange(`A${row}`).formulas = [[`=A${row - 1}+1`]];
+  calendar.getRange(`B${row}`).formulas = [[
+    `=12*(YEAR(A${row})-YEAR($A$5))+MONTH(A${row})-MONTH($A$5)+1`,
+  ]];
+  calendar.getRange(`C${row}`).formulas = [[
+    `=CHOOSE(MONTH(A${row}),"Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек")&"-"&RIGHT(YEAR(A${row}),2)`,
+  ]];
+  calendar.getRange(`D${row}`).formulas = [[`=WEEKDAY(A${row},2)`]];
+  calendar.getRange(`E${row}`).formulas = [[
+    `=CHOOSE(D${row},"Пн","Вт","Ср","Чт","Пт","Сб","Вс")`,
+  ]];
+}
+calendar.getRange("A5:A369").format.numberFormat = "dd.mm.yyyy";
 
 const summary = workbook.worksheets.getItem("00_РЕЗЮМЕ");
 summary.getRange("A1").values = [["VARSHAVKA v3.0.0 — Сценарий S04"]];
@@ -289,6 +458,7 @@ breakfast.getRange("D5:D7").formulas = [
 ];
 
 const checks = workbook.worksheets.getItem("08_ПРОВЕРКИ");
+checks.getRange("A20").values = [["S03 — Бизнес-ланч"]];
 checks.getRange("A27").values = [[
   "S04 v3.0.0: 31 активная позиция; прозрачная калькуляция трёх гостиничных завтраков.",
 ]];
@@ -296,6 +466,13 @@ checks.getRange("C43").formulas = [["=BREAKFAST_COSTING!$G$27"]];
 checks.getRange("C44").formulas = [["=BREAKFAST_COSTING!$I$27"]];
 checks.getRange("D43").formulas = [["='01_ВВОД'!$D$142"]];
 checks.getRange("D44").formulas = [["='01_ВВОД'!$D$143"]];
+checks.getRange("B37").values = [["Комплексы питания сотрудников за операционный год"]];
+checks.getRange("C37").formulas = [[
+  "=COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,1)*'01_ВВОД'!$D$169+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,2)*'01_ВВОД'!$D$170+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,3)*'01_ВВОД'!$D$171+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,4)*'01_ВВОД'!$D$172+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,5)*'01_ВВОД'!$D$173+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,6)*'01_ВВОД'!$D$174+COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,7)*'01_ВВОД'!$D$175",
+]];
+checks.getRange("G37").values = [[
+  "Независимый календарный пересчёт дневной программы; без производственного резерва",
+]];
 checks.getRange("D46").formulas = [[
   "=ABS('01_ВВОД'!$D$156-22)+ABS('01_ВВОД'!$D$157-21)+ABS('01_ВВОД'!$D$158-20)+ABS('03_ДОХОДЫ'!$P$22-7300)+ABS('04_СЕБЕСТОИМОСТЬ'!$P$15-'03_ДОХОДЫ'!$P$22*'01_ВВОД'!$D$142)",
 ]];
@@ -319,9 +496,117 @@ const normTerms = Array.from(
 checks.getRange("D47").formulas = [[`=${normTerms.join("+")}`]];
 checks.getRange("E47").formulas = [["=D47-C47"]];
 checks.getRange("F47").formulas = [['=IF(ABS(E47)<0.0001,"OK","ОШИБКА")']];
-checks.getRange("A1:A47").format.columnWidth = 32;
-checks.getRange("B1:B47").format.columnWidth = 46;
-checks.getRange("G1:G47").format.columnWidth = 72;
+checks.getRange("A46:G46").copyTo(checks.getRange("A48:G48"), "all");
+setRow(checks, 48, {
+  A: "CHK.BREAKFAST.OATMEAL_250",
+  B: "Сумма аналитических выходов овсяной каши равна 250 г",
+  C: 0,
+  G: "BREAKFAST_RECIPES!J11:J16 = 45 + 108 + 86 + 5 + 5 + 1 = 250 г; брутто F11:F16 не изменяется",
+});
+checks.getRange("D48").formulas = [["=ABS(SUM('BREAKFAST_RECIPES'!J11:J16)-250)"]];
+checks.getRange("E48").formulas = [["=D48-C48"]];
+checks.getRange("F48").formulas = [['=IF(ABS(E48)<0.0001,"OK","ОШИБКА")']];
+checks.getRange("A48:G48").format.rowHeight = 44;
+checks.getRange("A48:G48").format.wrapText = true;
+const structuralChecks = [
+  {
+    row: 49,
+    code: "CHK.CALENDAR.HORIZON",
+    label: "Календарь связан с START_DATE и END_DATE",
+    formula: "=ABS('02_КАЛЕНДАРЬ'!A5-'01_ВВОД'!D5)+ABS('02_КАЛЕНДАРЬ'!A369-'01_ВВОД'!D6)+ABS(COUNT('02_КАЛЕНДАРЬ'!A5:A369)-('01_ВВОД'!D6-'01_ВВОД'!D5+1))",
+    note: "365 последовательных дат; начало и окончание управляются 01_ВВОД",
+  },
+  {
+    row: 50,
+    code: "CHK.BANQUET.COUNT",
+    label: "Количество и дата начала банкетов",
+    formula: "=ABS(SUM('02_КАЛЕНДАРЬ'!H5:H369)-'01_ВВОД'!D52)+COUNTIFS('02_КАЛЕНДАРЬ'!A5:A369,\"<\"&'01_ВВОД'!D50,'02_КАЛЕНДАРЬ'!H5:H369,1)",
+    note: "60 событий; до BANQ_START банкетов нет",
+  },
+  {
+    row: 51,
+    code: "CHK.BANQUET.MONTHLY",
+    label: "Шесть банкетов в месяц с ноября по август",
+    formula: `=${Array.from(
+      { length: 10 },
+      (_, index) => `ABS(COUNTIFS('02_КАЛЕНДАРЬ'!B$5:B$369,${index + 3},'02_КАЛЕНДАРЬ'!H$5:H$369,1)-'01_ВВОД'!D51)`,
+    ).join("+")}`,
+    note: "Месяцы 3–12 операционного года сверяются с BANQ_PER_MONTH",
+  },
+  {
+    row: 52,
+    code: "CHK.BANQUET.MIX",
+    label: "Распределение банкетов по группам дней",
+    formula: "=ABS(COUNTIF('02_КАЛЕНДАРЬ'!I5:I369,\"Пт–Вс\")/SUM('02_КАЛЕНДАРЬ'!H5:H369)-'01_ВВОД'!D58)+ABS(COUNTIF('02_КАЛЕНДАРЬ'!I5:I369,\"Пн–Чт\")/SUM('02_КАЛЕНДАРЬ'!H5:H369)-'01_ВВОД'!D59)",
+    note: "42 события Пт–Вс и 18 событий Пн–Чт",
+  },
+  {
+    row: 53,
+    code: "CHK.STAFF.CALENDAR",
+    label: "Годовое питание сотрудников из дневной программы",
+    formula: "=ABS('01_ВВОД'!D134-(COUNTIF('02_КАЛЕНДАРЬ'!D5:D369,1)*'01_ВВОД'!D169+COUNTIF('02_КАЛЕНДАРЬ'!D5:D369,2)*'01_ВВОД'!D170+COUNTIF('02_КАЛЕНДАРЬ'!D5:D369,3)*'01_ВВОД'!D171+COUNTIF('02_КАЛЕНДАРЬ'!D5:D369,4)*'01_ВВОД'!D172+COUNTIF('02_КАЛЕНДАРЬ'!D5:D369,5)*'01_ВВОД'!D173+COUNTIF('02_КАЛЕНДАРЬ'!D5:D369,6)*'01_ВВОД'!D174+COUNTIF('02_КАЛЕНДАРЬ'!D5:D369,7)*'01_ВВОД'!D175))",
+    note: "Месячные и годовые количества формируются календарным суммированием",
+  },
+  {
+    row: 54,
+    code: "CHK.COGS.PROXY_STATUS",
+    label: "Укрупнённые COGS не обозначены как фактические",
+    formula: "=COUNTIF('01_ВВОД'!F24,\"Подтверждено\")+COUNTIF('01_ВВОД'!F29,\"Подтверждено\")+COUNTIF('01_ВВОД'!F35,\"Подтверждено\")+COUNTIF('01_ВВОД'!F42,\"Подтверждено\")+COUNTIF('01_ВВОД'!F55,\"Подтверждено\")+COUNTIF('01_ВВОД'!F122,\"Подтверждено\")",
+    note: "V-I-053 остаётся BLOCKED до рецептурного расчёта 31 позиции",
+  },
+  {
+    row: 55,
+    code: "CHK.BREAKFAST.FC_ALIAS",
+    label: "Единый food cost гостиничного завтрака",
+    formula: "=ABS('01_ВВОД'!D47-'01_ВВОД'!D143)",
+    note: "HOTEL_BREAKFAST_COGS и HOTEL_BREAKFAST_RECIPE_FC синхронизированы",
+  },
+  {
+    row: 56,
+    code: "CHK.OPEN_INPUTS.VISIBLE",
+    label: "Блокирующие inputs отображены явно",
+    formula: "=ABS(COUNTIF('01_ВВОД'!F11,\"Требует подтверждения\")+COUNTIF('01_ВВОД'!F15,\"Блокирующий input\")-2)",
+    note: "Открыты V-I-040 по 26 местам и V-I-054 по НДС; значения не выданы за утверждённые",
+  },
+];
+for (const item of structuralChecks) {
+  checks.getRange("A46:G46").copyTo(checks.getRange(`A${item.row}:G${item.row}`), "all");
+  setRow(checks, item.row, {
+    A: item.code,
+    B: item.label,
+    C: 0,
+    G: item.note,
+  });
+  checks.getRange(`D${item.row}`).formulas = [[item.formula]];
+  checks.getRange(`E${item.row}`).formulas = [[`=D${item.row}-C${item.row}`]];
+  checks.getRange(`F${item.row}`).formulas = [[
+    `=IF(ABS(E${item.row})<0.0001,"OK","ОШИБКА")`,
+  ]];
+  checks.getRange(`A${item.row}:G${item.row}`).format.rowHeight = 44;
+  checks.getRange(`A${item.row}:G${item.row}`).format.wrapText = true;
+}
+checks.getRange("A1:A56").format.columnWidth = 32;
+checks.getRange("B1:B56").format.columnWidth = 46;
+checks.getRange("G1:G56").format.columnWidth = 72;
+
+// Replace static summary rows with direct links to canonical inputs.
+const kitchenProgram = workbook.worksheets.getItem("14_ПРОГРАММА_КУХНИ");
+kitchenProgram.getRange("A2").values = [[
+  "S04 v3.0.0: 31 активная позиция; производственные показатели связаны с каноническими inputs. Закупочные цены и часть выходов остаются предварительными.",
+]];
+kitchenProgram.getRange("B9:C9").formulas = [
+  ["='01_ВВОД'!$D$156*7", "='01_ВВОД'!$D$157*7"],
+];
+kitchenProgram.getRange("B10:C10").formulas = [
+  ["='01_ВВОД'!$D$133", "='01_ВВОД'!$D$133"],
+];
+kitchenProgram.getRange("B11:C11").formulas = [
+  ["='01_ВВОД'!$D$135", "='01_ВВОД'!$D$135"],
+];
+kitchenProgram.getRange("B12:C12").formulas = [
+  ["='01_ВВОД'!$D$136", "='01_ВВОД'!$D$136"],
+];
+kitchenProgram.getRange("B23").formulas = [["='01_ВВОД'!$D$153&\" партии / \"&TEXT('01_ВВОД'!$D$155,\"0.00\")&\" кг\""]];
 
 // P&L memo block for the whole Hotel direction.
 const pnl = workbook.worksheets.getItem("07_PNL_НАЛОГИ");
