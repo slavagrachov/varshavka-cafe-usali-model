@@ -21,6 +21,20 @@ assert ws["I27"].value == "=G27/H27"
 assert ws["B30"].value == "=G27*D30"
 
 inputs = wb["01_ВВОД"]
+assert inputs["D6"].value == "=DATE(YEAR(D5)+1,MONTH(D5),DAY(D5))-1"
+assert inputs["F11"].value == "Требует подтверждения"
+assert inputs["F15"].value == "Блокирующий input"
+assert inputs["F24"].value == "Предварительный норматив"
+assert inputs["F29"].value == "Предварительный расчёт"
+assert inputs["F35"].value == "Предварительный норматив"
+assert inputs["F42"].value == "Предварительный прокси"
+assert inputs["F55"].value == "Предварительный норматив"
+assert [inputs[f"F{row}"].value for row in (88, 89, 90)] == ["Требует основания"] * 3
+assert [inputs[f"F{row}"].value for row in (141, 142, 143)] == [
+    "Предварительно",
+    "Предварительный расчёт",
+    "Предварительный расчёт",
+]
 assert inputs["D141"].value == "=BREAKFAST_COSTING!$E$27"
 assert inputs["D142"].value == "=BREAKFAST_COSTING!$G$27"
 assert inputs["D143"].value == "=BREAKFAST_COSTING!$I$27"
@@ -41,6 +55,38 @@ assert sum(recipes[f"J{row}"].value for row in range(11, 17)) == 250
 assert [recipes[f"F{row}"].value for row in range(11, 17)] == [45, 125, 100, 5, 5, 1]
 assert checks["A48"].value == "CHK.BREAKFAST.OATMEAL_250"
 assert checks["D48"].value == "=ABS(SUM('BREAKFAST_RECIPES'!J11:J16)-250)"
+for row in range(49, 57):
+    assert checks[f"A{row}"].value.startswith("CHK.")
+assert checks["A49"].value == "CHK.CALENDAR.HORIZON"
+assert checks["A50"].value == "CHK.BANQUET.COUNT"
+assert checks["A51"].value == "CHK.BANQUET.MONTHLY"
+assert checks["A52"].value == "CHK.BANQUET.MIX"
+assert checks["A53"].value == "CHK.STAFF.CALENDAR"
+assert checks["A54"].value == "CHK.COGS.PROXY_STATUS"
+assert checks["A55"].value == "CHK.BREAKFAST.FC_ALIAS"
+assert checks["A56"].value == "CHK.OPEN_INPUTS.VISIBLE"
+wb_values = load_workbook(BOOK, data_only=True, read_only=True)
+assert wb_values["08_ПРОВЕРКИ"]["F37"].value == "OK"
+
+calendar = wb["02_КАЛЕНДАРЬ"]
+assert calendar["A5"].value == "='01_ВВОД'!$D$5"
+assert calendar["A6"].value == "=A5+1"
+assert calendar["A369"].value == "=A368+1"
+assert calendar["B5"].value.startswith("=12*(YEAR(A5)")
+assert calendar["D5"].value == "=WEEKDAY(A5,2)"
+
+assert inputs["D133"].value == "=SUM(D169:D175)"
+assert inputs["D134"].value.startswith("=COUNTIF('02_КАЛЕНДАРЬ'!$D$5:$D$369,1)*D169")
+assert [inputs[f"D{row}"].value for row in range(169, 176)] == [12, 12, 11, 11, 13, 14, 11]
+assert inputs["D153"].value == "=65-(33-D152)"
+assert inputs["D154"].value == "=656-(33-D152)*10"
+assert inputs["D164"].value == "=(8*D160+8*D161+6*D162)/1000"
+
+kitchen_program = wb["14_ПРОГРАММА_КУХНИ"]
+assert kitchen_program["B9"].value == "='01_ВВОД'!$D$156*7"
+assert kitchen_program["B10"].value == "='01_ВВОД'!$D$133"
+assert kitchen_program["B11"].value == "='01_ВВОД'!$D$135"
+assert kitchen_program["B12"].value == "='01_ВВОД'!$D$136"
 
 pnl = wb["07_PNL_НАЛОГИ"]
 assert pnl["A49"].value == "PNL.HOTEL.BREAKFAST.REV"

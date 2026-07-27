@@ -35,7 +35,7 @@ if (JSON.stringify(normFormulas) !== JSON.stringify(expectedNormFormulas)) {
 }
 
 const checks = workbook.worksheets.getItem("08_ПРОВЕРКИ");
-const checkValues = checks.getRange("A46:F48").values;
+const checkValues = checks.getRange("A46:F56").values;
 for (const row of checkValues) {
   if (row[5] !== "OK") throw new Error(`Failed breakfast check: ${JSON.stringify(row)}`);
 }
@@ -46,6 +46,23 @@ if (JSON.stringify(oatmealOutputs) !== JSON.stringify([45, 108, 86, 5, 5, 1])) {
 }
 if (oatmealOutputs.reduce((sum, value) => sum + value, 0) !== 250) {
   throw new Error(`Oatmeal output does not total 250 g: ${JSON.stringify(oatmealOutputs)}`);
+}
+
+const inputs = workbook.worksheets.getItem("01_ВВОД");
+if (inputs.getRange("F11").values[0][0] !== "Требует подтверждения") {
+  throw new Error("MAX_SEATS must remain unconfirmed until V-I-040 is closed");
+}
+if (inputs.getRange("F15").values[0][0] !== "Блокирующий input") {
+  throw new Error("VAT_RATE must remain a blocking input until V-I-054 is closed");
+}
+if (inputs.getRange("D134").values[0][0] !== 4380) {
+  throw new Error(`Unexpected calendar staff-meal quantity: ${inputs.getRange("D134").values[0][0]}`);
+}
+const calendar = workbook.worksheets.getItem("02_КАЛЕНДАРЬ");
+const calendarFormulas = calendar.getRange("A5:A369").formulas.flat();
+if (calendarFormulas[0] !== "='01_ВВОД'!$D$5" ||
+    calendarFormulas[calendarFormulas.length - 1] !== "=A368+1") {
+  throw new Error("Calendar horizon formulas are not linked to START_DATE/END_DATE");
 }
 
 const pnl = workbook.worksheets.getItem("07_PNL_НАЛОГИ");
@@ -80,7 +97,14 @@ if (errorScan.ndjson.includes("#REF!") || errorScan.ndjson.includes("#DIV/0!") |
 }
 
 await fs.mkdir(OUT, { recursive: true });
-for (const sheetName of ["PRICE_REGISTER", "BREAKFAST_COSTING"]) {
+for (const sheetName of [
+  "01_ВВОД",
+  "02_КАЛЕНДАРЬ",
+  "08_ПРОВЕРКИ",
+  "14_ПРОГРАММА_КУХНИ",
+  "PRICE_REGISTER",
+  "BREAKFAST_COSTING",
+]) {
   const preview = await workbook.render({
     sheetName,
     autoCrop: "all",
