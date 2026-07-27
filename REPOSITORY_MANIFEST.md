@@ -40,7 +40,7 @@ S03 v0.1.6 — из S03 v0.1.5 скриптами в `scripts/releases/`.
 
 ## Сценарий S04 v3.0.0
 
-Текущий release candidate в draft PR #57:
+Текущий сценарий, слитый через PR #57:
 
 - `models/scenarios/S04/FINMODEL_VARSHAVKA_USALI_SCENARIO_S04_v3.0.0.xlsx`;
 - `models/scenarios/S04/SHA256SUMS.txt`;
@@ -52,7 +52,9 @@ S03 v0.1.6 — из S03 v0.1.5 скриптами в `scripts/releases/`.
 - `docs/scenarios/SCENARIO_S04_v3.0.0.md`;
 - `docs/06-validation/SCENARIO_S04_v3.0.0_VALIDATION.md`;
 - `docs/07-operations/HOTEL_BREAKFAST_DECISION_2026-07-27.md`;
-- `docs/09-procurement/rfq-breakfast/` — шаблоны запросов, не отправлены.
+- `docs/09-procurement/rfq-breakfast/` — шаблоны запросов, не отправлены;
+- `docs/06-validation/issue-52/` — матрица доказательств, формы контрольных
+  проработок, сравнительные протоколы и проект финальных проверок Issue №52.
 
 S04 воспроизводимо строится из переходной технической книги S03 v0.1.7.
 Расчёт гостиничного завтрака находится на листах `PRICE_REGISTER`,
