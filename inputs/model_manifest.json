@@ -20,16 +20,16 @@
       "status": "release_candidate",
       "issue": 52,
       "related_issues": [52],
-      "pull_request": null,
+      "pull_request": 57,
       "merged_to": null,
       "merge_commit": null,
       "development_branch": "agent/hotel-breakfast-31",
       "file": "models/scenarios/S04/FINMODEL_VARSHAVKA_USALI_SCENARIO_S04_v3.0.0.xlsx",
-      "sha256": "815b22d6203a303638682a3e00a6b9c2d78557bf55024e7b2971d7af3064fdc3",
-      "size_bytes": 168547,
+      "sha256": "c72fdd6a84a08ebd9610cf89fe3db1833a6fa265310ab6bb093e260d9174b937",
+      "size_bytes": 170597,
       "formula_count_core": 7469,
-      "formula_count_total": 7837,
-      "checks": 40,
+      "formula_count_total": 7982,
+      "checks": 42,
       "predecessor": {
         "code": "S03",
         "version": "0.1.6",
@@ -54,6 +54,9 @@
       "hotel_breakfast": {
         "daily_services": 20,
         "annual_services": 7300,
+        "confirmed_daily_services": 20,
+        "launch_daily_production": 22,
+        "steady_daily_production": 21,
         "internal_tariff_vat_included": 550,
         "external_sale": 0,
         "surcharge": 0,
@@ -72,9 +75,15 @@
         "food_cost_preliminary": 0.3705453277777778,
         "annual_revenue": 4015000,
         "annual_cogs_preliminary": 1487739.4910278,
+        "annual_direct_result_preliminary": 2527260.5089722,
         "price_register_status": "preliminary",
         "fontina_price_status": "sensitivity_only",
         "rfq_status": "prepared_not_sent"
+      },
+      "hotel_total": {
+        "annual_revenue": 7665000,
+        "annual_cogs_preliminary": 2582739.4910278,
+        "annual_direct_result_preliminary": 5082260.5089722
       },
       "coffee_tea": {
         "guest_share": 0.5,

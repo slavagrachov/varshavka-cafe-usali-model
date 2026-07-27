@@ -20,6 +20,16 @@ function setRow(sheet, row, values) {
   }
 }
 
+const MONTH_COLUMNS = "DEFGHIJKLMNO".split("");
+
+function setMonthlyFormulas(sheet, row, formulaForColumn) {
+  for (const column of MONTH_COLUMNS) {
+    sheet.getRange(`${column}${row}`).formulas = [[formulaForColumn(column)]];
+  }
+  sheet.getRange(`P${row}`).formulas = [[`=SUM(D${row}:O${row})`]];
+  sheet.getRange(`Q${row}`).formulas = [[`=AVERAGE(D${row}:O${row})`]];
+}
+
 function styleSheet(sheet, lastRow, lastColumn) {
   const dark = "#17365D";
   const teal = "#0F6B78";
@@ -142,27 +152,36 @@ costing.getRange("A3:J3").values = [[
   "Стоимость, руб.", "Статус", "Источник нормы", "Price ID",
 ]];
 const lines = [
-  ["Яичница", "Основное блюдо", "Яйцо C0", 2, "шт.", "=PRICE_REGISTER!I4", "=D4*F4", "Предварительно", "BREAKFAST_RECIPES!F4", "P-EGG-C0"],
-  ["Яичница", "Основное блюдо", "Масло сливочное", 5, "г", "=PRICE_REGISTER!I7", "=D5/1000*F5", "Предварительно", "BREAKFAST_RECIPES!F5", "P-BUTTER"],
-  ["Яичница", "Основное блюдо", "Соль", 1, "г", "=PRICE_REGISTER!I10", "=D6/1000*F6", "Предварительно", "BREAKFAST_RECIPES!F6", "P-SALT"],
-  ["Омлет", "Основное блюдо", "Меланж", 126, "г", "=PRICE_REGISTER!I5", "=D7/1000*F7", "Предварительно", "BREAKFAST_RECIPES!F7", "P-MELANGE-GROVO"],
-  ["Омлет", "Основное блюдо", "Молоко", 50, "мл", "=PRICE_REGISTER!I6", "=D8/1000*F8", "Предварительно", "BREAKFAST_RECIPES!F8", "P-MILK-DS"],
-  ["Омлет", "Основное блюдо", "Масло сливочное", 5, "г", "=PRICE_REGISTER!I7", "=D9/1000*F9", "Предварительно", "BREAKFAST_RECIPES!F9", "P-BUTTER"],
-  ["Омлет", "Основное блюдо", "Соль", 1, "г", "=PRICE_REGISTER!I10", "=D10/1000*F10", "Предварительно", "BREAKFAST_RECIPES!F10", "P-SALT"],
-  ["Овсяная каша", "Основное блюдо", "Овсяные хлопья", 45, "г", "=PRICE_REGISTER!I8", "=D11/1000*F11", "Предварительно", "BREAKFAST_RECIPES!F11", "P-OATS"],
-  ["Овсяная каша", "Основное блюдо", "Молоко", 125, "мл", "=PRICE_REGISTER!I6", "=D12/1000*F12", "Предварительно", "BREAKFAST_RECIPES!F12", "P-MILK-DS"],
-  ["Овсяная каша", "Основное блюдо", "Вода", 100, "г", 0, "=0", "Подтверждено", "BREAKFAST_RECIPES!F13", "нет"],
-  ["Овсяная каша", "Основное блюдо", "Сахар", 5, "г", "=PRICE_REGISTER!I9", "=D14/1000*F14", "Предварительно", "BREAKFAST_RECIPES!F14", "P-SUGAR"],
-  ["Овсяная каша", "Основное блюдо", "Масло сливочное", 5, "г", "=PRICE_REGISTER!I7", "=D15/1000*F15", "Предварительно", "BREAKFAST_RECIPES!F15", "P-BUTTER"],
-  ["Овсяная каша", "Основное блюдо", "Соль", 1, "г", "=PRICE_REGISTER!I10", "=D16/1000*F16", "Предварительно", "BREAKFAST_RECIPES!F16", "P-SALT"],
-  ["Все варианты", "Общий компонент", "Круассан 80 г", 1, "шт.", "=PRICE_REGISTER!I11", "=D17*F17", "Предварительно", "BREAKFAST_RECIPES!F17", "P-CROISSANT-80"],
-  ["Все варианты", "Общий компонент", "Чеддер", 20, "г", "=PRICE_REGISTER!I12", "=D18/1000*F18", "Предварительно", "BREAKFAST_RECIPES!F18", "P-CHEDDAR"],
-  ["Все варианты", "Общий компонент", "Fontina/Fontal", 21, "г", "=PRICE_REGISTER!I13", "=D19/1000*F19", "Чувствительность", "BREAKFAST_RECIPES!F19", "P-FONTINA"],
+  ["Яичница", "Основное блюдо", "Яйцо C0", "шт.", "='PRICE_REGISTER'!I4", "=D4*F4", "Предварительно", "P-EGG-C0"],
+  ["Яичница", "Основное блюдо", "Масло сливочное", "г", "='PRICE_REGISTER'!I7", "=D5/1000*F5", "Предварительно", "P-BUTTER"],
+  ["Яичница", "Основное блюдо", "Соль", "г", "='PRICE_REGISTER'!I10", "=D6/1000*F6", "Предварительно", "P-SALT"],
+  ["Омлет", "Основное блюдо", "Меланж", "г", "='PRICE_REGISTER'!I5", "=D7/1000*F7", "Предварительно", "P-MELANGE-GROVO"],
+  ["Омлет", "Основное блюдо", "Молоко", "мл", "='PRICE_REGISTER'!I6", "=D8/1000*F8", "Предварительно", "P-MILK-DS"],
+  ["Омлет", "Основное блюдо", "Масло сливочное", "г", "='PRICE_REGISTER'!I7", "=D9/1000*F9", "Предварительно", "P-BUTTER"],
+  ["Омлет", "Основное блюдо", "Соль", "г", "='PRICE_REGISTER'!I10", "=D10/1000*F10", "Предварительно", "P-SALT"],
+  ["Овсяная каша", "Основное блюдо", "Овсяные хлопья", "г", "='PRICE_REGISTER'!I8", "=D11/1000*F11", "Предварительно", "P-OATS"],
+  ["Овсяная каша", "Основное блюдо", "Молоко", "мл", "='PRICE_REGISTER'!I6", "=D12/1000*F12", "Предварительно", "P-MILK-DS"],
+  ["Овсяная каша", "Основное блюдо", "Вода", "г", 0, "=0", "Подтверждено", "нет"],
+  ["Овсяная каша", "Основное блюдо", "Сахар", "г", "='PRICE_REGISTER'!I9", "=D14/1000*F14", "Предварительно", "P-SUGAR"],
+  ["Овсяная каша", "Основное блюдо", "Масло сливочное", "г", "='PRICE_REGISTER'!I7", "=D15/1000*F15", "Предварительно", "P-BUTTER"],
+  ["Овсяная каша", "Основное блюдо", "Соль", "г", "='PRICE_REGISTER'!I10", "=D16/1000*F16", "Предварительно", "P-SALT"],
+  ["Все варианты", "Общий компонент", "Круассан 80 г", "шт.", "='PRICE_REGISTER'!I11", "=D17*F17", "Предварительно", "P-CROISSANT-80"],
+  ["Все варианты", "Общий компонент", "Чеддер", "г", "='PRICE_REGISTER'!I12", "=D18/1000*F18", "Предварительно", "P-CHEDDAR"],
+  ["Все варианты", "Общий компонент", "Fontina/Fontal", "г", "='PRICE_REGISTER'!I13", "=D19/1000*F19", "Чувствительность", "P-FONTINA"],
 ];
 for (let index = 0; index < lines.length; index += 1) {
   const row = 4 + index;
-  const [variant, component, product, norm, unit, unitPrice, cost, status, normSource, priceId] = lines[index];
-  setRow(costing, row, { A: variant, B: component, C: product, D: norm, E: unit, H: status, I: normSource, J: priceId });
+  const [variant, component, product, unit, unitPrice, cost, status, priceId] = lines[index];
+  setRow(costing, row, {
+    A: variant,
+    B: component,
+    C: product,
+    E: unit,
+    H: status,
+    I: `BREAKFAST_RECIPES!F${row}`,
+    J: priceId,
+  });
+  costing.getRange(`D${row}`).formulas = [[`='BREAKFAST_RECIPES'!F${row}`]];
   if (typeof unitPrice === "string" && unitPrice.startsWith("=")) costing.getRange(`F${row}`).formulas = [[unitPrice]];
   else setRow(costing, row, { F: unitPrice });
   costing.getRange(`G${row}`).formulas = [[cost]];
@@ -176,7 +195,7 @@ costing.getRange("B23:B25").values = [[0.375], [0.375], [0.25]];
 costing.getRange("C23:C25").formulas = [["=SUM(G4:G6)"], ["=SUM(G7:G10)"], ["=SUM(G11:G16)"]];
 costing.getRange("D23:D25").formulas = [["=SUM($G$17:$G$19)"], ["=SUM($G$17:$G$19)"], ["=SUM($G$17:$G$19)"]];
 costing.getRange("E23:E25").formulas = [["=C23+D23"], ["=C24+D24"], ["=C25+D25"]];
-costing.getRange("F23:F25").formulas = [["=PRICE_REGISTER!I14"], ["=PRICE_REGISTER!I14"], ["=PRICE_REGISTER!I14"]];
+costing.getRange("F23:F25").formulas = [["='PRICE_REGISTER'!I14"], ["='PRICE_REGISTER'!I14"], ["='PRICE_REGISTER'!I14"]];
 costing.getRange("G23:G25").formulas = [["=E23+F23"], ["=E24+F24"], ["=E25+F25"]];
 costing.getRange("H23:H25").values = [[550], [550], [550]];
 costing.getRange("I23:I25").formulas = [["=G23/H23"], ["=G24/H24"], ["=G25/H25"]];
@@ -240,6 +259,15 @@ inputs.getRange("G141:G143").values = [
   ["Кухня + напиток бариста"],
   ["Предварительно до КП и документов поставщиков"],
 ];
+inputs.getRange("G147:G149").values = [
+  ["Кухня 131,282668 + напиток 60"],
+  ["Кухня 163,194668 + напиток 60"],
+  ["Кухня 133,483718 + напиток 60"],
+];
+inputs.getRange("A1:A159").format.columnWidth = 34;
+inputs.getRange("B1:B159").format.columnWidth = 24;
+inputs.getRange("C1:C159").format.columnWidth = 42;
+inputs.getRange("G1:G159").format.columnWidth = 54;
 
 const summary = workbook.worksheets.getItem("00_РЕЗЮМЕ");
 summary.getRange("A1").values = [["VARSHAVKA v3.0.0 — Сценарий S04"]];
@@ -268,6 +296,63 @@ checks.getRange("C43").formulas = [["=BREAKFAST_COSTING!$G$27"]];
 checks.getRange("C44").formulas = [["=BREAKFAST_COSTING!$I$27"]];
 checks.getRange("D43").formulas = [["='01_ВВОД'!$D$142"]];
 checks.getRange("D44").formulas = [["='01_ВВОД'!$D$143"]];
+checks.getRange("D46").formulas = [[
+  "=ABS('01_ВВОД'!$D$156-22)+ABS('01_ВВОД'!$D$157-21)+ABS('01_ВВОД'!$D$158-20)+ABS('03_ДОХОДЫ'!$P$22-7300)+ABS('04_СЕБЕСТОИМОСТЬ'!$P$15-'03_ДОХОДЫ'!$P$22*'01_ВВОД'!$D$142)",
+]];
+checks.getRange("G46").values = [[
+  "20 оплачиваемых обслуживаний; выпуск 22/21; финансовый COGS только для 7 300 оплаченных завтраков",
+]];
+checks.getRange("A46:G46").copyTo(checks.getRange("A47:G47"), "all");
+setRow(checks, 47, {
+  A: "CHK.BREAKFAST.NORMS",
+  B: "Нормы калькуляции равны BREAKFAST_RECIPES",
+  C: 0,
+  G: "D4:D19 связаны формулами с BREAKFAST_RECIPES!F4:F19",
+});
+const normTerms = Array.from(
+  { length: 16 },
+  (_, index) => {
+    const row = index + 4;
+    return `ABS('BREAKFAST_COSTING'!D${row}-'BREAKFAST_RECIPES'!F${row})`;
+  },
+);
+checks.getRange("D47").formulas = [[`=${normTerms.join("+")}`]];
+checks.getRange("E47").formulas = [["=D47-C47"]];
+checks.getRange("F47").formulas = [['=IF(ABS(E47)<0.0001,"OK","ОШИБКА")']];
+checks.getRange("A1:A47").format.columnWidth = 32;
+checks.getRange("B1:B47").format.columnWidth = 46;
+checks.getRange("G1:G47").format.columnWidth = 72;
+
+// P&L memo block for the whole Hotel direction.
+const pnl = workbook.worksheets.getItem("07_PNL_НАЛОГИ");
+pnl.getRange("A43:Q43").copyTo(pnl.getRange("A48:Q48"), "all");
+for (let row = 49; row <= 57; row += 1) {
+  pnl.getRange("A44:Q44").copyTo(pnl.getRange(`A${row}:Q${row}`), "all");
+}
+pnl.getRange("A48").values = [[
+  "МЕМО-КОНТУР ГОСТИНИЦА — ЗАВТРАКИ И УЖИНЫ УЧТЕНЫ В ИТОГАХ КАФЕ",
+]];
+setRow(pnl, 49, { A: "PNL.HOTEL.BREAKFAST.REV", B: "Кафе — Гостиница", C: "Выручка завтраков" });
+setRow(pnl, 50, { A: "PNL.HOTEL.BREAKFAST.COGS", B: "Кафе — Гостиница", C: "Прямой COGS завтраков" });
+setRow(pnl, 51, { A: "PNL.HOTEL.BREAKFAST.CONTRIB", B: "Кафе — Гостиница", C: "Прямой результат завтраков" });
+setRow(pnl, 52, { A: "PNL.HOTEL.DINNER.REV", B: "Кафе — Гостиница", C: "Выручка ужинов" });
+setRow(pnl, 53, { A: "PNL.HOTEL.DINNER.COGS", B: "Кафе — Гостиница", C: "Прямой COGS ужинов" });
+setRow(pnl, 54, { A: "PNL.HOTEL.DINNER.CONTRIB", B: "Кафе — Гостиница", C: "Прямой результат ужинов" });
+setRow(pnl, 55, { A: "PNL.HOTEL.TOTAL.REV", B: "Кафе — Гостиница", C: "Итого выручка направления" });
+setRow(pnl, 56, { A: "PNL.HOTEL.TOTAL.COGS", B: "Кафе — Гостиница", C: "Итого прямой COGS направления" });
+setRow(pnl, 57, { A: "PNL.HOTEL.TOTAL.CONTRIB", B: "Кафе — Гостиница", C: "Итого прямой результат направления" });
+setMonthlyFormulas(pnl, 49, (column) => `='03_ДОХОДЫ'!${column}24`);
+setMonthlyFormulas(pnl, 50, (column) => `='04_СЕБЕСТОИМОСТЬ'!${column}15`);
+setMonthlyFormulas(pnl, 51, (column) => `=${column}49-${column}50`);
+setMonthlyFormulas(pnl, 52, (column) => `='03_ДОХОДЫ'!${column}41`);
+setMonthlyFormulas(pnl, 53, (column) => `='04_СЕБЕСТОИМОСТЬ'!${column}42`);
+setMonthlyFormulas(pnl, 54, (column) => `=${column}52-${column}53`);
+setMonthlyFormulas(pnl, 55, (column) => `=${column}49+${column}52`);
+setMonthlyFormulas(pnl, 56, (column) => `=${column}50+${column}53`);
+setMonthlyFormulas(pnl, 57, (column) => `=${column}55-${column}56`);
+pnl.getRange("A1:A57").format.columnWidth = 32;
+pnl.getRange("B1:B57").format.columnWidth = 24;
+pnl.getRange("C1:C57").format.columnWidth = 42;
 
 await fs.mkdir(path.dirname(TARGET), { recursive: true });
 const output = await SpreadsheetFile.exportXlsx(workbook);

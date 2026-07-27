@@ -11,6 +11,8 @@ assert required.issubset(wb.sheetnames), required - set(wb.sheetnames)
 assert len(wb.sheetnames) == 19, len(wb.sheetnames)
 
 ws = wb["BREAKFAST_COSTING"]
+for row in range(4, 20):
+    assert ws[f"D{row}"].value == f"='BREAKFAST_RECIPES'!F{row}"
 assert ws["G23"].value == "=E23+F23"
 assert ws["G24"].value == "=E24+F24"
 assert ws["G25"].value == "=E25+F25"
@@ -22,6 +24,25 @@ inputs = wb["01_ВВОД"]
 assert inputs["D141"].value == "=BREAKFAST_COSTING!$E$27"
 assert inputs["D142"].value == "=BREAKFAST_COSTING!$G$27"
 assert inputs["D143"].value == "=BREAKFAST_COSTING!$I$27"
+assert inputs["G147"].value == "Кухня 131,282668 + напиток 60"
+assert inputs["G148"].value == "Кухня 163,194668 + напиток 60"
+assert inputs["G149"].value == "Кухня 133,483718 + напиток 60"
+
+checks = wb["08_ПРОВЕРКИ"]
+assert checks["A46"].value == "CHK.BREAKFAST.RESERVE"
+assert "'03_ДОХОДЫ'!$P$22-7300" in checks["D46"].value
+assert "'04_СЕБЕСТОИМОСТЬ'!$P$15" in checks["D46"].value
+assert checks["A47"].value == "CHK.BREAKFAST.NORMS"
+for row in range(4, 20):
+    assert f"'BREAKFAST_COSTING'!D{row}-'BREAKFAST_RECIPES'!F{row}" in checks["D47"].value
+
+pnl = wb["07_PNL_НАЛОГИ"]
+assert pnl["A49"].value == "PNL.HOTEL.BREAKFAST.REV"
+assert pnl["A52"].value == "PNL.HOTEL.DINNER.REV"
+assert pnl["A55"].value == "PNL.HOTEL.TOTAL.REV"
+assert pnl["P55"].value == "=SUM(D55:O55)"
+assert pnl["P56"].value == "=SUM(D56:O56)"
+assert pnl["P57"].value == "=SUM(D57:O57)"
 
 # Independent benchmark from selected preliminary prices.
 egg = 2 * (129.99 / 10) + 0.005 * (199.99 / 0.18) + 0.001 * 42.99
@@ -50,4 +71,3 @@ print({
     "annual_cogs": weighted_full * 7300,
     "formula_errors": 0,
 })
-
