@@ -1,0 +1,28 @@
+name: Publish S04 v3.0.0 Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-s04-v3.0.0-release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release state
+        uses: actions/checkout@v4
+
+      - name: Publish tag, release notes, and model assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view s04-v3.0.0 >/dev/null 2>&1; then
+            echo "Release s04-v3.0.0 already exists."
+            exit 0
+          fi
+          gh release create s04-v3.0.0             --target "${GITHUB_SHA}"             --title "VARSHAVKA S04 v3.0.0 — 28 июля 2026"             --notes-file docs/08-releases/S04-v3.0.0.md             --latest             models/scenarios/S04/FINMODEL_VARSHAVKA_USALI_SCENARIO_S04_v3.0.0.xlsx             models/scenarios/S04/SHA256SUMS.txt
