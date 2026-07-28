@@ -159,6 +159,7 @@ jobs:
             production \
             banquets \
             release \
+            downloads \
             scenario-comparison \
             investment \
             equipment \
@@ -196,6 +197,13 @@ jobs:
             book/_build/html/menu/index.html \
             || {
               echo "ERROR: Kitchen menu page is incomplete"
+              exit 1
+            }
+
+          grep -Fq "94,23 кВт" \
+            book/_build/html/downloads/index.html \
+            || {
+              echo "ERROR: Downloadable registers page is incomplete"
               exit 1
             }
 
@@ -318,6 +326,16 @@ jobs:
             "${SITE_URL}menu/" \
             > /tmp/menu.html
 
+          curl \
+            --silent \
+            --show-error \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-delay 5 \
+            "${SITE_URL}downloads/" \
+            > /tmp/downloads.html
+
           grep -Fq "$VIDEO_URL" /tmp/video.html \
             || {
               echo "ERROR: Published video page does not contain the Supabase URL"
@@ -339,6 +357,12 @@ jobs:
           grep -Fq "31 активную" /tmp/menu.html \
             || {
               echo "ERROR: Published kitchen menu is incomplete"
+              exit 1
+            }
+
+          grep -Fq "94,23 кВт" /tmp/downloads.html \
+            || {
+              echo "ERROR: Published downloadable registers page is incomplete"
               exit 1
             }
 
