@@ -49,6 +49,25 @@ function widths(sheet, spec) {
     sheet.getRange(`${col}:${col}`).format.columnWidth = width;
   }
 }
+function legend(sheet, endCol, rows) {
+  sheet.mergeCells(`A4:${endCol}4`);
+  sheet.getRange("A4").values = [["ЛЕГЕНДА"]];
+  sheet.getRange(`A4:${endCol}4`).format = {
+    fill: C.gray, font: { bold: true, color: "#17365D" },
+    verticalAlignment: "center",
+  };
+  rows.forEach((row, index) => {
+    const r = 5 + index;
+    sheet.getRange(`A${r}`).values = [[row[0]]];
+    sheet.mergeCells(`B${r}:${endCol}${r}`);
+    sheet.getRange(`B${r}`).values = [[row[1]]];
+    sheet.getRange(`A${r}:${endCol}${r}`).format = {
+      fill: row[2] || C.lightGray, wrapText: true,
+      borders: { bottom: { style: "thin", color: "#D9E2F3" } },
+    };
+    sheet.getRange(`A${r}`).format.font = { bold: true };
+  });
+}
 function round(value, digits = 6) {
   const p = 10 ** digits;
   return Math.round((value + Number.EPSILON) * p) / p;
@@ -216,177 +235,336 @@ for (const item of menu) weeklyByItem.set(item[0],0);
 for (const row of detail) weeklyByItem.set(row.id,weeklyByItem.get(row.id)+row.demand);
 
 const wb = Workbook.create();
+const TABLE_ROW = 10;
+const DATA_ROW = 11;
+const demandLastRow = DATA_ROW + detail.length - 1;
+const balanceLastRow = DATA_ROW + balance.length - 1;
+const staffLastRow = DATA_ROW + days.length * hours.length - 1;
 
 const passport = wb.worksheets.add("ПАСПОРТ");
 title(passport,"ПРОИЗВОДСТВЕННАЯ МОЩНОСТЬ КУХНИ",
-  "VARSHAVKA v3.0.0 • все 31 позиции • прогноз предпочтений × потоки × часовые профили × резерв направления","H");
-const totalPeak = peakByGroup.TOTAL_OUTPUT;
-passport.getRange("A4:D14").values = [
-  ["Показатель","Значение","Единица","Комментарий"],
-  ["Активных позиций меню",31,"позиций","Полный стартовый ассортимент"],
-  ["Расчётный горизонт","Первые 3 месяца","режим","Резерв применяется один раз"],
-  ["Максимальная суммарная часовая потребность",totalPeak.demand,"позиций/ч",`${totalPeak.day}, ${totalPeak.hour}`],
-  ["Доступная мощность по действующему штату",totalPeak.available,"позиций/ч",`${totalPeak.staff} производственных работников`],
-  ["Нехватка производственной мощности",totalPeak.shortage,"позиций/ч","MAX(потребность − доступная мощность; 0)"],
-  ["Проектная мощность раздачи",60,"позиций/ч","Не заменяет производственный персонал"],
-  ["Пиковый участок по дефициту",
-    balance.reduce((a,b)=>b.shortage>a.shortage?b:a).label,
-    "участок",`${balance.reduce((a,b)=>b.shortage>a.shortage?b:a).day}, ${balance.reduce((a,b)=>b.shortage>a.shortage?b:a).hour}`],
-  ["Статус часовых профилей","PRELIMINARY","статус","Заменить фактом после ≥300 чеков/заказов и 2 полных недель"],
-  ["Неполные исходные данные","Хлеб и гарниры","группы","Сплиты изолированы и помечены PRELIMINARY_SPLIT"],
-  ["Инженерный запас","Не увеличивает спрос","правило","Используется при выборе оборудования, не в прогнозе заказов"],
+  "VARSHAVKA v3.0.0 • формульная модель по всем 31 позициям меню","D");
+legend(passport,"D",[
+  ["Жёлтая заливка","Исходные данные, которые пользователь может изменять. После изменения Excel автоматически пересчитывает связанные показатели.",C.yellow],
+  ["Расчётная ячейка","Ячейка содержит формулу Excel и не должна заменяться ручным значением."],
+  ["Потребность","Сумма прогнозного количества всех позиций меню в соответствующем часовом интервале."],
+  ["Нехватка мощности","Максимум из разности «потребность минус доступная мощность» и нуля."],
+]);
+passport.getRange("A10:D20").values = [
+  ["Показатель","Значение","Единица","Формула / комментарий"],
+  ["Активных позиций меню",null,"позиций","Количество строк на листе «КОЭФФИЦИЕНТЫ_ВЫБОРА»"],
+  ["Расчётный горизонт","Первые 3 месяца","режим","Резерв направления применяется один раз"],
+  ["Максимальная суммарная часовая потребность",null,"позиций/ч","Максимум потребности группы TOTAL_OUTPUT"],
+  ["Максимальная нехватка производственной мощности",null,"позиций/ч","Максимум: MAX(потребность − доступная мощность; 0)"],
+  ["Проектная мощность раздачи",null,"позиций/ч","Исходное значение из листа «ПАРАМЕТРЫ»"],
+  ["Статус часовых профилей","PRELIMINARY","статус","Заменить фактом после ≥300 чеков/заказов и двух полных недель"],
+  ["Неполные исходные данные","Хлеб и гарниры","группы","Сплиты помечены PRELIMINARY_SPLIT"],
+  ["Спросовых строк",null,"строк","31 позиция × 7 дней × 15 часов"],
+  ["Строк баланса мощности",null,"строк","8 групп × 7 дней × 15 часов"],
+  ["Инженерный запас","Не увеличивает спрос","правило","Применяется только при выборе оборудования"],
 ];
-header(passport,"A4:D4"); body(passport,"A5:D14");
-passport.getRange("B7:B10").format.numberFormat = "0.000";
-passport.getRange("A9:D9").format.fill = C.red;
-passport.getRange("A12:D13").format.fill = C.yellow;
-widths(passport,{A:48,B:28,C:20,D:66});
+passport.getRange("B11").formulas = [["=COUNTA('КОЭФФИЦИЕНТЫ_ВЫБОРА'!A11:A41)"]];
+const totalBalanceRows = balance
+  .map((x,index)=>x.group==="TOTAL_OUTPUT"?DATA_ROW+index:null)
+  .filter(Boolean);
+passport.getRange("B13").formulas = [[`=MAX(${totalBalanceRows.map(r=>`'БАЛАНС_ДЕНЬ_ЧАС'!F${r}`).join(",")})`]];
+passport.getRange("B14").formulas = [[`=MAX(${totalBalanceRows.map(r=>`'БАЛАНС_ДЕНЬ_ЧАС'!K${r}`).join(",")})`]];
+passport.getRange("B15").formulas = [["='ПАРАМЕТРЫ'!D27"]];
+passport.getRange("B18").formulas = [[`=COUNTA('СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!A11:A${demandLastRow})`]];
+passport.getRange("B19").formulas = [[`=COUNTA('БАЛАНС_ДЕНЬ_ЧАС'!A11:A${balanceLastRow})`]];
+header(passport,"A10:D10"); body(passport,"A11:D20");
+passport.getRange("B11:B19").format.numberFormat = "0.000";
+passport.getRange("A14:D14").format.fill = C.red;
+widths(passport,{A:52,B:30,C:18,D:68});
+
+const params = wb.worksheets.add("ПАРАМЕТРЫ");
+title(params,"Параметры мощности и резервов",
+  "Все жёлтые ячейки являются исходными данными формульной модели.","G");
+legend(params,"G",[
+  ["Резерв направления","Множитель, применяемый к рациональному спросу соответствующего направления один раз.",C.yellow],
+  ["Мощность оборудования","Максимальное количество единиц, которое оборудование участка может обработать за час.",C.yellow],
+  ["Мощность одного специалиста","Количество единиц, которое один выделенный специалист участка может обработать за час.",C.yellow],
+  ["Доступная мощность","Минимум из мощности оборудования и мощности доступного штата."],
+]);
+params.getRange("A10:C16").values = [
+  ["Направление","Коэффициент резерва","Статус"],
+  ...directions.map(d=>[d,reserve[d],d==="Гостиничный завтрак"?"Включён в количестве 22":"Стартовый резерв"]),
+];
+header(params,"A10:C10"); body(params,"A11:C16");
+params.getRange("B11:B16").format.fill = C.yellow;
+params.getRange("B11:B16").format.numberFormat = "0.00";
+params.getRange("A17:G17").values = [["Вектор резерва",null,null,null,null,null,null]];
+for (let c=0;c<directions.length;c++) {
+  const col=String.fromCharCode(66+c);
+  params.getRange(`${col}17`).formulas = [[`=B${11+c}`]];
+}
+params.getRange("A17:G17").format.fill = C.lightGray;
+params.getRange("A17").format.font = { bold: true };
+params.getRange("B17:G17").format.numberFormat = "0.00";
+params.getRange("A19:F27").values = [
+  ["Код группы","Участок","Оборудование","Мощность оборудования, ед./ч","Мощность специалиста, ед./ч","Статус"],
+  ...Object.entries(groupCapacity).map(([code,v])=>[code,v[0],v[1],v[2],v[3],"PRELIMINARY_UNTIL_TEST"]),
+  ["TOTAL_OUTPUT","Совокупная выдача","Все участки",60,50/3,"Расчётная производительность 50 позиций / 3 работника"],
+];
+header(params,"A19:F19"); body(params,"A20:F27");
+params.getRange("D20:E27").format.fill = C.yellow;
+params.getRange("D20:E27").format.numberFormat = "0.000";
+widths(params,{A:20,B:18,C:22,D:24,E:24,F:32,G:18});
 
 const flowSheet = wb.worksheets.add("ПОТОКИ");
-title(flowSheet,"Потоки по дням недели","Единицы: гости или заказы соответствующего направления; гостиничный завтрак — производственный план 22 комплекса.","G");
-flowSheet.getRange("A4:G11").values = [
+title(flowSheet,"Потоки по дням недели",
+  "Гости или заказы соответствующего направления; гостиничный завтрак — производственный план 22 комплекса.","G");
+legend(flowSheet,"G",[
+  ["Поток","Количество гостей или заказов направления за день.",C.yellow],
+  ["Гостиничный завтрак","В первых трёх месяцах используется производственный план 22 комплекса в день.",C.yellow],
+  ["Использование","Поток × коэффициент выбора × часовая доля × резерв направления."],
+  ["Нулевое значение","Направление не работает в этот день либо продукция Кухни отсутствует."],
+]);
+flowSheet.getRange("A10:G17").values = [
   ["День",...directions],
   ...days.map(d=>[d[0],...d.slice(1)]),
 ];
-header(flowSheet,"A4:G4"); body(flowSheet,"A5:G11");
-flowSheet.getRange("B5:G11").format.numberFormat = "0.00";
+header(flowSheet,"A10:G10"); body(flowSheet,"A11:G17");
+flowSheet.getRange("B11:G17").format.fill = C.yellow;
+flowSheet.getRange("B11:G17").format.numberFormat = "0.00";
 widths(flowSheet,{A:20,B:18,C:18,D:24,E:22,F:16,G:16});
 
 const profileSheet = wb.worksheets.add("ЧАСОВЫЕ_ПРОФИЛИ");
-title(profileSheet,"Стартовые часовые профили спроса","Доли внутри направления. Сумма каждого столбца должна быть равна 100%. Профили предварительные до накопления факта.","G");
-profileSheet.getRange("A4:G19").values = [
+title(profileSheet,"Стартовые часовые профили спроса",
+  "Доли внутри направления; сумма каждого столбца должна быть равна 100%.","G");
+legend(profileSheet,"G",[
+  ["Часовая доля","Доля суточного спроса направления, приходящаяся на интервал.",C.yellow],
+  ["ИТОГО","Сумма часовых долей по направлению; формула должна давать 100%."],
+  ["Расчёт спроса","Суточный поток × коэффициент выбора × часовая доля."],
+  ["Статус","Предварительная гипотеза до накопления фактических чеков и заказов."],
+]);
+profileSheet.getRange("A10:G25").values = [
   ["Интервал",...directions],
   ...hours.map((h,i)=>[h,...directions.map(d=>profiles[d][i])]),
 ];
-profileSheet.getRange("A20:G20").values = [["ИТОГО",...directions.map(d=>round(profiles[d].reduce((s,x)=>s+x,0)))]];
-header(profileSheet,"A4:G4"); body(profileSheet,"A5:G20");
-profileSheet.getRange("B5:G20").format.numberFormat = "0.0%";
-profileSheet.getRange("A20:G20").format.fill = C.green;
+profileSheet.getRange("A26").values = [["ИТОГО"]];
+for (let c=0;c<directions.length;c++) {
+  const col=String.fromCharCode(66+c);
+  profileSheet.getRange(`${col}26`).formulas = [[`=SUM(${col}11:${col}25)`]];
+}
+header(profileSheet,"A10:G10"); body(profileSheet,"A11:G26");
+profileSheet.getRange("B11:G25").format.fill = C.yellow;
+profileSheet.getRange("B11:G26").format.numberFormat = "0.0%";
+profileSheet.getRange("A26:G26").format.fill = C.green;
 widths(profileSheet,{A:20,B:18,C:18,D:24,E:22,F:16,G:16});
 
 const coeffSheet = wb.worksheets.add("КОЭФФИЦИЕНТЫ_ВЫБОРА");
 title(coeffSheet,"Коэффициенты выбора по всем 31 позициям",
-  "Коэффициент = единиц позиции на гостя/заказ. Хлебные и гарнирные сплиты, отсутствовавшие в машиночитаемом источнике, помечены отдельно.","L");
-coeffSheet.getRange(`A4:L${menu.length+4}`).values = [
+  "Коэффициент означает количество единиц позиции на одного гостя или заказ.","L");
+legend(coeffSheet,"L",[
+  ["Выход, г","Нормативный выход продаваемой позиции.",C.yellow],
+  ["Коэффициент выбора","Единиц позиции на одного гостя или заказ соответствующего направления.",C.yellow],
+  ["APPROVED","Коэффициент утверждён в ходе разработки меню."],
+  ["PRELIMINARY_SPLIT","Распределение хлеба или гарниров требует подтверждения фактическими продажами.",C.yellow],
+]);
+coeffSheet.getRange(`A10:L${menu.length+10}`).values = [
   ["№","Раздел","Позиция","Группа мощности","Выход, г",...directions,"Статус"],
   ...menu.map(m=>[m[0],m[1],m[2],m[4],m[3],...m[5],m[6]]),
 ];
-header(coeffSheet,"A4:L4"); body(coeffSheet,`A5:L${menu.length+4}`);
-coeffSheet.getRange(`F5:K${menu.length+4}`).format.numberFormat = "0.0000";
-coeffSheet.freezePanes.freezeRows(4); coeffSheet.freezePanes.freezeColumns(3);
+header(coeffSheet,"A10:L10"); body(coeffSheet,`A11:L${menu.length+10}`);
+coeffSheet.getRange(`E11:K${menu.length+10}`).format.fill = C.yellow;
+coeffSheet.getRange(`F11:K${menu.length+10}`).format.numberFormat = "0.0000";
+coeffSheet.freezePanes.freezeRows(10); coeffSheet.freezePanes.freezeColumns(3);
 widths(coeffSheet,{A:5,B:21,C:43,D:18,E:14,F:16,G:18,H:22,I:22,J:15,K:15,L:24});
+
+const staffSheet = wb.worksheets.add("ШТАТ_ПО_ЧАСАМ");
+title(staffSheet,"Производственный штат по дням и часам",
+  "Экспедитор и упаковщик в число производственных специалистов не включаются.","F");
+legend(staffSheet,"F",[
+  ["Доступно специалистов","Фактическое количество производственных работников в интервале.",C.yellow],
+  ["Мощность штата","Доступно специалистов × производительность одного специалиста из листа «ПАРАМЕТРЫ»."],
+  ["Минимум для пика","Целевое количество производственных работников в вечернем интервале.",C.yellow],
+  ["Нехватка персонала","Рассчитывается на листе баланса через ограничение доступной мощности."],
+]);
+const staffRows=[];
+for (const d of days.map(x=>x[0])) for(let h=0;h<hours.length;h++) {
+  const n=staffCount(d,h);
+  staffRows.push([d,hours[h],n,null,d==="Суббота"&&h>=11?3:(h>=11?3:n),
+    "Мощность штата = специалисты × 16,667 позиции/чел.-ч"]);
+}
+staffSheet.getRange(`A10:F${staffLastRow}`).values=[
+  ["День","Час","Фактически доступно, чел.","Расчётная мощность штата, поз./ч","Минимум для вечернего пика, чел.","Основание"],
+  ...staffRows,
+];
+for(let r=DATA_ROW;r<=staffLastRow;r++) staffSheet.getRange(`D${r}`).formulas=[[`=C${r}*'ПАРАМЕТРЫ'!$E$27`]];
+header(staffSheet,"A10:F10"); body(staffSheet,`A11:F${staffLastRow}`);
+staffSheet.getRange(`C11:C${staffLastRow}`).format.fill=C.yellow;
+staffSheet.getRange(`E11:E${staffLastRow}`).format.fill=C.yellow;
+staffSheet.getRange(`C11:E${staffLastRow}`).format.numberFormat="0.000";
+staffSheet.freezePanes.freezeRows(10);
+widths(staffSheet,{A:20,B:18,C:22,D:22,E:24,F:58});
 
 const demandSheet = wb.worksheets.add("СПРОС_ДЕНЬ_ЧАС_МЕНЮ");
 title(demandSheet,"Почасовой спрос по всему меню",
-  "Расчёт: поток направления × коэффициент выбора позиции × доля часа × резерв направления; направления суммируются без промежуточного округления.","M");
+  "Расчёт выполняется формулами из потоков, коэффициентов выбора, часовых профилей и резервов.","M");
+legend(demandSheet,"M",[
+  ["Спрос до резерва","Сумма по направлениям: поток × коэффициент выбора × часовая доля."],
+  ["Спрос с резервом","Сумма по направлениям: поток × коэффициент выбора × часовая доля × резерв направления."],
+  ["Масса, кг","Спрос с резервом × нормативный выход позиции / 1 000."],
+  ["Исходные данные","Все изменяемые значения находятся на жёлтых ячейках исходных листов."],
+]);
 const demandRows = detail.map(x=>[
-  x.day,x.hour,x.id,x.section,x.item,x.group,x.output,x.before,x.demand,x.kg,
+  x.day,x.hour,x.id,x.section,x.item,x.group,x.output,null,null,null,
   "Σ(поток × коэффициент × профиль часа × резерв)","Первые 3 месяца",
   menu.find(m=>m[0]===x.id)[6],
 ]);
-demandSheet.getRange(`A4:M${demandRows.length+4}`).values = [
+demandSheet.getRange(`A10:M${demandLastRow}`).values = [
   ["День","Час","№","Раздел","Позиция","Группа мощности","Выход, г","Спрос до резерва","Спрос с резервом","Масса, кг","Расчёт","Режим","Статус коэффициента"],
   ...demandRows,
 ];
-header(demandSheet,"A4:M4"); body(demandSheet,`A5:M${demandRows.length+4}`);
-demandSheet.getRange(`G5:J${demandRows.length+4}`).format.numberFormat = "0.000";
-demandSheet.freezePanes.freezeRows(4); demandSheet.freezePanes.freezeColumns(2);
+for(let i=0;i<detail.length;i++){
+  const r=DATA_ROW+i, x=detail[i];
+  const flowRow=DATA_ROW+days.findIndex(d=>d[0]===x.day);
+  const profileRow=DATA_ROW+x.hourIndex;
+  const coeffRow=DATA_ROW+x.id-1;
+  demandSheet.getRange(`H${r}`).formulas=[[`=SUMPRODUCT('ПОТОКИ'!B${flowRow}:G${flowRow},'ЧАСОВЫЕ_ПРОФИЛИ'!B${profileRow}:G${profileRow},'КОЭФФИЦИЕНТЫ_ВЫБОРА'!F${coeffRow}:K${coeffRow})`]];
+  demandSheet.getRange(`I${r}`).formulas=[[`=SUMPRODUCT('ПОТОКИ'!B${flowRow}:G${flowRow},'ЧАСОВЫЕ_ПРОФИЛИ'!B${profileRow}:G${profileRow},'КОЭФФИЦИЕНТЫ_ВЫБОРА'!F${coeffRow}:K${coeffRow},'ПАРАМЕТРЫ'!$B$17:$G$17)`]];
+  demandSheet.getRange(`J${r}`).formulas=[[`=I${r}*G${r}/1000`]];
+}
+header(demandSheet,"A10:M10"); body(demandSheet,`A11:M${demandLastRow}`);
+demandSheet.getRange(`G11:J${demandLastRow}`).format.numberFormat = "0.000";
+demandSheet.freezePanes.freezeRows(10); demandSheet.freezePanes.freezeColumns(2);
 widths(demandSheet,{A:18,B:18,C:6,D:20,E:42,F:18,G:12,H:18,I:18,J:14,K:48,L:18,M:24});
 
 const balanceSheet = wb.worksheets.add("БАЛАНС_ДЕНЬ_ЧАС");
 title(balanceSheet,"Суммарный почасовой баланс производственной мощности",
-  "Потребность агрегирована по общим участкам. Нехватка = MAX(потребность с резервом − доступная мощность; 0).","N");
+  "Потребность всех блюд агрегируется по общим участкам и сравнивается с доступной мощностью.","N");
+legend(balanceSheet,"N",[
+  ["Суммарная потребность","Сумма спроса с резервом всех позиций общей группы за день и час."],
+  ["Мощность по штату","Количество доступных специалистов × производительность специалиста."],
+  ["Доступная мощность","Минимум из мощности оборудования и мощности по штату."],
+  ["Нехватка мощности","MAX(суммарная потребность − доступная мощность; 0)."],
+]);
 const balanceRows = balance.map(x=>[
-  x.day,x.hour,x.group,x.label,x.equipment,x.demand,x.equipmentCap,x.staff,
-  x.staffCap,x.available,x.shortage,x.utilization,
-  x.shortage>0?"BLOCKED":"PASS",
+  x.day,x.hour,x.group,x.label,x.equipment,null,null,null,null,null,null,null,null,
   x.group==="TOTAL_OUTPUT"?"Совокупность всех 31 позиций":"Общая мощность группы; не суммировать по позициям",
 ]);
-balanceSheet.getRange(`A4:N${balanceRows.length+4}`).values = [
+balanceSheet.getRange(`A10:N${balanceLastRow}`).values = [
   ["День","Час","Код группы","Участок","Оборудование","Суммарная потребность, ед./ч","Мощность оборудования, ед./ч","Доступно производственных специалистов","Мощность по штату, ед./ч","Доступная мощность, ед./ч","Нехватка производственной мощности, ед./ч","Загрузка","Статус","Комментарий"],
   ...balanceRows,
 ];
-header(balanceSheet,"A4:N4"); body(balanceSheet,`A5:N${balanceRows.length+4}`);
-balanceSheet.getRange(`F5:L${balanceRows.length+4}`).format.numberFormat = "0.000";
-balanceSheet.freezePanes.freezeRows(4); balanceSheet.freezePanes.freezeColumns(2);
+const groupParamRows = Object.fromEntries([...Object.keys(groupCapacity),"TOTAL_OUTPUT"].map((g,i)=>[g,20+i]));
+for(let i=0;i<balance.length;i++){
+  const r=DATA_ROW+i, x=balance[i], p=groupParamRows[x.group];
+  const demandFormula=x.group==="TOTAL_OUTPUT"
+    ? `=SUMIFS('СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$I$11:$I$${demandLastRow},'СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$A$11:$A$${demandLastRow},A${r},'СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$B$11:$B$${demandLastRow},B${r})`
+    : `=SUMIFS('СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$I$11:$I$${demandLastRow},'СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$A$11:$A$${demandLastRow},A${r},'СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$B$11:$B$${demandLastRow},B${r},'СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$F$11:$F$${demandLastRow},C${r})`;
+  balanceSheet.getRange(`F${r}`).formulas=[[demandFormula]];
+  balanceSheet.getRange(`G${r}`).formulas=[[`='ПАРАМЕТРЫ'!D${p}`]];
+  balanceSheet.getRange(`H${r}`).formulas=[[`=SUMIFS('ШТАТ_ПО_ЧАСАМ'!$C$11:$C$${staffLastRow},'ШТАТ_ПО_ЧАСАМ'!$A$11:$A$${staffLastRow},A${r},'ШТАТ_ПО_ЧАСАМ'!$B$11:$B$${staffLastRow},B${r})`]];
+  balanceSheet.getRange(`I${r}`).formulas=[[x.group==="TOTAL_OUTPUT"?`=H${r}*'ПАРАМЕТРЫ'!E${p}`:`=MIN(H${r},1)*'ПАРАМЕТРЫ'!E${p}`]];
+  balanceSheet.getRange(`J${r}`).formulas=[[`=MIN(G${r},I${r})`]];
+  balanceSheet.getRange(`K${r}`).formulas=[[`=MAX(F${r}-J${r},0)`]];
+  balanceSheet.getRange(`L${r}`).formulas=[[`=IF(J${r}=0,0,F${r}/J${r})`]];
+  balanceSheet.getRange(`M${r}`).formulas=[[`=IF(K${r}>0,"BLOCKED","PASS")`]];
+}
+header(balanceSheet,"A10:N10"); body(balanceSheet,`A11:N${balanceLastRow}`);
+balanceSheet.getRange(`F11:L${balanceLastRow}`).format.numberFormat = "0.000";
+balanceSheet.freezePanes.freezeRows(10); balanceSheet.freezePanes.freezeColumns(2);
 widths(balanceSheet,{A:18,B:18,C:18,D:34,E:28,F:22,G:22,H:20,I:20,J:21,K:24,L:14,M:14,N:50});
 
 const menuCap = wb.worksheets.add("МОЩНОСТЬ_ПО_МЕНЮ");
 title(menuCap,"Производственная мощность в разрезе всего меню",
-  "Столбец нехватки относится к общей группе мощности позиции и рассчитывается по суммарной потребности всех блюд этой группы.","P");
-const menuCapRows = menu.map(m=>{
-  const itemPeak=maxItem.get(m[0]); const gp=peakByGroup[m[4]];
-  return [
-    m[0],m[1],m[2],m[4],m[3],round(weeklyByItem.get(m[0])),
-    itemPeak.demand,itemPeak.day,itemPeak.hour,gp.demand,gp.equipmentCap,
-    gp.staffCap,gp.available,gp.shortage,gp.shortage>0?"BLOCKED":"PASS",
-    m[6],
-  ];
-});
-menuCap.getRange(`A4:P${menuCapRows.length+4}`).values = [
+  "Все показатели рассчитываются формулами; нехватка относится к общей группе мощности позиции.","P");
+legend(menuCap,"P",[
+  ["Недельная потребность","Сумма почасового спроса с резервом по позиции за семь дней."],
+  ["Максимальный спрос позиции","Максимальное часовое значение спроса конкретной позиции."],
+  ["Суммарная потребность группы","Максимум суммы всех блюд, использующих общую производственную мощность."],
+  ["Нехватка мощности","Максимальная положительная разница между потребностью группы и доступной мощностью."],
+]);
+const menuCapRows = menu.map(m=>[
+  m[0],m[1],m[2],m[4],m[3],null,null,maxItem.get(m[0]).day,maxItem.get(m[0]).hour,null,null,null,null,null,null,m[6],
+]);
+menuCap.getRange(`A10:P${menu.length+10}`).values = [
   ["№","Раздел","Наименование","Группа мощности","Выход, г","Недельная потребность, ед.","Макс. спрос позиции, ед./ч","День пика позиции","Час пика позиции","Суммарная потребность группы, ед./ч","Мощность оборудования группы, ед./ч","Пиковая мощность по штату, ед./ч","Доступная мощность группы, ед./ч","Нехватка производственной мощности, ед./ч","Статус мощности","Статус коэффициента"],
   ...menuCapRows,
 ];
-header(menuCap,"A4:P4"); body(menuCap,`A5:P${menuCapRows.length+4}`);
-menuCap.getRange(`E5:N${menuCapRows.length+4}`).format.numberFormat = "0.000";
-menuCap.freezePanes.freezeRows(4); menuCap.freezePanes.freezeColumns(3);
+for(let r=DATA_ROW;r<DATA_ROW+menu.length;r++){
+  const id=r-DATA_ROW+1;
+  const group=menu[id-1][4];
+  const itemDemandRows=detail
+    .map((x,index)=>x.id===id?DATA_ROW+index:null)
+    .filter(Boolean);
+  const groupBalanceRows=balance
+    .map((x,index)=>x.group===group?DATA_ROW+index:null)
+    .filter(Boolean);
+  const p=groupParamRows[group];
+  menuCap.getRange(`F${r}`).formulas=[[`=SUMIF('СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$C$11:$C$${demandLastRow},A${r},'СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!$I$11:$I$${demandLastRow})`]];
+  menuCap.getRange(`G${r}`).formulas=[[`=MAX(${itemDemandRows.map(x=>`'СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!I${x}`).join(",")})`]];
+  menuCap.getRange(`J${r}`).formulas=[[`=MAX(${groupBalanceRows.map(x=>`'БАЛАНС_ДЕНЬ_ЧАС'!F${x}`).join(",")})`]];
+  menuCap.getRange(`K${r}`).formulas=[[`='ПАРАМЕТРЫ'!D${p}`]];
+  menuCap.getRange(`L${r}`).formulas=[[`=MAX(${groupBalanceRows.map(x=>`'БАЛАНС_ДЕНЬ_ЧАС'!I${x}`).join(",")})`]];
+  menuCap.getRange(`M${r}`).formulas=[[`=MAX(${groupBalanceRows.map(x=>`'БАЛАНС_ДЕНЬ_ЧАС'!J${x}`).join(",")})`]];
+  menuCap.getRange(`N${r}`).formulas=[[`=MAX(${groupBalanceRows.map(x=>`'БАЛАНС_ДЕНЬ_ЧАС'!K${x}`).join(",")})`]];
+  menuCap.getRange(`O${r}`).formulas=[[`=IF(N${r}>0,"BLOCKED","PASS")`]];
+}
+header(menuCap,"A10:P10"); body(menuCap,`A11:P${menu.length+10}`);
+menuCap.getRange(`E11:N${menu.length+10}`).format.numberFormat = "0.000";
+menuCap.freezePanes.freezeRows(10); menuCap.freezePanes.freezeColumns(3);
 widths(menuCap,{A:5,B:21,C:44,D:18,E:12,F:19,G:19,H:18,I:18,J:22,K:22,L:21,M:22,N:24,O:15,P:23});
 
-const staffSheet = wb.worksheets.add("ШТАТ_ПО_ЧАСАМ");
-title(staffSheet,"Производственный штат по дням и часам",
-  "Ранняя смена 06:00–18:00, поздняя 11:00–23:00; субботняя третья 10:00–22:00. Экспедитор и упаковщик не входят.","F");
-const staffRows=[];
-for (const d of days.map(x=>x[0])) for(let h=0;h<hours.length;h++) {
-  const n=staffCount(d,h);
-  staffRows.push([d,hours[h],n,round(n*(50/3)),d==="Суббота"&&h>=11?3:(h>=11?3:n),
-    "Расчётная производительность 16,667 позиции/чел.-ч"]);
-}
-staffSheet.getRange(`A4:F${staffRows.length+4}`).values=[
-  ["День","Час","Фактически доступно, чел.","Расчётная мощность штата, поз./ч","Минимум для вечернего пика, чел.","Основание"],
-  ...staffRows,
-];
-header(staffSheet,"A4:F4"); body(staffSheet,`A5:F${staffRows.length+4}`);
-staffSheet.getRange(`C5:E${staffRows.length+4}`).format.numberFormat="0.000";
-staffSheet.freezePanes.freezeRows(4);
-widths(staffSheet,{A:20,B:18,C:22,D:22,E:24,F:52});
-
 const checks = wb.worksheets.add("КОНТРОЛЬ");
-title(checks,"Контроль полноты и баланса","Автоматические и воспроизводимые сверки исходных матриц.","F");
-const preliminary = menu.filter(m=>m[6]==="PRELIMINARY_SPLIT").length;
-checks.getRange("A4:F13").values=[
+title(checks,"Контроль полноты и формул",
+  "Контрольные показатели рассчитываются формулами и сопоставляются с жёлтыми нормативами.","F");
+legend(checks,"F",[
+  ["Факт","Формула, считающая текущее состояние книги."],
+  ["Норматив","Ожидаемое контрольное значение; жёлтая ячейка.",C.yellow],
+  ["Отклонение","Факт минус норматив."],
+  ["Статус","OK, если отклонение равно нулю; иначе FAIL."],
+]);
+checks.getRange("A10:F19").values=[
   ["Проверка","Факт","Норматив","Отклонение","Статус","Комментарий"],
-  ["Активных позиций",menu.length,31,null,null,"Все позиции включены"],
-  ["Дней недели",days.length,7,null,null,"Полная неделя"],
-  ["Часовых интервалов",hours.length,15,null,null,"07:00–22:00"],
-  ["Строк детального спроса",detail.length,31*7*15,null,null,"31 × 7 × 15"],
-  ["Строк баланса участков",balance.length,8*7*15,null,null,"8 групп × 7 × 15"],
-  ["Часовые профили = 100%",directions.filter(d=>Math.abs(profiles[d].reduce((s,x)=>s+x,0)-1)<1e-9).length,6,null,null,"Все направления"],
-  ["Строк с предварительным сплитом",preliminary,7,null,null,"4 хлеба + 3 гарнира"],
-  ["Формула нехватки без отрицательных значений",balance.filter(x=>x.shortage>=0).length,balance.length,null,null,"MAX(спрос − мощность; 0)"],
-  ["Неактивные завтраки в спросе",0,0,null,null,"Бенедикт и круассан с лососем отсутствуют"],
+  ["Активных позиций",null,31,null,null,"Все позиции включены"],
+  ["Дней недели",null,7,null,null,"Полная неделя"],
+  ["Часовых интервалов",null,15,null,null,"07:00–22:00"],
+  ["Строк детального спроса",null,31*7*15,null,null,"31 × 7 × 15"],
+  ["Строк баланса участков",null,8*7*15,null,null,"8 групп × 7 × 15"],
+  ["Часовые профили = 100%",null,6,null,null,"Все направления"],
+  ["Строк с предварительным сплитом",null,7,null,null,"4 хлеба + 3 гарнира"],
+  ["Негативных значений нехватки",null,0,null,null,"Нехватка не может быть отрицательной"],
+  ["Неактивные завтраки в спросе",null,0,null,null,"Архивные позиции отсутствуют"],
 ];
-for(let row=5;row<=13;row++){
+checks.getRange("B11").formulas=[["=COUNTA('КОЭФФИЦИЕНТЫ_ВЫБОРА'!A11:A41)"]];
+checks.getRange("B12").formulas=[["=COUNTA('ПОТОКИ'!A11:A17)"]];
+checks.getRange("B13").formulas=[["=COUNTA('ЧАСОВЫЕ_ПРОФИЛИ'!A11:A25)"]];
+checks.getRange("B14").formulas=[[`=COUNTA('СПРОС_ДЕНЬ_ЧАС_МЕНЮ'!A11:A${demandLastRow})`]];
+checks.getRange("B15").formulas=[[`=COUNTA('БАЛАНС_ДЕНЬ_ЧАС'!A11:A${balanceLastRow})`]];
+checks.getRange("B16").formulas=[["=COUNTIF('ЧАСОВЫЕ_ПРОФИЛИ'!B26:G26,1)"]];
+checks.getRange("B17").formulas=[["=COUNTIF('КОЭФФИЦИЕНТЫ_ВЫБОРА'!L11:L41,\"PRELIMINARY_SPLIT\")"]];
+checks.getRange("B18").formulas=[[`=COUNTIF('БАЛАНС_ДЕНЬ_ЧАС'!K11:K${balanceLastRow},"<0")`]];
+checks.getRange("B19").formulas=[["=0"]];
+for(let row=11;row<=19;row++){
   checks.getRange(`D${row}`).formulas=[[`=B${row}-C${row}`]];
   checks.getRange(`E${row}`).formulas=[[`=IF(D${row}=0,"OK","FAIL")`]];
 }
-header(checks,"A4:F4"); body(checks,"A5:F13");
-checks.getRange("E5:E13").format.fill=C.green;
+header(checks,"A10:F10"); body(checks,"A11:F19");
+checks.getRange("C11:C19").format.fill=C.yellow;
+checks.getRange("E11:E19").format.fill=C.green;
 widths(checks,{A:48,B:16,C:16,D:16,E:14,F:52});
 
-for (const spec of [
-  [passport,"A1:D14","capacity-passport-v3.png"],
-  [menuCap,"A1:P15","capacity-menu-v3.png"],
-  [balanceSheet,"A1:N24","capacity-balance-v3.png"],
-  [checks,"A1:F13","capacity-checks-v3.png"],
-]) {
-  const blob=await wb.render({sheetName:spec[0].name,range:spec[1],scale:1,format:"png"});
-  await fs.writeFile(`${previewDir}/${spec[2]}`,new Uint8Array(await blob.arrayBuffer()));
-}
 const out=await SpreadsheetFile.exportXlsx(wb);
 await out.save(`${outputDir}/KITCHEN_PRODUCTION_CAPACITY_BY_MENU_VARSHAVKA_v3.0.0.xlsx`);
+for (const spec of [
+  [params,"A1:G27","capacity-params-v3.png"],
+  [flowSheet,"A1:G17","capacity-flows-v3.png"],
+  [profileSheet,"A1:G26","capacity-profiles-v3.png"],
+  [coeffSheet,"A1:L18","capacity-coefficients-v3.png"],
+]) {
+  try {
+    const blob=await wb.render({sheetName:spec[0].name,range:spec[1],scale:1,format:"png"});
+    await fs.writeFile(`${previewDir}/${spec[2]}`,new Uint8Array(await blob.arrayBuffer()));
+  } catch (error) {
+    console.warn(`Preview skipped for ${spec[0].name}: ${error.message}`);
+  }
+}
 
 console.log(JSON.stringify({
   file:`${outputDir}/KITCHEN_PRODUCTION_CAPACITY_BY_MENU_VARSHAVKA_v3.0.0.xlsx`,
-  detailRows:detail.length,balanceRows:balance.length,totalPeak,
-  maxShortage:balance.reduce((a,b)=>b.shortage>a.shortage?b:a),
+  formulaDemandRows:detail.length,formulaBalanceRows:balance.length,
+  yellowInputSheets:["ПАРАМЕТРЫ","ПОТОКИ","ЧАСОВЫЕ_ПРОФИЛИ","КОЭФФИЦИЕНТЫ_ВЫБОРА","ШТАТ_ПО_ЧАСАМ","КОНТРОЛЬ"],
 },null,2));
