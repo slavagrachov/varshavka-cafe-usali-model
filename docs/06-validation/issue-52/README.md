@@ -26,8 +26,11 @@
 - [проект раздела ППК по температурному контролю](PPK_BREAKFAST_TEMPERATURE_CONTROL_DRAFT.md);
 - [протокол Fontina DOP / Fontal](TASTING_PROTOCOL_FONTINA_FONTAL.md);
 - [протокол сравнения круассанов](TASTING_PROTOCOL_CROISSANTS.md);
-- [проект автоматических проверок](ISSUE_52_FINAL_RECALC_CHECKS.md).
+- [проект автоматических проверок](ISSUE_52_FINAL_RECALC_CHECKS.md);
+- [единый полевой пакет I52-FIELD-PACK](field-package/README.md) с десятью
+  заполняемыми формами и печатными версиями DOCX/PDF.
 
 Результаты испытаний следует сохранять в отдельной датированной папке
-`docs/06-validation/issue-52/results/YYYY-MM-DD/`. Документы поставщиков
-сохраняются в `sources/procurement/breakfast/YYYY-MM-DD_<vendor>/`.
+внутри `docs/06-validation/issue-52/field-package/results/<позиция>/`.
+Документы поставщиков сохраняются в
+`sources/procurement/breakfast/YYYY-MM-DD_<vendor>/`.
