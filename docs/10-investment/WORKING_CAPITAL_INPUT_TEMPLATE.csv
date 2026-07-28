@@ -1,0 +1,24 @@
+WC_CODE,CATEGORY,ITEM_OR_GROUP,BUSINESS_DIRECTION,DAILY_GROSS_DEMAND,DEMAND_UNIT,DELIVERY_INTERVAL_DAYS,SAFETY_STOCK_DAYS,PACK_NET_QTY,PACK_UNIT,MOQ_PACKS,PRICE_PER_PACK_RUB,VAT_RATE,LEAD_TIME_DAYS,SHELF_LIFE_DAYS,OPENING_STOCK_QTY,WIP_QTY,FINISHED_GOODS_QTY,SUPPLIER_PREPAYMENT_RATE,AP_DAYS,AR_DAYS,CUSTOMER_ADVANCE_RATE,PRODUCTION_RESERVE_ALREADY_INCLUDED,REQUIRED_GROSS_QTY,PURCHASE_PACKS,INVENTORY_VALUE_RUB,DATA_STATUS,SOURCE_ID,OWNER
+WC.FOOD.001,Сырьё,"Зелень, листья, буррата",SHARED,,кг,2.5,0,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.FOOD.002,Сырьё,Овощи и фрукты,SHARED,,кг,4,0,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.FOOD.003,Сырьё,Сырая говядина,SHARED,,кг,4,0,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.FOOD.004,Сырьё,Готовые лосось и ростбиф,SHARED,,кг,4,0,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.FOOD.005,Сырьё,"Молочная продукция, сыр, яйца",SHARED,,кг/шт,5,0,,кг/шт,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.FOOD.006,Сырьё,Замороженные рыба и креветки,SHARED,,кг,9,0,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.FOOD.007,Сырьё,Прочая замороженная продукция,SHARED,,кг,9,0,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.FOOD.008,Сырьё,"Сухие продукты, масла, специи",SHARED,,кг/л,17,0,,кг/л,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Закупки
+WC.WIP.001,НЗП,Тесто холодной ферментации,SHARED,,кг,2,0,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Кухня
+WC.WIP.002,НЗП,Готовые полуфабрикаты,SHARED,,кг,,,,кг,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Кухня
+WC.FG.001,Готовый запас,Десерты допустимого переноса,CAFE,,порция,1,0,,порция,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Кухня
+WC.BAR.001,Бар,Товарный запас бара,BAR,,ед.,,,,ед.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Бар
+WC.PACK.001,Упаковка,Упаковка Доставки,CAFE,,ед.,,,,ед.,,,,,,,,,,,,,YES,,,,DATA_REQUIRED,,Операции
+WC.CHEM.001,Расходники,Моющие средства,SHARED,,л/кг,,,,л/кг,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Операции
+WC.CONS.001,Расходники,"Этикетки, пломбы, кассовые материалы",CAFE,,ед.,,,,ед.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Операции
+WC.TBL.001,Посуда,Физический стартовый запас замены,SHARED,,шт.,,,,шт.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Операции
+WC.CASH.001,Деньги,Кассовый размен,SHARED,,руб.,,,,руб.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Финансы
+WC.CASH.002,Деньги,Минимальный остаток денежных средств,SHARED,,руб.,,,,руб.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Инвестор
+WC.AR.001,Дебиторская задолженность,Гостиница,CAFE,,руб.,,,,руб.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Финансы
+WC.AR.002,Дебиторская задолженность,Доставка,CAFE,,руб.,,,,руб.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Финансы
+WC.AP.001,Кредиторская задолженность,Поставщики,SHARED,,руб.,,,,руб.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Финансы
+WC.ADV.001,Авансы клиентов,БАНКЕТЫ,BANQUETS,,руб.,,,,руб.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Продажи БАНКЕТОВ
+WC.DEP.001,Депозиты,Обеспечительный платёж аренды,SHARED,,руб.,,,,руб.,,,,,,,,,,,,,NO,,,,DATA_REQUIRED,,Юристы / Финансы

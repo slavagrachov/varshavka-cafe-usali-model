@@ -1,0 +1,27 @@
+name: Validate investment register
+
+on:
+  pull_request:
+    paths:
+      - "docs/10-investment/**"
+      - "scripts/validate_investment_register.py"
+      - "book/investment.md"
+      - "book/myst.yml"
+      - "docs/05-data/ISSUE_REGISTER.md"
+  push:
+    paths:
+      - "docs/10-investment/**"
+      - "scripts/validate_investment_register.py"
+      - "book/investment.md"
+      - "book/myst.yml"
+      - "docs/05-data/ISSUE_REGISTER.md"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/validate_investment_register.py
