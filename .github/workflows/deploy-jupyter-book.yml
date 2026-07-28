@@ -159,6 +159,7 @@ jobs:
             production \
             banquets \
             scenario-comparison \
+            investment \
             equipment \
             procurement \
             issues

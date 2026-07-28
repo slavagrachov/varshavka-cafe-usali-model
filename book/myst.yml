@@ -30,6 +30,7 @@ project:
         - file: scenarios.md
         - file: scenario-comparison.md
         - file: results.md
+        - file: investment.md
     - title: Инфраструктура и снабжение
       children:
         - file: equipment.md
