@@ -4,6 +4,8 @@ title: Производственная программа
 
 # Производственная программа Кухни
 
+[Скачать производственную мощность Кухни в разрезе 31 позиции меню](https://github.com/slavagrachov/varshavka-cafe-usali-model/raw/main/downloads/KITCHEN_PRODUCTION_CAPACITY_BY_MENU_VARSHAVKA_v3.0.0.xlsx).
+
 ## Обычная неделя
 
 | Режим | Пн | Вт | Ср | Чт | Пт | Сб | Вс | Неделя |

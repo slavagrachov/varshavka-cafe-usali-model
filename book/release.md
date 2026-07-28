@@ -56,5 +56,8 @@ title: Релиз S04 v3.0.0
 ## Материалы
 
 - [Скачать Excel S04 v3.0.0](https://github.com/slavagrachov/varshavka-cafe-usali-model/raw/main/models/scenarios/S04/FINMODEL_VARSHAVKA_USALI_SCENARIO_S04_v3.0.0.xlsx)
+- [Скачать МЕНЮ КУХНИ](https://github.com/slavagrachov/varshavka-cafe-usali-model/raw/main/downloads/KITCHEN_MENU_VARSHAVKA_v3.0.0.xlsx)
+- [Скачать реестр оборудования и мощности](https://github.com/slavagrachov/varshavka-cafe-usali-model/raw/main/downloads/EQUIPMENT_POWER_REGISTER_VARSHAVKA_v3.0.0.xlsx)
+- [Скачать производственную мощность по меню](https://github.com/slavagrachov/varshavka-cafe-usali-model/raw/main/downloads/KITCHEN_PRODUCTION_CAPACITY_BY_MENU_VARSHAVKA_v3.0.0.xlsx)
 - [Release notes](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/main/docs/08-releases/S04-v3.0.0.md)
 - [GitHub Releases](https://github.com/slavagrachov/varshavka-cafe-usali-model/releases)

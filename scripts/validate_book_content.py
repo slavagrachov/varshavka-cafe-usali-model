@@ -43,6 +43,10 @@ GITHUB_MAIN_BLOB_PREFIX = (
     "https://github.com/slavagrachov/"
     "varshavka-cafe-usali-model/blob/main/"
 )
+GITHUB_MAIN_RAW_PREFIX = (
+    "https://github.com/slavagrachov/"
+    "varshavka-cafe-usali-model/raw/main/"
+)
 
 
 @dataclass(frozen=True)
@@ -387,10 +391,17 @@ def resolve_local_main_blob(url: str, repository_root: Path) -> Path | None:
     ``main`` URL in the same change. GitHub returns 404 for that URL until the
     PR is merged, so validate the corresponding checked-out file locally.
     """
-    if not url.startswith(GITHUB_MAIN_BLOB_PREFIX):
+    if not (
+        url.startswith(GITHUB_MAIN_BLOB_PREFIX)
+        or url.startswith(GITHUB_MAIN_RAW_PREFIX)
+    ):
         return None
 
-    relative_path = unquote(urlparse(url).path).split("/blob/main/", 1)[-1]
+    parsed_path = unquote(urlparse(url).path)
+    if "/blob/main/" in parsed_path:
+        relative_path = parsed_path.split("/blob/main/", 1)[-1]
+    else:
+        relative_path = parsed_path.split("/raw/main/", 1)[-1]
     candidate = (repository_root / relative_path).resolve()
     try:
         candidate.relative_to(repository_root.resolve())
