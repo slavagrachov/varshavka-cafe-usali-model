@@ -84,7 +84,7 @@
 | [#49](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/49) | Единый оператор и договорная модель с РСВО | OPEN |
 | [#50](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/50) | Полный инвестиционный контур | OPEN |
 | [#51](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/51) | Бар, ККТ, платежи и алкоголь | OPEN |
-| [#52](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/52) | Гостиница и КОФЕ&ЧАЙ в S04 v3.0.0 | OPEN |
+| [#52](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/52) | Гостиница и КОФЕ&ЧАЙ в S04 v3.0.0 | CLOSED |
 | [#53](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/53) | Повторная проверка посуды и барного стекла | OPEN |
 
 ## Полный реестр
@@ -215,7 +215,10 @@
 Контрольный срез обновлён 27 июля 2026 года при подготовке release candidate
 S04 v3.0.0. Добавлены формульные листы `PRICE_REGISTER`,
 `BREAKFAST_RECIPES` и `BREAKFAST_COSTING`, а также подготовлены, но не
-отправлены адресные запросы КП. Issue #52 остаётся открытой.
+отправлены адресные запросы КП. Issue #52 закрыта 28 июля 2026 года по
+решению владельца после публикации PR #60. Связанные закупочные и контрольные
+записи сохраняют собственные статусы в рамках Issues #39 и #40 и не блокируют
+текущий релиз S04 v3.0.0.
 
 | Проверка | Результат |
 |---|---|
