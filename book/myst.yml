@@ -26,6 +26,7 @@ project:
         - file: banquets.md
     - title: Финансы и сценарии
       children:
+        - file: release.md
         - file: model.md
         - file: scenarios.md
         - file: scenario-comparison.md

@@ -50,6 +50,8 @@ S03 v0.1.6 — из S03 v0.1.5 скриптами в `scripts/releases/`.
 - `scripts/releases/validate_s04_v3_0_0.mjs`;
 - `scripts/releases/validate_s04_v3_0_0_ci.py`;
 - `docs/scenarios/SCENARIO_S04_v3.0.0.md`;
+- `docs/08-releases/S04-v3.0.0.md` — официальный релиз от 28 июля
+  2026 года;
 - `docs/06-validation/SCENARIO_S04_v3.0.0_VALIDATION.md`;
 - `docs/06-validation/S04_v3.0.0_STRUCTURAL_CORRECTIONS.md`;
 - `docs/07-operations/HOTEL_BREAKFAST_DECISION_2026-07-27.md`;
