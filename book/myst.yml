@@ -17,18 +17,35 @@ project:
   toc:
     - file: index.md
     - file: project.md
+    - title: Операционная модель
+      children:
+        - file: channels.md
+        - file: menu.md
+        - file: breakfast.md
+        - file: production.md
+        - file: banquets.md
+    - title: Финансы и сценарии
+      children:
+        - file: model.md
+        - file: scenarios.md
+        - file: scenario-comparison.md
+        - file: results.md
+    - title: Инфраструктура и снабжение
+      children:
+        - file: equipment.md
+        - file: tableware.md
+        - file: procurement.md
+    - title: Проверка и открытые данные
+      children:
+        - file: validation.md
+        - file: issues.md
+    - title: Правовая модель
+      children:
+        - file: legal-risks.md
     - title: Видеопрезентация
       children:
         - file: video.md
         - file: video-publication.md
-    - file: model.md
-    - file: tableware.md
-    - file: scenarios.md
-    - file: results.md
-    - file: validation.md
-    - title: Правовая модель и контроль
-      children:
-        - file: legal-risks.md
     - file: governance.md
 
 site:

@@ -152,6 +152,24 @@ jobs:
               exit 1
             }
 
+          for page in \
+            channels \
+            menu \
+            breakfast \
+            production \
+            banquets \
+            scenario-comparison \
+            equipment \
+            procurement \
+            issues
+          do
+            test -f "book/_build/html/${page}/index.html" \
+              || {
+                echo "ERROR: ${page}/index.html was not generated"
+                exit 1
+              }
+          done
+
           grep -Fq "$VIDEO_URL" book/_build/html/video/index.html \
             || {
               echo "ERROR: Supabase video URL is missing from generated video page"
@@ -162,6 +180,20 @@ jobs:
             book/_build/html/legal-risks/index.html \
             || {
               echo "ERROR: Regulatory risk page content is missing"
+              exit 1
+            }
+
+          grep -Fq "S03 v0.1.7" \
+            book/_build/html/scenario-comparison/index.html \
+            || {
+              echo "ERROR: Scenario comparison page is incomplete"
+              exit 1
+            }
+
+          grep -Fq "31 активную" \
+            book/_build/html/menu/index.html \
+            || {
+              echo "ERROR: Kitchen menu page is incomplete"
               exit 1
             }
 
@@ -264,6 +296,26 @@ jobs:
             "${SITE_URL}legal-risks/" \
             > /tmp/legal-risks.html
 
+          curl \
+            --silent \
+            --show-error \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-delay 5 \
+            "${SITE_URL}scenario-comparison/" \
+            > /tmp/scenario-comparison.html
+
+          curl \
+            --silent \
+            --show-error \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-delay 5 \
+            "${SITE_URL}menu/" \
+            > /tmp/menu.html
+
           grep -Fq "$VIDEO_URL" /tmp/video.html \
             || {
               echo "ERROR: Published video page does not contain the Supabase URL"
@@ -273,6 +325,18 @@ jobs:
           grep -Fq "Единый операционный контур" /tmp/legal-risks.html \
             || {
               echo "ERROR: Published regulatory risk page is incomplete"
+              exit 1
+            }
+
+          grep -Fq "S03 v0.1.7" /tmp/scenario-comparison.html \
+            || {
+              echo "ERROR: Published scenario comparison is incomplete"
+              exit 1
+            }
+
+          grep -Fq "31 активную" /tmp/menu.html \
+            || {
+              echo "ERROR: Published kitchen menu is incomplete"
               exit 1
             }
 
