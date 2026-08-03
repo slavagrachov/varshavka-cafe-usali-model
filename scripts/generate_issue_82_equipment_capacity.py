@@ -8,6 +8,7 @@ converts preliminary CAPEX requirements into purchased/installed/passport facts.
 from __future__ import annotations
 
 import csv
+import hashlib
 import math
 from pathlib import Path
 
@@ -16,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs/07-operations/issue-82"
 DATE = "2026-08-03"
 SCOPE = [f"VKM-{i:03d}" for i in range(1, 26)] + [f"VKM-{i:03d}" for i in range(29, 32)]
+RECIPE_BLOB = "c6b22ad5f2812cc989a0d3593f40e21207da8f53"
+TECH_CARD_BLOB = "c36595f110a8bb5fd5b28282488ef144ec6ee535"
+VSF_BLOB = "ab0f20fb7bbc68981bf307d8c817d6d2d983bdfb"
 
 
 def read_csv(path: Path, delimiter: str = ",") -> list[dict[str, str]]:
@@ -26,9 +30,14 @@ def read_csv(path: Path, delimiter: str = ",") -> list[dict[str, str]]:
 def write_csv(name: str, fields: list[str], rows: list[dict[str, object]]) -> None:
     path = OUT / name
     with path.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
+
+
+def git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
 
 
 tech = read_csv(OUT / "TECH_CARDS.csv")
@@ -38,6 +47,9 @@ capex = read_csv(ROOT / "docs/10-investment/CAPEX_QUANTITY_SPECIFICATION.csv")
 assets = {r["CURRENT_FUNC_CODE"]: r for r in capex if r.get("CURRENT_FUNC_CODE")}
 
 assert [r["dish_code"] for r in tech] == SCOPE, "TECH_CARDS scope/order mismatch"
+assert git_blob_sha(OUT / "RECIPES.csv") == RECIPE_BLOB, "recipe blob drift"
+assert git_blob_sha(OUT / "TECH_CARDS.csv") == TECH_CARD_BLOB, "tech-card blob drift"
+assert git_blob_sha(OUT / "SEMI_FINISHED_PRODUCTS.csv") == VSF_BLOB, "VSF blob drift"
 
 
 def join_codes(codes: list[str]) -> str:
@@ -103,13 +115,19 @@ def operation_functions(section: str, operation: str) -> tuple[list[str], str, s
         elif "брож" in o:
             codes = ["STO-08"]
             role = "FERMENTATION"
-        elif "замес" in o or "смеш" in o or "тесто" in o:
+        elif "замес" in o or "смеш" in o or "тесто" in o or "ввести масло" in o:
             codes = ["BAK-03"]
             role = "MIXING"
+        elif "заварк" in o:
+            codes = ["HOT-05B", "HOT-13"]
+            role = "HEATED_COMPONENT_PREP"
+        elif "смаз" in o:
+            codes = ["BAK-07"]
+            role = "FORM_PREPARATION"
         else:
             codes = ["REQ-BAK-PREP"]
             role = "MANUAL_FORMING_GAP"
-            note = "Dedicated bakery preparation surface/inventory is not separately coded in current CAPEX; functional requirement only."
+            note = "Manual bread forming needs a dedicated compliant work surface. BAK-12 is a pizza table, HOT-12 is a hot-line table and BAK-07 is inventory only; none is an approved bakery work-surface allocation."
     elif section in {"Салаты", "Холодные закуски"}:
         if "охлад" in o:
             codes = ["HOT-09", "STO-10"]
@@ -133,7 +151,10 @@ def operation_functions(section: str, operation: str) -> tuple[list[str], str, s
             codes = ["HOT-12", "HOT-13"]
             role = "HOT_PREP_PORTIONING"
     elif section == "Горячие блюда":
-        if "рис" in o:
+        if any(k in o for k in ["порционировать треску", "подготовить креветки", "подготовить котлету", "зачистить", "подготовить ароматику"]):
+            codes = ["HOT-12", "HOT-13"]
+            role = "MANUAL_HOT_LINE_PREP"
+        elif "рис" in o:
             codes = ["HOT-06"]
             role = "RICE_COOKING"
         elif "кревет" in o or "лапш" in o or "кокос" in o:
@@ -142,9 +163,12 @@ def operation_functions(section: str, operation: str) -> tuple[list[str], str, s
         elif "треск" in o or "рыб" in o or "шпинат" in o:
             codes = ["HOT-01", "HOT-13"]
             role = "FISH_THERMAL_PROCESS"
-        elif "котлет" in o or "вырез" in o or "миньон" in o or "обработ" in o:
+        elif "котлет" in o or "вырез" in o or "миньон" in o:
             codes = ["HOT-02", "HOT-13"]
             role = "CONTACT_THERMAL_PROCESS"
+        elif "последовательно обработать" in o:
+            codes = ["HOT-03", "HOT-13"]
+            role = "WOK_COOKING"
         elif "соус" in o:
             codes = ["HOT-05B", "HOT-13"]
             role = "SAUCE_COOKING"
@@ -239,6 +263,30 @@ capacity_rows: list[dict[str, object]] = []
 inventory_rows: list[dict[str, object]] = []
 tableware_rows: list[dict[str, object]] = []
 
+
+def project_requirement(codes: list[str], section: str) -> tuple[str, str, str]:
+    """Return project-design requirements, never manufacturer/passport facts."""
+    requirements: list[str] = []
+    for code in codes:
+        if code in assets:
+            value = assets[code].get("MIN_TECH_REQUIREMENT", "").strip()
+            if value:
+                requirements.append(f"{code}: {value}")
+    if not requirements:
+        return "", "", "BLOCKED"
+    return "; ".join(requirements), "project design requirement", "PLANNED"
+
+
+def planning_load(section: str, codes: list[str], production_unit: str) -> tuple[str, str, str, str, str]:
+    """Calculate only a one-recipe planning scenario where units are comparable."""
+    if "BAK-01" in codes and production_unit == "1 пицца":
+        return "1", "пицца", "1", "CALCULATED_FROM_PROJECT_MINIMUM", "1 pizza / minimum 4 pizzas per load; selected-model passport and actual cycle remain absent"
+    if "HOT-06" in codes and "порция" in production_unit:
+        return "1", "порция", "1", "CALCULATED_FROM_PROJECT_MINIMUM", "1 portion / minimum 20 portions per cycle; selected-model passport and actual cycle remain absent"
+    if "HOT-03" in codes and "порция" in production_unit:
+        return "1", "порция", "1", "CALCULATED_FROM_PROJECT_THROUGHPUT", "1 portion / project minimum 5 portions per hour; this is not a passport cycle"
+    return "", "", "", "BLOCKED_NOT_COMPARABLE", "Recipe load cannot be compared to the project requirement without tray/form/GN/load and selected-model data"
+
 for dish_idx, row in enumerate(tech, 1):
     code = row["dish_code"]
     p = passports[code]
@@ -256,7 +304,9 @@ for dish_idx, row in enumerate(tech, 1):
             conditional_candidates.append("CLD-08")
         capex_codes = [assets[c]["INV_CODE"] for c in codes if c in assets]
         names = [assets[c]["ASSET_NAME"] if c in assets else "Проектное функциональное требование без действующего CAPEX-кода" for c in codes]
-        availability = "BLOCKED" if any(c.startswith("REQ-") for c in codes) else "UNCONFIRMED_NOT_ASSET_FACT"
+        design_requirement, design_unit, design_status = project_requirement(codes, section)
+        recipe_load, recipe_load_unit, planning_batches, planning_batch_status, planning_note = planning_load(section, codes, p["production_sales_unit"])
+        suitability = "BLOCKED_REQUIREMENT_CODE" if any(c.startswith("REQ-") for c in codes) else "BLOCKED_SELECTED_MODEL_AND_SITE_VALIDATION"
         function_rows.append({
             "mapping_id": f"EQM-{len(function_rows)+1:04d}",
             "dish_code": code,
@@ -274,11 +324,24 @@ for dish_idx, row in enumerate(tech, 1):
             "operation_duration_min": "",
             "duration_status": "BLOCKED",
             "duration_basis": f"Only dish aggregate is available: active {row['draft_active_time']} min / total {row['draft_total_time']} min; no unsupported split by operation",
+            "project_design_requirement": design_requirement,
+            "project_design_requirement_unit": design_unit,
+            "project_design_requirement_status": design_status,
+            "recipe_unit_load": recipe_load,
+            "recipe_unit_load_unit": recipe_load_unit,
+            "recipe_unit_load_status": "ASSUMPTION_RECIPE_UNIT" if recipe_load else "BLOCKED",
+            "planning_batches_for_one_recipe_unit": planning_batches,
+            "planning_batch_status": planning_batch_status,
+            "planning_batch_note": planning_note,
+            "selected_manufacturer": "",
+            "selected_model_article": "",
+            "passport_document_or_official_url": "",
             "passport_capacity": "",
             "passport_capacity_unit": "",
-            "capacity_status": "BLOCKED",
+            "capacity_status": "BLOCKED_NO_SELECTED_MODEL_PASSPORT",
             "equipment_availability_status": "BLOCKED",
             "connections_status": "BLOCKED",
+            "suitability_status": suitability,
             "parameter_status": "ESTIMATE",
             "evidence_ids": "EVD-0010;EVD-0021;EVD-0022;EVD-0023",
             "source_date": DATE,
@@ -299,7 +362,8 @@ for dish_idx, row in enumerate(tech, 1):
         "functional_codes": codes_joined, "conditional_candidate_codes": join_codes(conditional_candidates), "vsf_codes": vsfs,
         "draft_active_time": row["draft_active_time"], "active_time_unit": row["active_time_unit"], "draft_total_time": row["draft_total_time"], "total_time_unit": row["total_time_unit"],
         "recipe_batch_basis": "One current draft recipe/card unit only; not a production-plan batch", "recipe_batch_output": row["draft_target_output"], "output_unit": row["output_unit"],
-        "preliminary_recipe_batches": 1, "preliminary_batch_status": "CALCULATED", "capacity_demand_qty": "", "capacity_demand_unit": "", "required_equipment_batches": "", "capacity_status": "BLOCKED",
+        "preliminary_recipe_batches": 1, "preliminary_batch_status": "CALCULATED_RECIPE_ARCHITECTURE_ONLY", "capacity_demand_qty": "", "capacity_demand_unit": "", "required_equipment_batches": "", "capacity_status": "BLOCKED_NO_APPROVED_DEMAND_OR_PASSPORT",
+        "one_recipe_scenario_qty": 1, "one_recipe_scenario_unit": p["production_sales_unit"], "one_recipe_scenario_status": "ESTIMATE_NOT_PRODUCTION_PLAN",
         "inventory_set_code": f"INVSET-{dish_idx:03d}", "tableware_set_code": f"TWS-{dish_idx:03d}", "service_flow_codes": service_codes,
         "availability_status": "BLOCKED", "connections_status": "BLOCKED", "bottleneck_status": "BLOCKED_PENDING_VALIDATION",
         "parameter_status": "ESTIMATE", "evidence_ids": "EVD-0010;EVD-0021;EVD-0022;EVD-0023;EVD-0024;EVD-0025;EVD-0026",
@@ -309,6 +373,7 @@ for dish_idx, row in enumerate(tech, 1):
         "next_action": "Freeze process; approve peak demand; collect passports/asset/connection evidence; run timed batch and serving-matrix validation",
     })
     active = float(row["draft_active_time"])
+    planning_cycle = round(60 / group_capacity, 3) if group_capacity else ""
     capacity_rows.append({
         "capacity_record_id": f"CAP-{dish_idx:03d}", "dish_code": code, "dish_name": row["dish_name"], "menu_section": section,
         "capacity_group": group, "primary_function_codes": codes_joined, "draft_active_time_min": row["draft_active_time"], "draft_total_time_min": row["draft_total_time"],
@@ -316,6 +381,9 @@ for dish_idx, row in enumerate(tech, 1):
         "existing_model_group_capacity": group_capacity if group_capacity is not None else "", "existing_model_capacity_unit": cap_unit,
         "existing_model_capacity_status": "ESTIMATE", "existing_model_source_note": "KITCHEN_PRODUCTION_CAPACITY_BY_MENU_VARSHAVKA_v3.0.0.xlsx / ПАРАМЕТРЫ; not passport or observed throughput",
         "existing_model_source_version": "3.0.0 / 2026-07-28", "source_date": DATE,
+        "planning_cycle_time_min_per_unit": planning_cycle, "planning_cycle_status": "CALCULATED_FROM_ESTIMATE" if planning_cycle else "BLOCKED",
+        "one_recipe_scenario_load": 1, "one_recipe_scenario_unit": p["production_sales_unit"], "one_recipe_scenario_batches": 1,
+        "one_recipe_scenario_status": "ESTIMATE_NOT_DEMAND_PLAN",
         "demand_window_qty": "", "demand_window_unit": "", "passport_batch_capacity": "", "passport_capacity_unit": "", "required_batches": "",
         "preliminary_bottleneck": "Cannot conclude before demand, staffing, passport and timed-test reconciliation", "bottleneck_status": "BLOCKED_PENDING_VALIDATION",
         "conditional_gate_candidates": join_codes(conditional_candidates), "evidence_ids": "EVD-0010;EVD-0022;EVD-0024", "blocker_ids": "GAP-007;GAP-018;GAP-020",
@@ -324,7 +392,7 @@ for dish_idx, row in enumerate(tech, 1):
     inventory_rows.append({
         "inventory_set_code": f"INVSET-{dish_idx:03d}", "dish_code": code, "dish_name": row["dish_name"], "menu_section": section,
         "candidate_inventory": inv_items, "linked_function_codes": inv_func, "required_quantity": "", "quantity_unit": "", "quantity_status": "BLOCKED",
-        "wash_dry_flow": "WSH-07;WSH-08", "cross_contact_note": "Dedicated/color-coded assignment and changeover remain subject to HOF-0003 safety re-review",
+        "wash_dry_flow": "WSH-07;WSH-08", "cross_contact_note": "Dedicated/color-coded assignment and changeover remain subject to HOF-0012 safety re-review",
         "parameter_status": "ESTIMATE", "evidence_ids": "EVD-0025;EVD-FS-003;EVD-FS-004", "blocker_ids": "GAP-009;GAP-021",
         "source_date": DATE,
         "confirmation_owner": "Operations / Procurement / FoodSafetyAgent", "next_action": "Chef/Operations approve item specification and quantity; Procurement confirms stock/SKU; Food Safety confirms segregation and cleaning",
@@ -333,6 +401,7 @@ for dish_idx, row in enumerate(tech, 1):
         "tableware_set_code": f"TWS-{dish_idx:03d}", "dish_code": code, "dish_name": row["dish_name"], "menu_section": section,
         "candidate_service_set": tw_items, "historical_candidate_skus": tw_skus, "linked_capex_function_codes": tw_func,
         "delivery_takeaway_packaging": packaging, "pieces_per_service": "", "turnover_factor": "", "start_quantity": "", "warehouse_breakage_reserve": "",
+        "start_quantity_formula": "CEILING(approved_peak_simultaneous_services / approved_turnover_factor × (1 + approved_breakage_reserve))",
         "service_status": "DRAFT", "quantity_status": "BLOCKED", "stock_verification_status": "BLOCKED",
         "parameter_status": "ESTIMATE", "evidence_ids": "EVD-0026", "blocker_ids": "GAP-022;V-I-083;V-I-118",
         "source_date": DATE,
@@ -347,7 +416,7 @@ capex_gap_rows = [
     {"technical_gap_id":"EQG-004","scope":"ALL_28","gap_type":"TIMING_AND_BATCH","affected_codes":"All production functions","missing_input":"Observed operation times, loads, changeovers and yields","current_status":"BLOCKED_PENDING_VALIDATION","evidence_ids":"EVD-0010;EVD-0022;EVD-0024","linked_project_items":"GAP-007;GAP-018;GAP-020;V-I-030;V-I-031;V-I-116","impact":"Required batches and demonstrated throughput cannot be calculated","owner":"Chef / Operations / Engineering","next_action":"Time control cooks and peak-load trials at approved recipe versions","checkpoint":"Issue #37 / Gate C"},
     {"technical_gap_id":"EQG-005","scope":"ALL_28","gap_type":"DEMAND_PROFILE","affected_codes":"PIZZA;BAKERY;COLD;HOT;SIDE;PASTRY","missing_input":"Approved hourly dish mix, staffing and channel overlap","current_status":"BLOCKED_PENDING_VALIDATION","evidence_ids":"EVD-0024","linked_project_items":"GAP-020;V-I-024;V-I-031;V-I-034","impact":"Group bottleneck and batch count are indeterminate","owner":"Operations / Analytics / HR","next_action":"Approve peak profile and reconcile against timed station capacity","checkpoint":"Issue #37/#43 / Gate C"},
     {"technical_gap_id":"EQG-006","scope":"ALL_28","gap_type":"CAPACITY_MODEL_QA","affected_codes":"Capacity workbook computed outputs","missing_input":"Successful external-engine recalculation with no unsupported formula errors","current_status":"BLOCKED","evidence_ids":"EVD-0024","linked_project_items":"GAP-020","impact":"Current engine inspection returned unsupported-name formula errors for computed demand/capacity cells, so only explicit input assumptions may be used","owner":"SystemArchitect / ExcelBuilder","next_action":"Rebuild/recalculate in Gate D engine and validate formulas before using capacity conclusions","checkpoint":"Gate D"},
-    {"technical_gap_id":"EQG-007","scope":"VKM-005…VKM-008","gap_type":"MISSING_FUNCTION_CODE","affected_codes":"REQ-BAK-PREP","missing_input":"Dedicated bakery manual preparation surface and small-inventory CAPEX function","current_status":"BLOCKED","evidence_ids":"EVD-0021;EVD-0025","linked_project_items":"GAP-017;GAP-021","impact":"Shaping/filling operations have a functional requirement but no unambiguous current CAPEX code","owner":"SystemArchitect / Investment Center / Operations","next_action":"Decide whether to add a stable CAPEX function or explicitly allocate an existing compliant workstation","checkpoint":"Gate C / ADR decision if code model changes"},
+    {"technical_gap_id":"EQG-007","scope":"VKM-005…VKM-008","gap_type":"MISSING_FUNCTION_CODE","affected_codes":"REQ-BAK-PREP","missing_input":"Approved dedicated bakery work-surface allocation for four manual forming operations","current_status":"BLOCKED","evidence_ids":"EVD-0021;EVD-0025","linked_project_items":"GAP-017;GAP-021;IV-003","impact":"BAK-12 is a pizza table, HOT-12 is a hot-line table and BAK-07 is inventory only; assigning any of them without layout, workflow and sanitation approval would invent availability/suitability","owner":"SystemArchitect / Investment Center / Operations / FoodSafetyAgent","next_action":"Engineering and Food Safety assess a physically identified existing surface; if none complies, add a stable bakery work-surface code through change control","checkpoint":"Gate C / ADR decision if code model changes"},
     {"technical_gap_id":"EQG-008","scope":"VKM-013;VKM-017;VKM-022","gap_type":"CONDITIONAL_EQUIPMENT","affected_codes":"CLD-08","missing_input":"Manual slicing timing trials","current_status":"MONITOR","evidence_ids":"EVD-0021;EVD-0024","linked_project_items":"GAP-020;V-I-044;V-I-116;GATE-CLD-08","impact":"Slicer remains optional; labor/bottleneck conclusion may change","owner":"Operations / HR / Investment Center","next_action":"Run three representative timing trials and apply GATE-CLD-08","checkpoint":"Issue #37/#43"},
     {"technical_gap_id":"EQG-009","scope":"VKM-009…VKM-018;VKM-023;VKM-025","gap_type":"CONDITIONAL_EQUIPMENT","affected_codes":"CLD-09","missing_input":"Vegetable-prep timing trials and approved demand mix","current_status":"MONITOR","evidence_ids":"EVD-0021;EVD-0024","linked_project_items":"GAP-020;V-I-044;V-I-116;GATE-CLD-09","impact":"Vegetable cutter remains optional; labor/bottleneck conclusion may change","owner":"Operations / HR / Investment Center","next_action":"Time manual preparation and apply GATE-CLD-09","checkpoint":"Issue #37/#43"},
     {"technical_gap_id":"EQG-010","scope":"VKM-005…VKM-008;VKM-023;VKM-029…VKM-031","gap_type":"SHARED_OVEN_WINDOWS","affected_codes":"BAK-02;BAK-08;HOT-01","missing_input":"Approved daily load diagram and cleaning/segregation validation","current_status":"BLOCKED_PENDING_VALIDATION","evidence_ids":"EVD-0024;EVD-FS-003","linked_project_items":"GAP-020;GAP-010;V-I-093;GATE-BAK-08","impact":"Bakery/dessert/potato conflicts and second-oven need cannot be resolved","owner":"Operations / Engineering / FoodSafetyAgent","next_action":"Build timed daily oven schedule, validate sanitation/segregation, apply GATE-BAK-08","checkpoint":"Issue #37/#38/#43"},
@@ -358,12 +427,29 @@ capex_gap_rows = [
 ]
 
 
+decision_rows = [
+    {"decision_id":"EQD-001","linked_gap_ids":"EQG-001","decision_required":"Select exact manufacturer/model for every mandatory mapped equipment function and collect the manufacturer passport/official specification","options":"A: run RFQ and select compliant models; B: nominate existing assets then identify nameplates/models and collect documents; C: defer selection and keep all suitability/capacity blocked","recommended_option":"A+B by asset: verify existing stock first, procure only unresolved functions","recommendation_basis":"Avoids duplicate CAPEX while preserving documentary traceability; GitHub currently contains no selected manufacturer/model/passport","evidence_ids":"EVD-0022;EVD-0023;DOC-INV-010;DOC-INV-011","cost_impact":"Determines CAPEX, delivery, commissioning, warranty and lifecycle cost","price_impact":"Indirect; machine-hour/energy allocation remains blocked until model and operating data exist","safety_impact":"Passport operating limits are prerequisite to validation; no safety veto removed","equipment_impact":"Unlocks useful capacity, cycle, load, utilities and service-zone checks","decision_owner":"Owner / Investment Center","supporting_owner":"Procurement / Engineering / Operations","unblock_condition":"Each mapped function has selected manufacturer, model/article, official document, asset status and technical-gate result","status":"OPEN"},
+    {"decision_id":"EQD-002","linked_gap_ids":"EQG-002","decision_required":"Approve the source-of-supply route for each mapped function after physical asset inventory","options":"A: use verified existing asset; B: procure new; C: lease/service model; D: remove only after Chef process change and re-review","recommended_option":"Inventory/nameplate survey first, then A/B/C per function","recommendation_basis":"No acceptance acts, ownership, condition or serviceability evidence is published","evidence_ids":"EVD-0023;DOC-INV-010","cost_impact":"Prevents double purchase and identifies repair/commissioning cost","price_impact":"Indirect through depreciation/lease/service allocation","safety_impact":"Existing equipment still requires condition and sanitation validation","equipment_impact":"Converts availability from BLOCKED only after documentary and physical inspection","decision_owner":"Owner / Investment Center","supporting_owner":"Legal / Procurement / Engineering","unblock_condition":"Asset register, ownership/lease basis, condition report and acceptance/commissioning evidence linked to each function","status":"OPEN"},
+    {"decision_id":"EQD-003","linked_gap_ids":"EQG-003","decision_required":"Approve layout and engineering connection design against exact selected models","options":"A: adapt site utilities/layout; B: select lower-load compatible models; C: revise production process; D: do not launch affected dishes","recommended_option":"Complete model selection and simultaneous-load calculation before procurement order","recommendation_basis":"Current E1/E3/W/D/V/EXH marks are project requirements, not verified site connections","evidence_ids":"EVD-0023","cost_impact":"May add electrical, ventilation, water, drain and construction CAPEX","price_impact":"Energy/water cost remains blocked until model and tariff inputs exist","safety_impact":"Unsafe or unlawful connection cannot be accepted","equipment_impact":"Unlocks placement, simultaneous-load and commissioning gates","decision_owner":"Owner / Engineering","supporting_owner":"Landlord / Designer / Procurement","unblock_condition":"Approved plan, technical conditions, load calculation and commissioning protocol for each selected model","status":"OPEN"},
+    {"decision_id":"EQD-004","linked_gap_ids":"EQG-004;EQG-005","decision_required":"Approve peak hourly dish mix and conduct version-locked timed production trials","options":"A: low/base/high channel scenarios plus 25/50/75/100% load trials; B: base-only trial; C: keep capacity blocked","recommended_option":"A","recommendation_basis":"Required batch count and bottleneck ranking need demand, staffing, operation time, changeover and yield together","evidence_ids":"EVD-0010;EVD-0024","cost_impact":"May change equipment quantity, staffing and pre-opening test cost","price_impact":"Changes labor and machine-hour unit cost","safety_impact":"Trials must retain Food Safety veto and record limits/corrective actions","equipment_impact":"Produces observed cycle, useful load, batches and utilization","decision_owner":"Owner / Operations","supporting_owner":"Chef / Engineering / HR / Analytics / FoodSafetyAgent","unblock_condition":"Approved demand windows and signed trial protocol for all 28 dishes on selected equipment","status":"OPEN"},
+    {"decision_id":"EQD-005","linked_gap_ids":"EQG-006","decision_required":"Choose the authoritative recalculation engine and accept capacity workbook QA criteria","options":"A: rebuild formulas in supported engine; B: replace computed outputs with reproducible CSV/Python calculations; C: continue without computed capacity conclusions","recommended_option":"B with Excel presentation linked to validated outputs","recommendation_basis":"Previous external engine returned unsupported-name errors; reproducible calculations reduce engine ambiguity","evidence_ids":"EVD-0024","cost_impact":"No direct CAPEX; reduces decision error","price_impact":"Prevents unsupported capacity assumptions entering costing","safety_impact":"None directly; blocked safety limits remain","equipment_impact":"Enables auditable scenario and batch calculations","decision_owner":"SystemArchitect / Owner","supporting_owner":"ExcelBuilder / EquipmentCapacityAgent","unblock_condition":"Clean recalculation with no formula errors and independent QA of inputs/outputs","status":"OPEN"},
+    {"decision_id":"EQD-006","linked_gap_ids":"EQG-007;IV-003","decision_required":"Resolve the bakery manual-forming work surface for VKM-005…VKM-008","options":"A: allocate a physically identified existing surface after layout/sanitation check; B: add a dedicated stable BAK work-surface CAPEX code; C: redesign process to remove the operation; D: keep four dishes blocked","recommended_option":"A if a compliant dedicated surface is proven; otherwise B","recommendation_basis":"BAK-12 is a pizza table, HOT-12 belongs to the hot line and BAK-07 is only forms/inventory; none can be silently repurposed","evidence_ids":"EVD-0021;EVD-0025;IV-003","cost_impact":"A may avoid CAPEX; B adds worktable/storage CAPEX","price_impact":"Minor direct effect; labor/workflow may change","safety_impact":"Requires allergen, raw/ready-to-eat separation and cleaning approval","equipment_impact":"Closes the only unresolved operation-level function code for four dishes","decision_owner":"Owner / SystemArchitect","supporting_owner":"Operations / Engineering / FoodSafetyAgent / Investment Center","unblock_condition":"Approved allocation with asset ID/layout/sanitation protocol or approved new stable code linked to CAPEX","status":"OPEN"},
+    {"decision_id":"EQD-007","linked_gap_ids":"EQG-008;EQG-009","decision_required":"Decide whether conditional slicer CLD-08 and vegetable cutter CLD-09 are activated","options":"A: activate after gate threshold; B: retain manual method; C: redesign prep mix","recommended_option":"Apply existing gates after three representative timing trials and approved peak mix","recommendation_basis":"Both assets are correctly conditional and have no selected model or observed labor threshold","evidence_ids":"EVD-0021;EVD-0024;GATE-CLD-08;GATE-CLD-09","cost_impact":"Optional CAPEX versus labor savings","price_impact":"Changes avoidable labor/unit economics","safety_impact":"Machine cleaning and allergen cross-contact require validation if activated","equipment_impact":"May change cold-prep bottleneck","decision_owner":"Owner / Investment Center","supporting_owner":"Operations / HR / FoodSafetyAgent","unblock_condition":"Gate protocol records measured manual time, decision, selected model if activated and safety review","status":"OPEN"},
+    {"decision_id":"EQD-008","linked_gap_ids":"EQG-010","decision_required":"Approve shared oven schedule and decide whether BAK-08 is activated","options":"A: one BAK-02 with scheduled windows; B: activate second bakery oven BAK-08; C: move compatible operations to validated HOT-01; D: constrain menu/production windows","recommended_option":"Build high-demand daily load diagram first, then apply GATE-BAK-08","recommendation_basis":"No approved simultaneous menu/banquet load, changeover or cleaning windows exist","evidence_ids":"EVD-0024;EVD-FS-003;GATE-BAK-08","cost_impact":"Potential second-oven CAPEX and utilities","price_impact":"Machine-hour and energy cost may change","safety_impact":"Cross-contact, sanitation and thermal validation required","equipment_impact":"Resolves shared-oven bottleneck hypothesis","decision_owner":"Owner / Investment Center","supporting_owner":"Operations / Engineering / FoodSafetyAgent","unblock_condition":"Signed daily schedule, trial results, safety validation and BAK-08 gate decision","status":"OPEN"},
+    {"decision_id":"EQD-009","linked_gap_ids":"EQG-011","decision_required":"Approve operation-level production inventory specification and quantities","options":"A: count/reuse compliant stock; B: procure missing items; C: redesign process/containers","recommended_option":"Operation-by-operation stocktake, reuse first, procure gaps","recommendation_basis":"Current lists are candidate sets; quantities, exact formats and cleaning allocation are absent","evidence_ids":"EVD-0025;EVD-FS-003","cost_impact":"Determines small-inventory CAPEX and replacement reserve","price_impact":"May affect consumables/breakage allocation","safety_impact":"Dedicated/color-coded allocation and wash/dry route must be validated","equipment_impact":"Unlocks executable workstation kits","decision_owner":"Owner / Operations","supporting_owner":"Procurement / FoodSafetyAgent","unblock_condition":"Approved item/SKU/quantity by operation, physical stock count and sanitation allocation","status":"OPEN"},
+    {"decision_id":"EQD-010","linked_gap_ids":"EQG-012","decision_required":"Approve the 28-dish dine-in serving matrix and opening tableware quantity","options":"A: standardize by menu section; B: dish-specific sets; C: mixed standard with documented exceptions","recommended_option":"C","recommendation_basis":"Reduces SKU count while preserving presentation exceptions; historical SKUs are only candidates","evidence_ids":"EVD-0026","cost_impact":"Determines tableware CAPEX and breakage reserve","price_impact":"Breakage/replacement cost allocation remains pending","safety_impact":"Food-contact and washing compatibility must be confirmed","equipment_impact":"Links service ware to dishwasher/rack/storage capacity","decision_owner":"Owner / Operations","supporting_owner":"Investment Center / Procurement / FoodSafetyAgent","unblock_condition":"Approved set per dish, peak services, turnover factor, stock count and reserve rate; formula recalculated","status":"OPEN"},
+    {"decision_id":"EQD-011","linked_gap_ids":"EQG-013","decision_required":"Select and test delivery/takeaway packaging by applicable dish/channel","options":"A: section-standard packaging; B: dish-specific packaging; C: remove channel for dishes failing hold/transport test","recommended_option":"A with dish-specific exceptions after test","recommendation_basis":"No dimensions, closure/venting, declaration, SKU or hold-quality test is published","evidence_ids":"EVD-0016;EVD-0026","cost_impact":"Packaging procurement and test cost","price_impact":"Direct per-order packaging cost and channel margin","safety_impact":"Food-contact declaration, labeling, hold time and tamper control required","equipment_impact":"Affects packing workstation and storage volume","decision_owner":"Owner / Operations","supporting_owner":"Procurement / FoodSafetyAgent / CostingPricingAgent","unblock_condition":"Approved SKU, manufacturer document, fit/transport test and accepted unit price for every applicable dish/channel","status":"OPEN"},
+    {"decision_id":"EQD-012","linked_gap_ids":"EQG-014;IV-006","decision_required":"Approve equipment-specific safety validation plan without removing current veto","options":"A: validate all 28 on selected equipment during control cooks; B: staged validation by risk group; C: keep affected dishes blocked","recommended_option":"B, with high-risk thermal/cooling/holding profiles first and full 28 coverage before release","recommendation_basis":"All 28 safety profiles remain BLOCK and numeric limits are intentionally null","evidence_ids":"HOF-0012;EVD-FS-001;EVD-FS-002;EVD-FS-003","cost_impact":"Validation, measurement and possible equipment/process change cost","price_impact":"May change yield, labor, energy and shelf-life economics","safety_impact":"Binding release gate; no dish may be released without evidence","equipment_impact":"Confirms actual thermal/cooling/holding suitability","decision_owner":"Owner / FoodSafetyAgent / PPK owner","supporting_owner":"Chef / Operations / Engineering","unblock_condition":"Version-locked signed validation data, accepted limits and FoodSafety re-review for all 28","status":"OPEN"},
+]
+
+
 write_csv("RESOURCE_CARDS.csv", list(resource_rows[0]), resource_rows)
 write_csv("EQUIPMENT_FUNCTION_MATRIX.csv", list(function_rows[0]), function_rows)
 write_csv("CAPACITY_BOTTLENECK_REPORT.csv", list(capacity_rows[0]), capacity_rows)
 write_csv("INVENTORY_REGISTER.csv", list(inventory_rows[0]), inventory_rows)
 write_csv("TABLEWARE_REGISTER.csv", list(tableware_rows[0]), tableware_rows)
 write_csv("CAPEX_TECHNICAL_GAPS.csv", list(capex_gap_rows[0]), capex_gap_rows)
+write_csv("EQUIPMENT_OWNER_DECISION_PACK.csv", list(decision_rows[0]), decision_rows)
 
 
 assert len(resource_rows) == 28 and {r["dish_code"] for r in resource_rows} == set(SCOPE)
@@ -374,6 +460,9 @@ assert all(r["active_time_unit"] == "мин" and r["total_time_unit"] == "мин
 assert all(r["passport_capacity"] == "" and r["connections_status"] == "BLOCKED" for r in function_rows)
 assert all(str(r["required_equipment_batches"]) == "" for r in resource_rows)
 assert all(str(r["pieces_per_service"]) == "" for r in tableware_rows)
+assert all(not r["selected_manufacturer"] and not r["selected_model_article"] and not r["passport_document_or_official_url"] for r in function_rows)
+assert sum(1 for r in function_rows if r["planning_batch_status"].startswith("CALCULATED")) > 0
+assert len(decision_rows) == 12 and all(r["status"] == "OPEN" for r in decision_rows)
 
 unknown_codes = sorted({c for r in function_rows for c in str(r["functional_codes"]).split(";") if c and c not in assets and not c.startswith("REQ-")})
 assert not unknown_codes, unknown_codes
@@ -383,10 +472,10 @@ report = f"""# Equipment Capacity Report — Issue #82
 ## Паспорт
 
 - Role: EquipmentCapacityAgent `/root/equipment_capacity`.
-- Version/date: `0.1.0-DRAFT` / `{DATE}`.
+- Version/date: `0.2.0-REMEDIATION` / `{DATE}`.
 - Scope: 28 dishes — `VKM-001…VKM-025`, `VKM-029…VKM-031`; `VKM-026…VKM-028` excluded.
-- Upstream accepted with conditions: HOF-0002, HOF-0003, HOF-0004.
-- Evidence: `EVD-0010`, `EVD-0021…EVD-0026`; HOF-0003 safety evidence.
+- Upstream: HOF-0011 exact recipe `{RECIPE_BLOB}` / tech cards `{TECH_CARD_BLOB}`; HOF-0012 safety veto; VSF `{VSF_BLOB}`.
+- Evidence: `EVD-0010`, `EVD-0021…EVD-0026`; current CAPEX structure and missing-document register.
 
 ## Result
 
@@ -394,15 +483,21 @@ report = f"""# Equipment Capacity Report — Issue #82
 - {len(function_rows)} technology operations; every operation has a functional equipment/workstation mapping.
 - 28 capacity/bottleneck records; draft active/total time retained in minutes.
 - 28 inventory sets and 28 draft service-tableware sets.
-- {len(capex_gap_rows)} explicit CAPEX/technical gaps.
+- {len(capex_gap_rows)} explicit CAPEX/technical gaps and {len(decision_rows)} exact Owner/Engineering/Procurement decisions.
 - Stable existing functional codes and `INV_CODE` links are used where the current CAPEX register contains them.
-- `REQ-BAK-PREP` is intentionally a gap code, not a claimed asset: the current CAPEX model has no unambiguous dedicated bakery preparation workstation for manual shaping.
+- `REQ-BAK-PREP` remains only for four bread-forming operations. The remediation tested BAK-12, HOT-12 and BAK-07 as existing-code candidates and rejected silent allocation: their approved scopes are pizza table, hot-line table and pastry inventory, not a proven compliant bakery forming surface.
+
+## Passport and project-requirement distinction
+
+The GitHub SSOT contains no selected manufacturer, model/article or manufacturer passport/official URL for any mapped equipment function. `DOC-INV-011` remains `NOT_REQUESTED`; current CAPEX rows contain project minimum technical requirements only. This remediation therefore exposes those requirements separately as `PLANNED`, keeps all passport fields blank and retains actual suitability as `BLOCKED`.
+
+Where units are directly comparable, a one-recipe planning scenario is calculated and explicitly labelled non-operational: pizza-oven, rice-cooker and WOK mappings have one recipe unit and one planning equipment batch. These calculations do not establish demand capacity, actual cycle time or useful throughput.
 
 ## Capacity interpretation
 
 The current resource card is a planning architecture, not proof that equipment is acquired, installed, connected, suitable or productive. `preliminary_recipe_batches = 1` means only that each ChefTechnologyAgent card describes one current draft recipe unit. It is not a demand-based production batch count.
 
-Existing group inputs (pizza 25; bakery 20; cold 16; hot 21; sides 12; pastry 20 units/hour) are retained only as `ESTIMATE` from `KITCHEN_PRODUCTION_CAPACITY_BY_MENU_VARSHAVKA_v3.0.0.xlsx / ПАРАМЕТРЫ`. They are not manufacturer passport or observed values. Required equipment batches remain blank/`BLOCKED` until approved peak demand, staffing, selected-model passports and timed tests are available.
+Existing group inputs (pizza 25; bakery 20; cold 16; hot 21; sides 12; pastry 20 units/hour) are retained only as `ESTIMATE` from `KITCHEN_PRODUCTION_CAPACITY_BY_MENU_VARSHAVKA_v3.0.0.xlsx / ПАРАМЕТРЫ`. Their implied planning cycle is calculated as `60 / group rate` for sensitivity only. They are not manufacturer passport or observed values. Demand-based equipment batches remain blank/`BLOCKED` until approved peak demand, staffing, selected-model passports and timed tests are available.
 
 The external spreadsheet engine used for inspection returned unsupported-name formula errors in computed demand/capacity cells of the current capacity workbook. Therefore this package does not import its computed bottleneck conclusions. Gate D must demonstrate a clean external recalculation before those outputs are relied on.
 
@@ -429,44 +524,54 @@ The external spreadsheet engine used for inspection returned unsupported-name fo
 - active/total time units: all `мин`: PASS;
 - unsupported existing functional codes: 0: PASS;
 - invented passport capacity values: 0: PASS;
+- selected manufacturer/model/passport claims: 0: PASS;
+- one-recipe planning estimates with explicit non-operational status: {sum(1 for r in function_rows if r['planning_batch_status'].startswith('CALCULATED'))}/{len(function_rows)} operation mappings;
 - claimed installed/connected equipment: 0: PASS;
 - unknown batch counts or tableware quantities replaced with zero: 0: PASS.
 
 ## Readiness
 
-`READY_FOR_HANDOFF_WITH_BLOCKERS`. Resource architecture is complete for Gate C reconciliation, but all 28 dishes remain blocked from demonstrated capacity and confirmed equipment suitability pending `EQG-001…EQG-014` and the binding HOF-0003 safety veto.
+`REMEDIATED_WITH_EXTERNAL_BLOCKERS`. Operation mapping and decision precision are improved, but all 28 dishes remain blocked from demonstrated capacity and confirmed equipment suitability pending `EQG-001…EQG-014`, selected-model/site evidence and the binding HOF-0012 safety veto. `IV-003` is not closed because no compliant bakery work surface has been approved. `IV-006` is not closed because no dish has passport-backed useful capacity, observed cycle/load/batches and connection evidence.
 """
 (OUT / "EQUIPMENT_CAPACITY_REPORT.md").write_text(report, encoding="utf-8")
 
-handoff = f"""# HANDOFF HOF-0006 — EquipmentCapacityAgent
+handoff = f"""# HOF-0015 — EquipmentCapacity remediation handoff
 
-- Sender: `/root/equipment_capacity` / EquipmentCapacityAgent.
-- Receivers: Orchestrator; SystemArchitect; CostingPricingAgent; FoodSafetyAgent; ExcelBuilder after Gate C acceptance.
-- Version/date: `0.1.0-DRAFT` / `{DATE}`.
-- Dish scope: 28 — `VKM-001…VKM-025`, `VKM-029…VKM-031`; `VKM-026…VKM-028` excluded.
-- Upstream: HOF-0002, HOF-0003 and HOF-0004, all accepted with conditions.
-- Sender decision: `READY_FOR_HANDOFF_WITH_BLOCKERS`.
+## Identification
+
+- Handoff ID: `HOF-0015` (`HOF-0014` reserved for CostingPricingAgent).
+- Session: `VAR-ISSUE-82-S02-REMEDIATION`.
+- Issue / PR: #82 / draft PR #83.
+- Branch: `agent/issue-82-menu-docs`.
+- Separate agent: `/root/equipment_capacity_remediation`.
+- Exact technology input: recipe `0.1.0-DRAFT`, blob `{RECIPE_BLOB}`; tech-card blob `{TECH_CARD_BLOB}`.
+- Exact VSF input blob: `{VSF_BLOB}`.
+- Safety input: HOF-0012; all 28 vetoes remain `BLOCK`.
+- Sender decision: `REMEDIATED_WITH_EXTERNAL_BLOCKERS`.
 - Requested receiver decision: `ACCEPTED_WITH_CONDITIONS`.
 
 ## Package
 
-1. `RESOURCE_CARDS.csv` — 28 integrated dish resource cards.
-2. `EQUIPMENT_FUNCTION_MATRIX.csv` — {len(function_rows)} operation-to-function mappings.
-3. `CAPACITY_BOTTLENECK_REPORT.csv` — 28 capacity records and blocker-aware hypotheses.
-4. `INVENTORY_REGISTER.csv` — 28 production inventory sets.
-5. `TABLEWARE_REGISTER.csv` — 28 service-tableware candidate sets.
-6. `CAPEX_TECHNICAL_GAPS.csv` — {len(capex_gap_rows)} evidence-backed CAPEX/technical blockers.
-7. `EQUIPMENT_CAPACITY_REPORT.md` — method, interpretation, QA and cross-Issue impacts.
+1. `RESOURCE_CARDS.csv` — 28 resource cards with an explicit non-demand one-recipe scenario.
+2. `EQUIPMENT_FUNCTION_MATRIX.csv` — {len(function_rows)} mappings with project requirement, recipe-load, planning-batch, selected-model/passport and suitability fields.
+3. `CAPACITY_BOTTLENECK_REPORT.csv` — 28 planning-cycle sensitivities and blank demand/passport batch results.
+4. `INVENTORY_REGISTER.csv` — 28 candidate production-inventory sets; quantities remain blocked.
+5. `TABLEWARE_REGISTER.csv` — 28 candidate service sets and a reproducible start-quantity formula; inputs remain blocked.
+6. `CAPEX_TECHNICAL_GAPS.csv` — {len(capex_gap_rows)} evidence-backed gaps, including the narrowed `REQ-BAK-PREP` decision.
+7. `EQUIPMENT_OWNER_DECISION_PACK.csv` — {len(decision_rows)} exact decisions with options, recommendation, evidence, four impact dimensions, owner and unblock condition.
+8. `EQUIPMENT_CAPACITY_REPORT.md` — remediation method, factual limits, QA and defect disposition.
+9. `scripts/generate_issue_82_equipment_capacity.py` — version-locked reproducible generator.
 
 ## Sources and statuses
 
-- Technology process/time: HOF-0002 / `EVD-0010`; times remain `ESTIMATE` until observation.
-- VSF linkage: HOF-0004 / `EVD-0009`; 34-node DAG is not modified.
-- Safety: HOF-0003; all 28 vetoes and null critical limits are preserved.
+- Technology process/time: HOF-0011 / `EVD-0010`; exact recipe/tech-card blobs above; times remain `ESTIMATE` until observation.
+- VSF linkage: exact `SEMI_FINISHED_PRODUCTS.csv` blob above / `EVD-0009`; 34-node DAG is not modified.
+- Safety: HOF-0012; all 28 vetoes and unsupported numeric limits remain blocked.
 - Function mapping: `EVD-0021` / source capacity workbook / current CAPEX register; `ESTIMATE`.
-- Passport capacity: `EVD-0022`; blank + `BLOCKED`.
+- Project minimum requirements: current `CAPEX_QUANTITY_SPECIFICATION.csv`; separately exposed as `PLANNED`, not passports.
+- Selected manufacturer/model/passport: absent from GitHub SSOT; `EVD-0022`; blank + `BLOCKED_NO_SELECTED_MODEL_PASSPORT`.
 - Asset availability/connections: `EVD-0023`; `BLOCKED`.
-- Bottlenecks: `EVD-0024`; `BLOCKED_PENDING_VALIDATION`.
+- Bottlenecks: `EVD-0024`; planning cycles are sensitivity calculations, actual conclusions remain `BLOCKED_PENDING_VALIDATION`.
 - Inventory: `EVD-0025`; candidate set `ESTIMATE`, quantity blank + `BLOCKED`.
 - Tableware: `EVD-0026`; candidate set `DRAFT/ESTIMATE`, quantity/turnover blank + `BLOCKED`.
 
@@ -476,30 +581,49 @@ handoff = f"""# HANDOFF HOF-0006 — EquipmentCapacityAgent
 - exact menu scope and no `VKM-026…VKM-028`: PASS;
 - {len(function_rows)} source operations and {len(function_rows)} mapped operations: PASS;
 - every mapping has a functional code or an explicit technical-gap requirement code: PASS;
+- manual mapping false positives corrected for bread scald/butter/greasing and hot-line preparation/WOK processing: PASS;
 - active and total time units consistent (`мин`): PASS;
 - no manufacturer/passport capacity invented: PASS;
 - no asset marked purchased, installed, serviceable or connected: PASS;
 - no unknown batch/tableware quantity replaced with zero: PASS;
-- existing current codes resolve to CAPEX rows; `REQ-BAK-PREP` is explicitly non-CAPEX and blocked: PASS.
+- selected manufacturer/model/passport claims: zero: PASS;
+- existing current codes resolve to CAPEX rows: PASS;
+- `REQ-BAK-PREP` reduced to four bread-forming operations and remains explicitly non-CAPEX: PASS;
+- one-recipe planning batch estimates are labelled non-operational: PASS.
 
 ## Open questions and blockers
 
-See `CAPEX_TECHNICAL_GAPS.csv`, `EQG-001…EQG-014`. Highest-impact items: selected-model passports; ownership/condition; engineering connections; peak demand; timed batch tests; clean capacity-workbook recalculation; bakery manual-workstation code; shared-oven schedule; inventory sanitation allocation; serving matrix and packaging.
+See `CAPEX_TECHNICAL_GAPS.csv`, `EQG-001…EQG-014`, and `EQUIPMENT_OWNER_DECISION_PACK.csv`, `EQD-001…EQD-012`. GitHub has no selected models or exact manufacturer passports. Actual useful capacity, cycle time, recipe load, demand batches, availability and connections therefore remain blocked for 28/28.
 
 ## Acceptance criteria
 
-1. SystemArchitect reconciles all operation codes with the stable CAPEX code model and decides `REQ-BAK-PREP` through an explicit decision/change path.
+1. Owner/SystemArchitect resolves `EQD-006`: prove an existing compliant bakery surface or add a stable code through change control.
 2. No downstream agent treats planning group rates, active-time-implied labor rates or candidate assets as passport/observed facts.
 3. Demand-based batch counts remain blank until approved demand, staffing, passports and timing evidence are available.
 4. Equipment availability/connections remain `BLOCKED`; no claim of purchase, installation or suitability is made.
-5. FoodSafetyAgent re-reviews final equipment, inventory and workflow before any dish readiness upgrade.
+5. FoodSafetyAgent re-reviews final equipment, inventory and workflow before any dish readiness upgrade; HOF-0012 veto remains binding.
 6. ExcelBuilder preserves blank unknowns, statuses, EvidenceIDs and blocker links and demonstrates clean external recalculation at Gate D.
 7. CostingPricingAgent does not assign equipment/CAPEX/energy or packaging cost from this package without accepted price/allocation evidence.
 
 ## Recipient decision
 
-`PENDING` — receiver records `ACCEPTED / REJECTED / ACCEPTED_WITH_CONDITIONS`, date, conditions and any Change Request.
-"""
-(OUT / "HANDOFF_HOF-0006_EQUIPMENT_CAPACITY.md").write_text(handoff, encoding="utf-8")
+## Defect disposition
 
-print(f"PASS: 28 dishes; {len(function_rows)} operations mapped; {len(capex_gap_rows)} technical gaps; 8 output files")
+- `IV-003 / S2`: **OPEN**. The mapping is narrowed and decision-ready, but no compliant existing bakery work surface or stable new code is approved.
+- `IV-006 / S2`: **OPEN**. Structural coverage is 28/28 dishes and 155/155 operations; demonstrated suitability/capacity remains 0/28 because exact models/passports, asset/connection evidence, approved demand and timed tests are absent.
+
+## Explicit non-results
+
+- No equipment is claimed purchased, installed, serviceable, connected or suitable.
+- No project minimum requirement is represented as a manufacturer passport value.
+- No demand-based batch count or actual bottleneck is asserted.
+- No recipe, safety limit, price, CAPEX amount, inventory quantity or tableware quantity is invented.
+- No safety veto is removed.
+
+## Recipient decision
+
+`PENDING` — Orchestrator records acceptance and integrates only the exact generated artifacts. ExcelBuilder may surface them but must preserve blank unknowns and statuses. IndependentVerifier must recheck all 28 dishes and 155 operations against the exact frozen release candidate.
+"""
+(OUT / "HANDOFF_HOF-0015_EQUIPMENT_CAPACITY_REMEDIATION.md").write_text(handoff, encoding="utf-8")
+
+print(f"PASS: 28 dishes; {len(function_rows)} operations mapped; {len(capex_gap_rows)} technical gaps; {len(decision_rows)} decisions; 9 data/report output files")
