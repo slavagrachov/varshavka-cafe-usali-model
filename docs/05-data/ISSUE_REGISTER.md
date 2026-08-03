@@ -69,8 +69,8 @@
 | GitHub объект | Пакет работ | Статус |
 |---|---|---|
 | [#69](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/69) | Родительская программа VAR-000 | OPEN; Issue #82 остаётся дочерним срочным контуром и не закрывает Gate 0 |
-| [#80](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/80) | Комплект 31 позиции для итогового рассмотрения шеф-поваром | OPEN; содержательная работа не начата; S03 расчётный слой 31/31 может быть принят только как `DRAFT / ASSUMPTION / PRELIMINARY / CALCULATED` input после Owner acceptance `HO-VAR-82-S03-V1.0`; доказательное завершение 31/31 остаётся открытым |
-| [#82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82) | Рецептурные, калькуляционные, технологические, ресурсные и контрольные документы для 28 позиций | OPEN; PR #83 merged at `cd23852fda61d9ee42dc7bae453e164c8f4d130c`; S03 calculation/evidence-organization package находится в `main`; handoff `PASS_WITH_REMARKS`; `IV-002/S1` и `IV-003/004/006/007/S2` открыты; safety `BLOCK` 28/28; предметного PASS/closure нет |
+| [#80](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/80) | Комплект 31 позиции для итогового рассмотрения шеф-поваром | OPEN; `AUTHORIZED_FOR_SEPARATE_SESSION`; Owner принял `HO-VAR-82-S03-V1.0` как `ACCEPTED_WITH_CONDITIONS`; разрешены только расчётный слой 31/31 и экономика каналов 104/104 как `DRAFT / ASSUMPTION / PRELIMINARY / CALCULATED` inputs, а также формы и реестры доказательной работы; доказательное завершение 31/31 остаётся открытым |
+| [#82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82) | Рецептурные, калькуляционные, технологические, ресурсные и контрольные документы для 28 позиций | OPEN; PR #83 merged at `cd23852fda61d9ee42dc7bae453e164c8f4d130c`; S03 calculation/evidence-organization package находится в `main`; handoff `PASS_WITH_REMARKS / ACCEPTED_WITH_CONDITIONS`; `IV-002/S1` и `IV-003/004/006/007/S2` открыты; safety `BLOCK` 28/28; предметного PASS/closure нет |
 | [PR #81](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/81) | Исторический checkpoint Issue #80: 3 эталонных завтрака и 28 `BLOCKED`-каркасов | OPEN / DRAFT / NOT MERGED; reference-only; не закрыт как `SUPERSEDED` без разрешения владельца |
 | [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83) | Рабочий пакет Issue #82 | CLOSED / MERGED; merge `cd23852fda61d9ee42dc7bae453e164c8f4d130c`; RC1 `FAIL` и RC2 `CONDITIONAL / NOT_MERGE_READY` сохранены; S03 `PASS_STRUCTURE / SUBJECT_EVIDENCE_OPEN`; merge не утверждает рецептуры, цены, пищевую ценность, безопасность или оборудование и не закрывает #82 |
 | [#36](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/36) | Актуализация S03 и документации по VARSHAVKA 3.0.0 | CLOSED |
@@ -141,11 +141,19 @@
 | Дефекты и veto | `IV-002/S1`, `IV-003/S2`, `IV-004/S2`, `IV-006/S2`, `IV-007/S2` OPEN; safety veto `BLOCK` 28/28 |
 | Handoff | `HO-VAR-82-S03-V1.0`, blob `c07eda2ce38cb1b84d3d1db3aa675c6386368a89`; IndependentVerifier `PASS_WITH_REMARKS` по качеству передачи, не по предметной готовности |
 | Procedural drift | PR #83 слит после письменных ограничений «merge не разрешён» и при `CONDITIONAL / NOT_MERGE_READY`; отдельного разрешающего комментария до merge не найдено; recovery handoff документирует, но не устраняет это противоречие |
-| Issue #80 | отдельная сессия возможна только после Owner acceptance handoff и отдельного письменного разрешения; незакрытые обязательства Issue #82 не переносятся скрыто |
+| Issue #80 | отдельная сессия разрешена Owner Decision после завершения recovery; входы ограничены 31/31 и 104/104 расчётными мостами и формами доказательной работы; незакрытые обязательства Issue #82 не переносятся скрыто |
 
 Финансовая модель в S03 не перестраивалась. Расчётные мосты и формы
 доказательной работы являются входами/контролями, а не утверждёнными
 предметными результатами.
+
+Owner Decision: `HO-VAR-82-S03-V1.0` принят как
+`ACCEPTED_WITH_CONDITIONS`. Отдельная сессия Issue #80 разрешена после
+завершения recovery с указанной границей входов. Решение:
+[Issue #82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82#issuecomment-5172535617);
+[Issue #80](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/80#issuecomment-5172536067).
+PR #85, Issue #82 и PR #81 не сливаются/не закрываются без нового
+письменного разрешения Owner.
 
 ## Полный реестр
 
