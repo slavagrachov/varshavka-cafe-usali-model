@@ -1,4 +1,4 @@
-# HOF-0014 — CostingPricingAgent remediation
+# HOF-0014 v1.1 — CostingPricingAgent remediation
 
 - Session: `VAR-ISSUE-82-S02-REMEDIATION`
 - Role: separate CostingPricingAgent
@@ -16,13 +16,15 @@
 - Provenance: reviewed 90 observations; accepted 68; rejected 22; rejected observations do not flow downstream.
 - VSF costing variants: 40; recursive no-double-count control: PASS; complete variants: 3.
 - Decision pack: 78 open exact Owner/Chef/Procurement decisions.
+- Separate proxy scenario: 74/74 previously blocked ingredients mapped; scenario COGS 28/28; scenario channel economics 101/101; all rows `LOW_CONFIDENCE / ASSUMPTION_BLOCKED_PENDING_VALIDATION`.
+- Evidence isolation: PASS — evidence-layer complete COGS and project-price fields remain null; no proxy removes a procurement block.
 
 ## Acceptance status
 
-`HOF-0014: READY_WITH_BLOCKERS`. Numeric lower bounds are analytical floors only. They must not be used as sale prices because unknown costs can only increase required prices.
+`HOF-0014 v1.1: READY_WITH_BLOCKERS`. Evidence-layer numeric lower bounds are analytical floors only. The separate full proxy scenario is planning material only and must not be used as an approved sale-price decision.
 
 `IV-004` remains `OPEN`: 0/28 complete COGS and 0/101 complete project-price rows. Closure requires exact recipe/SKU/make-buy decisions, quotations and global tax/commission/packaging decisions followed by regeneration and independent verification.
 
 ## Owned outputs
 
-`RAW_MATERIAL_PRICE_REGISTER.csv`, `PRICE_SOURCE_REGISTER.csv`, `COSTING_CARDS.csv`, `SEMI_FINISHED_COSTING.csv`, `CHANNEL_PRICING_TABLE.csv`, `SENSITIVITY_REPORT.csv`, `ECONOMIC_BLOCKER_REGISTER.csv`, `OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv`, `COSTING_PRICING_REPORT.md`, generator and QA.
+Evidence layer plus `PUBLIC_PROXY_SOURCE_REGISTER.csv`, `PROXY_SCENARIO_PRICE_REGISTER.csv`, `PROVISIONAL_PROXY_SCENARIO_COSTING.csv`, `PROVISIONAL_PROXY_SCENARIO_CHANNEL_PRICING.csv`, `PROVISIONAL_PROXY_SCENARIO_SENSITIVITY.csv`, report, generator and QA.

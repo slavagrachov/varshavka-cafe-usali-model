@@ -34,6 +34,11 @@ channel = rows("CHANNEL_PRICING_TABLE.csv")
 sensitivity = rows("SENSITIVITY_REPORT.csv")
 blockers = rows("ECONOMIC_BLOCKER_REGISTER.csv")
 decisions = rows("OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv")
+proxy_sources = rows("PUBLIC_PROXY_SOURCE_REGISTER.csv")
+proxy_prices = rows("PROXY_SCENARIO_PRICE_REGISTER.csv")
+proxy_cards = rows("PROVISIONAL_PROXY_SCENARIO_COSTING.csv")
+proxy_channel = rows("PROVISIONAL_PROXY_SCENARIO_CHANNEL_PRICING.csv")
+proxy_sensitivity = rows("PROVISIONAL_PROXY_SCENARIO_SENSITIVITY.csv")
 
 assert len(prices) == 113
 assert len(cards) == 28 and {r["dish_code"] for r in cards} == SCOPE
@@ -41,6 +46,11 @@ assert len(channel) == 101 and {r["dish_code"] for r in channel} == SCOPE
 assert len(sensitivity) == 168
 assert len(vsf) == 40
 assert len(blockers) == 31
+assert len(proxy_sources) == 15
+assert len(proxy_prices) == 113
+assert len(proxy_cards) == 28 and {r["dish_code"] for r in proxy_cards} == SCOPE
+assert len(proxy_channel) == 101 and {r["dish_code"] for r in proxy_channel} == SCOPE
+assert len(proxy_sensitivity) == 140
 
 # Every selected price is positive, dated, and supported by one or more active
 # direct-card source rows. Unknown prices remain null, never zero.
@@ -106,6 +116,37 @@ assert blocked_ids <= decision_scopes
 assert len(decisions) == len(blocked_ids) + 4 == 78
 assert all(r["status"] == "OPEN" and r["unblock_condition"] for r in decisions)
 
+# Proxy values are isolated from evidence-backed completion fields.  All 74
+# previously blocked ingredients are explicit low-confidence assumptions and
+# remain procurement-blocked.
+proxy_by_ing = {r["ingredient_id"]: r for r in proxy_prices}
+assert set(proxy_by_ing) == {r["ingredient_id"] for r in prices}
+assert all(num(r["scenario_price_rub_per_kg"]) > 0 for r in proxy_prices)
+for ing in blocked_ids:
+    r = proxy_by_ing[ing]
+    assert r["benchmark_type"] == "PUBLIC_CATEGORY_PROXY"
+    assert r["confidence"] == "LOW_CONFIDENCE"
+    assert r["scenario_status"] == "ASSUMPTION_BLOCKED_PENDING_VALIDATION"
+    assert r["procurement_block"] == "OPEN"
+assert all(not r["complete_food_cost_rub"] for r in cards)
+assert all(not r["project_price_rub"] for r in channel)
+
+proxy_card_by_dish = {r["dish_code"]: r for r in proxy_cards}
+assert all(num(r["scenario_food_cost_rub"]) > 0 and num(r["scenario_kitchen_cogs_rub"]) > 0 for r in proxy_cards)
+assert all(r["scenario_status"] == "ASSUMPTION_BLOCKED_PENDING_VALIDATION" and r["procurement_block"] == "OPEN" for r in proxy_cards)
+for r in proxy_channel:
+    kitchen = num(proxy_card_by_dish[r["dish_code"]]["scenario_kitchen_cogs_rub"])
+    pack = num(r["packaging_rub_assumption"])
+    target = num(r["target_cogs_ratio_assumption"])
+    price = (kitchen + pack) / target
+    assert close(num(r["scenario_price_rub_before_tax_commission"]), price)
+    assert close(num(r["scenario_food_cost_ratio"]), kitchen / price)
+    assert not r["tax_rate"] and not r["aggregator_commission_rate"]
+    assert r["scenario_status"] == "ASSUMPTION_BLOCKED_PENDING_VALIDATION"
+
+sens_counts = Counter(r["scenario"] for r in proxy_sensitivity)
+assert set(sens_counts.values()) == {28} and len(sens_counts) == 5
+
 print({
     "result": "PASS",
     "priced_ingredients": selected_count,
@@ -117,4 +158,7 @@ print({
     "numeric_channel_lower_bounds": sum(bool(r["provisional_price_lower_bound_rub"]) for r in channel),
     "complete_project_prices": sum(bool(r["project_price_rub"]) for r in channel),
     "decision_items": len(decisions),
+    "proxy_mapped_blocked_ingredients": len(blocked_ids),
+    "proxy_scenario_cogs": len(proxy_cards),
+    "proxy_scenario_channel_rows": len(proxy_channel),
 })

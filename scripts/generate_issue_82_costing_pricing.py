@@ -558,6 +558,213 @@ for scope, requirement, options, recommendation, owner, unblock in [
     })
 write_csv("OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv", decision_rows, list(decision_rows[0]))
 
+# ---------------------------------------------------------------------------
+# Separate, explicitly non-evidentiary public-proxy scenario.
+#
+# This layer never writes into selected_price_rub_per_kg, complete_food_cost_rub
+# or project_price_rub.  Its purpose is bounded planning only: show a complete
+# numeric scenario while every proxy-mapped ingredient remains procurement-
+# blocked.  Public product cards are dated observations; litre-to-kg and proxy
+# equivalence are declared assumptions, not facts about the recipe SKU.
+# ---------------------------------------------------------------------------
+PROXY_SOURCES = {
+    "PXY-001": ("Вода питьевая СВЯТОЙ ИСТОЧНИК негазированная", 1.5, "л", 64.99, 1.00, "https://lenta.com/product/voda-pitevaya-prirodnaya-negaz-pet-rossiya-15l-47182/", "1 л = 1.00 кг (scenario density assumption)"),
+    "PXY-002": ("Масло оливковое ITLV Extra Virgin", 0.5, "л", 679.99, 0.91, "https://lenta.com/product/maslo-olivkovoe-extra-virgen-stb-ispaniya-500ml-9752/", "1 л = 0.91 кг (scenario density assumption)"),
+    "PXY-003": ("Масло подсолнечное ОЛЕЙНА рафинированное", 1.0, "л", 129.99, 0.91, "https://lenta.com/product/maslo-podsolnechnoe-1-sort-rossiya-1000ml-8301/", "1 л = 0.91 кг (scenario density assumption)"),
+    "PXY-004": ("Молоко PARMALAT Edge 1.8%", 1.0, "л", 69.99, 1.03, "https://lenta.com/product/moloko-upast-edge-18-bez-zmzh-rossiya-1000ml-70492/", "1 л = 1.03 кг (scenario density assumption)"),
+    "PXY-005": ("Уксус бальзамический VARVELLO 6%", 0.5, "л", 139.99, 1.01, "https://lenta.com/product/uksus-balzamicheskijj-iz-modeny-6-italiya-500ml-346487/", "1 л = 1.01 кг (scenario density assumption)"),
+    "PXY-006": ("Майонез ЯНТА Провансаль 67%", 0.4, "кг", 75.99, 1.00, "https://lenta.com/product/majjonez-provansal-67-dp-rossiya-400g-364099/", "pack mass used directly"),
+    "PXY-007": ("Соус соевый SEN SOY Original", 0.25, "кг", 139.99, 1.00, "https://lenta.com/product/sous-soevyjj-klassicheskijj-stolovyjj-rossiya-250g-110901/", "pack mass used directly"),
+    "PXY-008": ("Рис НАЦИОНАЛЬ Premium Жасмин", 0.5, "кг", 114.99, 1.00, "https://lenta.com/product/ris-ris-nacional-premium-zhasmin-500g-rossiya-500g-618728/", "pack mass used directly"),
+    "PXY-009": ("Молоко кокосовое AROY-D", 0.25, "л", 144.99, 1.00, "https://lenta.com/product/moloko-kokosovoe-indoneziya-tailand-250ml-379394/", "1 л = 1.00 кг (scenario density assumption)"),
+    "PXY-010": ("Горчица МАХЕЕВЪ Русская", 0.14, "кг", 46.99, 1.00, "https://lenta.com/product/gorchica-russkaya-rossiya-140g-309783/", "pack mass used directly"),
+    "PXY-011": ("Хлеб HARRY'S American sandwich", 0.47, "кг", 139.99, 1.00, "https://lenta.com/product/hleb-american-sandwich-pshenichnyjj-rossiya-470g-27224/", "pack mass used directly"),
+    "PXY-012": ("Мед натуральный цветочный Майский", 0.5, "кг", 149.99, 1.00, "https://lenta.com/product/med-naturalnyjj-cvetochnyjj-majjskijj-rossiya-500g-916745/", "pack mass used directly"),
+    "PXY-013": ("Оливки ITLV зеленые без косточки", 0.3, "кг", 259.99, 1.00, "https://lenta.com/product/olivki-bk-zelenye-klyuch-ispaniya-300g-7462/", "gross pack mass; drained yield not evidenced"),
+    "PXY-014": ("Горошек ДЯДЯ ВАНЯ консервированный", 0.4, "кг", 119.99, 1.00, "https://lenta.com/product/goroshek-zelenyjj-konservirovannyjj-zhb-rossiya-400g-132994/", "gross pack mass; drained yield not evidenced"),
+    "PXY-015": ("Шпинат свежий", 0.125, "кг", 199.99, 1.00, "https://lenta.com/product/salat-shpinat-125g-239489/", "pack mass used directly"),
+}
+
+proxy_source_rows = []
+proxy_source_price = {}
+for source_id, (product, pack_qty, pack_unit, pack_price, density, url, conversion) in PROXY_SOURCES.items():
+    mass_kg = pack_qty if pack_unit == "кг" else pack_qty * density
+    rub_kg = pack_price / mass_kg
+    proxy_source_price[source_id] = rub_kg
+    proxy_source_rows.append({
+        "proxy_source_id": source_id, "observed_product": product,
+        "supplier_or_retailer": "Лента", "region": "Москва/Московская область (публичный онлайн-каталог)",
+        "pack_qty": fmt(pack_qty), "pack_unit": pack_unit, "pack_price_rub": fmt(pack_price, 2),
+        "scenario_density_kg_per_l": fmt(density) if pack_unit == "л" else "",
+        "scenario_price_rub_per_kg": fmt(rub_kg), "observation_date": AS_OF,
+        "source_url": url, "source_status": "FACT_PUBLIC_PRODUCT_CARD",
+        "conversion_status": "ASSUMPTION" if pack_unit == "л" else "MECHANICAL_PACK_MASS",
+        "conversion_note": conversion,
+        "limitations": "Single retail observation; not supplier quotation; availability, VAT treatment, delivery and MOQ unconfirmed",
+    })
+write_csv("PUBLIC_PROXY_SOURCE_REGISTER.csv", proxy_source_rows, list(proxy_source_rows[0]))
+
+# Every formerly blocked ingredient has one documented benchmark.  PXY means a
+# public product-card benchmark; ING means carry-forward of another ingredient's
+# selected public RUB/kg benchmark.  The mapping is deliberately conservative in
+# status, not necessarily in value: LOW_CONFIDENCE and procurement block remain.
+PROXY_MAP = {
+    "ING-002":"PXY-001", "ING-005":"PXY-002", "ING-008":"ING-007", "ING-011":"PXY-015",
+    "ING-013":"ING-009", "ING-014":"ING-017", "ING-018":"ING-006", "ING-019":"ING-006",
+    "ING-021":"ING-020", "ING-022":"ING-028", "ING-023":"ING-007", "ING-024":"PXY-003",
+    "ING-025":"PXY-004", "ING-029":"ING-026", "ING-031":"ING-006", "ING-032":"PXY-005",
+    "ING-033":"ING-004", "ING-034":"PXY-015", "ING-035":"PXY-015", "ING-037":"ING-074",
+    "ING-039":"ING-055", "ING-040":"PXY-012", "ING-041":"PXY-010", "ING-042":"ING-107",
+    "ING-044":"ING-009", "ING-045":"PXY-013", "ING-047":"ING-004", "ING-048":"ING-071",
+    "ING-049":"ING-072", "ING-050":"ING-074", "ING-051":"ING-038", "ING-052":"ING-064",
+    "ING-053":"PXY-014", "ING-056":"PXY-013", "ING-058":"ING-072", "ING-059":"PXY-015",
+    "ING-060":"PXY-013", "ING-061":"PXY-013", "ING-062":"ING-055", "ING-063":"ING-007",
+    "ING-065":"PXY-005", "ING-066":"ING-097", "ING-067":"PXY-011", "ING-068":"PXY-006",
+    "ING-069":"PXY-001", "ING-070":"PXY-001", "ING-073":"ING-088", "ING-075":"ING-077",
+    "ING-078":"PXY-001", "ING-079":"PXY-015", "ING-080":"PXY-009", "ING-081":"PXY-010",
+    "ING-082":"PXY-001", "ING-083":"PXY-007", "ING-084":"ING-102", "ING-085":"PXY-008",
+    "ING-086":"PXY-015", "ING-087":"PXY-011", "ING-089":"ING-088", "ING-090":"ING-009",
+    "ING-091":"ING-006", "ING-092":"ING-038", "ING-093":"ING-016", "ING-094":"PXY-006",
+    "ING-095":"ING-006", "ING-096":"PXY-015", "ING-098":"PXY-001", "ING-099":"PXY-005",
+    "ING-100":"PXY-008", "ING-101":"PXY-001", "ING-106":"ING-004", "ING-111":"ING-109",
+    "ING-112":"ING-109", "ING-113":"ING-055",
+}
+
+blocked_ids = {r["ingredient_id"] for r in raw_rows if not r["selected_price_rub_per_kg"]}
+assert set(PROXY_MAP) == blocked_ids
+scenario_prices = dict(selected)
+scenario_price_rows = []
+for raw in raw_rows:
+    ing = raw["ingredient_id"]
+    if ing in selected:
+        value = selected[ing]
+        scenario_price_rows.append({
+            "ingredient_id": ing, "ingredient_name": raw["ingredient_name"],
+            "scenario_price_rub_per_kg": fmt(value), "benchmark_type": "DIRECT_EVIDENCE_CARRY_FORWARD",
+            "benchmark_id": raw["price_source_ids"], "benchmark_description": "Selected dated public RUB/kg observation from evidence layer",
+            "source_url": "PRICE_SOURCE_REGISTER.csv", "source_date": AS_OF,
+            "conversion_or_mapping": "No scenario proxy; evidence-layer selected value carried forward",
+            "confidence": raw["confidence"], "scenario_status": "EVIDENCE_BENCHMARK_NOT_APPROVED",
+            "procurement_block": "OPEN", "limitation": "Retail benchmark is not an approved landed procurement price",
+        })
+        continue
+    donor = PROXY_MAP[ing]
+    if donor.startswith("PXY-"):
+        src = next(r for r in proxy_source_rows if r["proxy_source_id"] == donor)
+        value = proxy_source_price[donor]
+        description = src["observed_product"]
+        source_url = src["source_url"]
+        mapping_note = f"Public category benchmark {donor}; product/SKU equivalence is not asserted"
+    else:
+        value = selected[donor]
+        donor_raw = next(r for r in raw_rows if r["ingredient_id"] == donor)
+        description = f"Proxy from {donor}: {donor_raw['ingredient_name']}"
+        source_url = "PRICE_SOURCE_REGISTER.csv"
+        mapping_note = f"Category/process proxy to selected evidence benchmark {donor}; yield, preparation and SKU differences excluded"
+    scenario_prices[ing] = value
+    scenario_price_rows.append({
+        "ingredient_id": ing, "ingredient_name": raw["ingredient_name"],
+        "scenario_price_rub_per_kg": fmt(value), "benchmark_type": "PUBLIC_CATEGORY_PROXY",
+        "benchmark_id": donor, "benchmark_description": description,
+        "source_url": source_url, "source_date": AS_OF,
+        "conversion_or_mapping": mapping_note,
+        "confidence": "LOW_CONFIDENCE", "scenario_status": "ASSUMPTION_BLOCKED_PENDING_VALIDATION",
+        "procurement_block": "OPEN", "limitation": "Planning proxy only; not exact SKU/recipe component, quotation or approved price",
+    })
+write_csv("PROXY_SCENARIO_PRICE_REGISTER.csv", scenario_price_rows, list(scenario_price_rows[0]))
+
+scenario_sf_cache = {}
+def scenario_sf_cost(variant):
+    if variant in scenario_sf_cache:
+        return scenario_sf_cache[variant]
+    total = proxy_total = 0.0
+    for line in sf_by_variant[variant]:
+        qty = float(line["gross_qty"])
+        if line["component_type"] == "RAW_INPUT":
+            ing = line["ingredient_id"]
+            cost = qty / 1000 * scenario_prices[ing]
+            total += cost
+            if ing in blocked_ids:
+                proxy_total += cost
+        else:
+            child = scenario_sf_cost(line["child_vsf_code"] + "@BASE")
+            total += qty * child["per_g"]
+            proxy_total += qty * child["proxy_per_g"]
+    output = sum(float(line["projected_output_contribution"]) for line in sf_by_variant[variant])
+    result = {"total": total, "proxy": proxy_total, "per_g": total/output, "proxy_per_g": proxy_total/output}
+    scenario_sf_cache[variant] = result
+    return result
+
+scenario_cost_rows = []
+scenario_cost = {}
+for p in passports:
+    dish = p["dish_code"]
+    total = proxy_total = 0.0
+    for r in recipes_by_dish[dish]:
+        if r["recipe_line_id"] in mapped_source_ids[dish]:
+            continue
+        cost = float(r["gross_qty"]) / 1000 * scenario_prices[r["ingredient_id"]]
+        total += cost
+        if r["ingredient_id"] in blocked_ids:
+            proxy_total += cost
+    for m in dish_mappings[dish]:
+        c = scenario_sf_cost(m["batch_variant_id"])
+        total += float(m["required_output_qty"]) * c["per_g"]
+        proxy_total += float(m["required_output_qty"]) * c["proxy_per_g"]
+    kitchen = total * 1.015
+    scenario_cost[dish] = {"food": total, "kitchen": kitchen, "proxy": proxy_total}
+    scenario_cost_rows.append({
+        "dish_code": dish, "dish_name": p["dish_name"], "recipe_version": p["recipe_version"],
+        "scenario_food_cost_rub": fmt(total), "proxy_mapped_cost_component_rub": fmt(proxy_total),
+        "evidence_benchmark_component_rub": fmt(total-proxy_total),
+        "spoilage_1_5pct_scenario_rub": fmt(total*0.015), "scenario_kitchen_cogs_rub": fmt(kitchen),
+        "scenario_status": "ASSUMPTION_BLOCKED_PENDING_VALIDATION", "confidence": "LOW_CONFIDENCE",
+        "procurement_block": "OPEN", "method": "Same no-double-count DAG as evidence layer; all 74 missing prices supplied only by explicit public category proxies",
+        "limitations": "Not complete evidence-backed COGS; exact SKU, make/buy, yields, quotations, VAT, delivery and MOQ remain open",
+    })
+write_csv("PROVISIONAL_PROXY_SCENARIO_COSTING.csv", scenario_cost_rows, list(scenario_cost_rows[0]))
+
+scenario_channel_rows = []
+for base in pricing_rows:
+    c = scenario_cost[base["dish_code"]]
+    pack = float(base["packaging_rub"])
+    target = float(base["target_cogs_ratio"])
+    scenario_price = (c["kitchen"] + pack) / target
+    scenario_channel_rows.append({
+        "dish_code": base["dish_code"], "dish_name": base["dish_name"], "channel": base["channel"],
+        "target_cogs_ratio_assumption": fmt(target), "scenario_kitchen_cogs_rub": fmt(c["kitchen"]),
+        "packaging_rub_assumption": fmt(pack), "scenario_price_rub_before_tax_commission": fmt(scenario_price),
+        "scenario_food_cost_ratio": fmt(c["kitchen"] / scenario_price),
+        "scenario_gross_margin_before_channel_costs_rub": fmt(scenario_price-c["kitchen"]),
+        "scenario_contribution_before_tax_commission_rub": fmt(scenario_price-c["kitchen"]-pack),
+        "tax_rate": "", "aggregator_commission_rate": "",
+        "scenario_status": "ASSUMPTION_BLOCKED_PENDING_VALIDATION", "confidence": "LOW_CONFIDENCE",
+        "procurement_block": "OPEN", "limitations": "Planning scenario, not approved project price; tax, commission and quoted packaging remain excluded/blocked",
+    })
+write_csv("PROVISIONAL_PROXY_SCENARIO_CHANNEL_PRICING.csv", scenario_channel_rows, list(scenario_channel_rows[0]))
+
+scenario_sensitivity_rows = []
+for p in passports:
+    c = scenario_cost[p["dish_code"]]
+    evidence = c["food"] - c["proxy"]
+    for name, evidence_factor, proxy_factor, yield_factor in [
+        ("BASE_PROXY_SCENARIO", 1.0, 1.0, 1.0),
+        ("PROXY_MINUS_30PCT", 1.0, 0.7, 1.0),
+        ("PROXY_PLUS_30PCT", 1.0, 1.3, 1.0),
+        ("ALL_PRICES_PLUS_10PCT", 1.1, 1.1, 1.0),
+        ("PROXY_PLUS_50PCT_YIELD_MINUS_5PCT", 1.0, 1.5, 1/0.95),
+    ]:
+        food = (evidence*evidence_factor + c["proxy"]*proxy_factor) * yield_factor
+        scenario_sensitivity_rows.append({
+            "dish_code": p["dish_code"], "scenario": name,
+            "evidence_price_factor": fmt(evidence_factor), "proxy_price_factor": fmt(proxy_factor),
+            "yield_cost_factor": fmt(yield_factor), "scenario_food_cost_rub": fmt(food),
+            "scenario_kitchen_cogs_rub": fmt(food*1.015),
+            "status": "ASSUMPTION_BLOCKED_PENDING_VALIDATION",
+            "limitation": "Sensitivity around public proxy scenario; does not remove exact-SKU/procurement/recipe blocks",
+        })
+write_csv("PROVISIONAL_PROXY_SCENARIO_SENSITIVITY.csv", scenario_sensitivity_rows, list(scenario_sensitivity_rows[0]))
+
 priced = sum(1 for r in raw_rows if r["selected_price_rub_per_kg"])
 medium = sum(1 for r in raw_rows if r["confidence"] == "MEDIUM")
 complete_cards = sum(1 for r in cost_cards if r["complete_food_cost_rub"])
@@ -575,6 +782,8 @@ report = f"""# Costing & Pricing Remediation Report — Issue #82
 - Публичные сопоставимые benchmark-цены руб./кг после correction получены для {priced}/{len(ingredient_names)} ингредиентов; confidence MEDIUM (не менее 3 наблюдений) — {medium} SKU.
 - Remediation добавила 22 прямые публичные карточки по 20 дополнительным ingredient IDs; это увеличило покрытие выбранными ценами с 19 до {priced} из {len(ingredient_names)}.
 - Остальные значения оставлены пустыми и блокируют полный COGS. Нули вместо неизвестных данных не применялись.
+- В отдельном `PROXY_SCENARIO_PRICE_REGISTER.csv` 74/74 отсутствующих цен получили датированный публичный category proxy (`LOW_CONFIDENCE`, `ASSUMPTION_BLOCKED_PENDING_VALIDATION`). Исходные evidence-поля не перезаписаны, все procurement blocks остаются OPEN.
+- Отдельный плановый сценарий даёт числовой scenario COGS 28/28 и scenario price/food cost/gross margin/contribution 101/101. Эти числа не являются complete evidence-backed COGS или утверждёнными проектными ценами.
 - Создан `OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv`: {len(decision_rows)} точных решений, включая каждый непроцененный ingredient ID и четыре глобальных экономических входа.
 - Все цены — публичные розничные наблюдения, не КП и не утверждённые закупочные цены.
 - Semi-finished costing использует DAG: дочерний VSF учитывается один раз; его сырьевые строки повторно не включаются. Проверка двойного учёта: PASS.
@@ -598,6 +807,7 @@ report = f"""# Costing & Pricing Remediation Report — Issue #82
 - Литры не переводились в килограммы без подтверждённой плотности.
 - Формулировки «или», «проектный», «соус/бульон/маринад/глазурь/декор» не получили фиктивную цену: нужна спецификация Chef/Procurement.
 - При неполном составе публикуется только `partial_known_food_cost_rub`; поле полного COGS остаётся пустым.
+- Для прокси-сценария опубликована отдельная чувствительность: proxy ±30%, all prices +10%, proxy +50% совместно с yield −5%. Она показывает риск диапазона, но не заменяет КП и решения Chef/Owner.
 
 ## Change requests
 
@@ -605,7 +815,7 @@ CostingPricingAgent рецептуры не менял. Требуются ре�
 """
 (OUT / "COSTING_PRICING_REPORT.md").write_text(report, encoding="utf-8")
 
-remediation_handoff = f"""# HOF-0014 — CostingPricingAgent remediation
+remediation_handoff = f"""# HOF-0014 v1.1 — CostingPricingAgent remediation
 
 - Session: `VAR-ISSUE-82-S02-REMEDIATION`
 - Role: separate CostingPricingAgent
@@ -623,16 +833,18 @@ remediation_handoff = f"""# HOF-0014 — CostingPricingAgent remediation
 - Provenance: reviewed {len(provenance_review_rows)} observations; accepted {accepted_obs}; rejected {rejected_obs}; rejected observations do not flow downstream.
 - VSF costing variants: {len(sf_cost_rows)}; recursive no-double-count control: PASS; complete variants: {sum(r['cost_status']=='CALCULATED' for r in sf_cost_rows)}.
 - Decision pack: {len(decision_rows)} open exact Owner/Chef/Procurement decisions.
+- Separate proxy scenario: 74/74 previously blocked ingredients mapped; scenario COGS {len(scenario_cost_rows)}/28; scenario channel economics {len(scenario_channel_rows)}/101; all rows `LOW_CONFIDENCE / ASSUMPTION_BLOCKED_PENDING_VALIDATION`.
+- Evidence isolation: PASS — evidence-layer complete COGS and project-price fields remain null; no proxy removes a procurement block.
 
 ## Acceptance status
 
-`HOF-0014: READY_WITH_BLOCKERS`. Numeric lower bounds are analytical floors only. They must not be used as sale prices because unknown costs can only increase required prices.
+`HOF-0014 v1.1: READY_WITH_BLOCKERS`. Evidence-layer numeric lower bounds are analytical floors only. The separate full proxy scenario is planning material only and must not be used as an approved sale-price decision.
 
 `IV-004` remains `OPEN`: 0/28 complete COGS and 0/101 complete project-price rows. Closure requires exact recipe/SKU/make-buy decisions, quotations and global tax/commission/packaging decisions followed by regeneration and independent verification.
 
 ## Owned outputs
 
-`RAW_MATERIAL_PRICE_REGISTER.csv`, `PRICE_SOURCE_REGISTER.csv`, `COSTING_CARDS.csv`, `SEMI_FINISHED_COSTING.csv`, `CHANNEL_PRICING_TABLE.csv`, `SENSITIVITY_REPORT.csv`, `ECONOMIC_BLOCKER_REGISTER.csv`, `OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv`, `COSTING_PRICING_REPORT.md`, generator and QA.
+Evidence layer plus `PUBLIC_PROXY_SOURCE_REGISTER.csv`, `PROXY_SCENARIO_PRICE_REGISTER.csv`, `PROVISIONAL_PROXY_SCENARIO_COSTING.csv`, `PROVISIONAL_PROXY_SCENARIO_CHANNEL_PRICING.csv`, `PROVISIONAL_PROXY_SCENARIO_SENSITIVITY.csv`, report, generator and QA.
 """
 (OUT / "HANDOFF_HOF-0014_COSTING_PRICING_REMEDIATION.md").write_text(remediation_handoff, encoding="utf-8")
 
@@ -719,7 +931,12 @@ assert len(pricing_rows) == 101
 assert all(r["tax_rate"] == "" and r["aggregator_commission_rate"] == "" for r in pricing_rows)
 assert all(r["tax_rate_status"].startswith("BLOCKED_") for r in pricing_rows)
 assert len(decision_rows) == (len(ingredient_names) - priced) + 4
+assert len(scenario_price_rows) == 113 and all(float(r["scenario_price_rub_per_kg"]) > 0 for r in scenario_price_rows)
+assert len(scenario_cost_rows) == 28 and all(float(r["scenario_kitchen_cogs_rub"]) > 0 for r in scenario_cost_rows)
+assert len(scenario_channel_rows) == 101 and all(float(r["scenario_price_rub_before_tax_commission"]) > 0 for r in scenario_channel_rows)
+assert len(scenario_sensitivity_rows) == 140
 print({"ingredients": len(ingredient_names), "price_observations": len(source_rows), "priced_ingredients": priced,
        "medium_confidence": medium, "cost_cards": len(cost_cards), "complete_cards": complete_cards,
        "semi_finished_variants": len(sf_cost_rows), "pricing_rows": len(pricing_rows), "blockers": len(blocker_rows),
-       "provenance_reviewed": len(provenance_review_rows), "provenance_accepted": accepted_obs, "provenance_rejected": rejected_obs})
+       "provenance_reviewed": len(provenance_review_rows), "provenance_accepted": accepted_obs, "provenance_rejected": rejected_obs,
+       "proxy_mapped": len(PROXY_MAP), "proxy_scenario_cards": len(scenario_cost_rows), "proxy_scenario_channel_rows": len(scenario_channel_rows)})
