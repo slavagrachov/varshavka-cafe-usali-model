@@ -1,7 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
-import { FileBlob, SpreadsheetFile, Workbook } from "@oai/artifact-tool";
+import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
+
+const artifactModule = process.env.ISSUE82_ARTIFACT_TOOL_MODULE
+  || path.join(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES || "", "@oai/artifact-tool/dist/artifact_tool.mjs");
+const { SpreadsheetFile, Workbook } = await import(pathToFileURL(artifactModule).href);
 
 const ROOT = process.env.ISSUE82_REPO_ROOT
   ? path.resolve(process.env.ISSUE82_REPO_ROOT)
@@ -82,7 +87,8 @@ function markStatus(sheet, range) {
 
 const [passports, recipes, tech, semi, semiLines, dag, costing, prices, priceSources, channels,
   resources, equipment, inventory, tableware, safety, allergens, nutrition, questions, cook,
-  reconcile, conflicts, sourceReg, evidence, safetySources, nutritionSources] = await Promise.all([
+  reconcile, conflicts, sourceReg, evidence, safetySources, nutritionSources, proxyCosting,
+  proxyChannels, proxySensitivity, proxyPrices, capacity] = await Promise.all([
   csv("DISH_PASSPORTS.csv"), csv("RECIPES.csv"), csv("TECH_CARDS.csv"), csv("SEMI_FINISHED_PRODUCTS.csv"),
   csv("SEMI_FINISHED_RECIPE_LINES.csv"), csv("SEMI_FINISHED_DAG.csv"), csv("COSTING_CARDS.csv"),
   csv("RAW_MATERIAL_PRICE_REGISTER.csv"), csv("PRICE_SOURCE_REGISTER.csv"), csv("CHANNEL_PRICING_TABLE.csv"),
@@ -92,13 +98,22 @@ const [passports, recipes, tech, semi, semiLines, dag, costing, prices, priceSou
   csv("CROSS_DOMAIN_RECONCILIATION_MATRIX.csv"), csv("INTEGRATION_CONFLICT_REGISTER.csv"),
   csv("SOURCE_REGISTER.csv"), csv("EVIDENCE_MATRIX.csv"), csv("SAFETY_SOURCE_REGISTER.csv"),
   csv("NUTRITION_SOURCE_REGISTER.csv"),
+  csv("PROVISIONAL_PROXY_SCENARIO_COSTING.csv"), csv("PROVISIONAL_PROXY_SCENARIO_CHANNEL_PRICING.csv"),
+  csv("PROVISIONAL_PROXY_SCENARIO_SENSITIVITY.csv"), csv("PROXY_SCENARIO_PRICE_REGISTER.csv"),
+  csv("CAPACITY_BOTTLENECK_REPORT.csv"),
 ]);
 
 if (passports.length !== 28 || passports.some(r => !scopeOk(r.dish_code))) throw new Error("Scope must be exact 28 without VKM-026..028");
-if (priceSources.length !== 46 || priceSources.some(r => r.provenance_review_status !== "VERIFIED_DIRECT_CARD")) throw new Error("HOF-0005 v0.2.1 price source contract failed");
+if (priceSources.length !== 68 || priceSources.some(r => r.provenance_review_status !== "VERIFIED_DIRECT_CARD")) throw new Error("HOF-0014 evidence price source contract failed");
 if (costing.some(r => unknown(r.complete_food_cost_rub) !== null || unknown(r.kitchen_cogs_rub) !== null)) throw new Error("Complete COGS must remain unknown");
 if (safety.some(r => r.readiness_veto !== "BLOCK")) throw new Error("Safety veto must be 28/28 BLOCK");
-if (nutrition.some(r => ["protein_g_per_declared_output","fat_g_per_declared_output","carbohydrate_g_per_declared_output","energy_kcal_per_declared_output","protein_g_per_100g","fat_g_per_100g","carbohydrate_g_per_100g","energy_kcal_per_100g"].some(k => unknown(r[k]) !== null))) throw new Error("Nutrition numeric fields must be null");
+const nutritionHeadline = ["protein_g_per_declared_output","fat_g_per_declared_output","carbohydrate_g_per_declared_output","energy_kcal_per_declared_output","protein_g_per_100g","fat_g_per_100g","carbohydrate_g_per_100g","energy_kcal_per_100g"];
+if (nutrition.length !== 28 || nutrition.some(r => nutritionHeadline.some(k => typeof num(r[k]) !== "number"))) throw new Error("HOF-0013 nutrition must be numeric 28/28 × 8");
+if (nutrition.some(r => r.release_status !== "BLOCKED_PENDING_VALIDATION" || String(r.laboratory_confirmed).toLowerCase() !== "false")) throw new Error("Nutrition release/laboratory locks must remain blocked");
+if (proxyCosting.length !== 28 || proxyChannels.length !== 101 || proxyPrices.length !== 113) throw new Error("HOF-0014 proxy scenario scope contract failed");
+if (proxyCosting.some(r => r.scenario_status !== "ASSUMPTION_BLOCKED_PENDING_VALIDATION") || proxyChannels.some(r => r.scenario_status !== "ASSUMPTION_BLOCKED_PENDING_VALIDATION")) throw new Error("Proxy scenario status contract failed");
+if (capacity.length !== 28 || resources.length !== 28 || equipment.length !== 155) throw new Error("HOF-0015 equipment scope contract failed");
+if (safety.some(r => r.source_recipe_blob_sha !== "c6b22ad5f2812cc989a0d3593f40e21207da8f53")) throw new Error("HOF-0012 recipe version lock failed");
 
 const wb = Workbook.create();
 for (const name of SHEETS) wb.worksheets.add(name);
@@ -106,14 +121,14 @@ const sh = Object.fromEntries(SHEETS.map(n => [n, wb.worksheets.getItem(n)]));
 
 // 00 — cover and cross-domain status dashboard.
 {
-  const s = sh[SHEETS[0]]; styleTitle(s, 9, "ВАРШАВКА — меню, калькуляции и технологические карты", "Контролируемый draft v2.0.0 · Gate C PASS_WITH_CONDITIONS · не является утверждённым производственным документом");
+  const s = sh[SHEETS[0]]; styleTitle(s, 9, "ВАРШАВКА — меню, калькуляции и технологические карты", "Remediation release candidate · Structural Gate D PASS · предметная готовность ограничена открытыми evidence/Owner/Chef gates");
   s.getRange("A4:B10").values = [
     ["Параметр", "Значение"], ["Версия", VERSION], ["Дата среза", AS_OF], ["Scope", "VKM-001…025, VKM-029…031 (28)"],
-    ["Исключено", "VKM-026…028"], ["Экономика", "HOF-0005 v0.2.1: 46 accepted / 22 rejected"], ["Статус", "DRAFT / PASS_WITH_CONDITIONS"],
+    ["Исключено", "VKM-026…028"], ["Экономика", "HOF-0014: evidence layer 68 accepted; proxy 28/101 isolated"], ["Статус", "DRAFT / STRUCTURAL_PASS / SUBJECT_MATTER_BLOCKED"],
   ];
   s.getRange("A4:B4").format = { fill: C.blue, font: { color: C.white, bold: true } }; s.getRange("A5:B10").format.wrapText = true;
   const headers = ["Dish ID","Блюдо","Раздел","Recipe version","Dish status","Safety veto","Cost status","Nutrition status","Gate C","Blockers"];
-  const rows = passports.map((p, i) => [p.dish_code,p.dish_name,p.menu_section,p.recipe_version,p.dish_status,safety[i].readiness_veto,costing[i].cost_status,nutrition[i].calculation_status,reconcile[i].gate_c_status,reconcile[i].open_conflict_ids]);
+  const rows = passports.map((p, i) => [p.dish_code,p.dish_name,p.menu_section,p.recipe_version,p.dish_status,safety[i].readiness_veto,costing[i].cost_status,`${nutrition[i].calculation_status} / ${nutrition[i].release_status}`,reconcile[i].gate_c_status,reconcile[i].open_conflict_ids]);
   addTable(s, 12, headers, rows, "PassportStatus", {A:13,B:26,C:18,D:18,E:24,F:14,G:25,H:25,I:22,J:42});
   markStatus(s, s.getRange("E13:I40")); s.freezePanes.freezeRows(12);
 }
@@ -152,7 +167,7 @@ const sh = Object.fromEntries(SHEETS.map(n => [n, wb.worksheets.getItem(n)]));
 
 // 04 — source-backed economics. Input benchmark is visible; downstream is formula-driven.
 {
-  const s=sh[SHEETS[4]]; styleTitle(s,17,"04 — Калькуляции","Экономика только HOF-0005 v0.2.1. Partial known cost ≠ complete COGS. Unknown inputs are blank, not zero.");
+  const s=sh[SHEETS[4]]; styleTitle(s,17,"04 — Калькуляции","Доказательный слой отделён от LOW_CONFIDENCE proxy-сценария HOF-0014. Proxy не заполняет approved/evidence blanks.");
   s.getRange("P3:Q3").values=[["Потери (assumption)",0.015]]; s.getRange("P3").format={fill:C.blue,font:{color:C.white,bold:true}}; s.getRange("Q3").format={fill:C.input,numberFormat:"0.0%"};
   const headers=["Cost card","Dish ID","Блюдо","Выход","Ед.","Partial input","Partial formula","Complete food input","Complete food formula","Spoilage","Kitchen COGS","Packaging","Other variable","Complete portion COGS","Missing IDs","Status","Evidence"];
   const rows=costing.map(r=>[r.cost_card_code,r.dish_code,r.dish_name,num(r.draft_output),r.output_unit,num(r.partial_known_food_cost_rub),null,null,null,null,null,null,null,null,r.missing_price_or_vsf_ids,r.cost_status,r.evidence_ids]);
@@ -165,28 +180,32 @@ const sh = Object.fromEntries(SHEETS.map(n => [n, wb.worksheets.getItem(n)]));
   s.getRange(`F6:F${t.endRow}`).format={fill:C.input,numberFormat:"#,##0.00;[Red](#,##0.00);-"};
   s.getRange(`H6:H${t.endRow}`).format.fill=C.input; s.getRange(`L6:M${t.endRow}`).format.fill=C.input;
   s.getRange(`G6:K${t.endRow}`).format.numberFormat="#,##0.00;[Red](#,##0.00);-"; s.getRange(`N6:N${t.endRow}`).format={fill:C.formula,numberFormat:"#,##0.00;[Red](#,##0.00);-"}; markStatus(s,s.getRange(`P6:P${t.endRow}`));
+  const sr=t.endRow+3; s.getRange(`A${sr}:Q${sr}`).merge(); s.getRange(`A${sr}`).values=[["Отдельный proxy-сценарий — НЕ доказательная себестоимость / НЕ утверждённая цена"]]; s.getRange(`A${sr}:Q${sr}`).format={fill:C.navy,font:{color:C.white,bold:true}};
+  const px=[['dish_code','Dish ID'],['dish_name','Блюдо'],['recipe_version','Версия'],['scenario_food_cost_rub','Scenario food',1],['proxy_mapped_cost_component_rub','Proxy component',1],['evidence_benchmark_component_rub','Evidence floor',1],['spoilage_1_5pct_scenario_rub','Spoilage',1],['scenario_kitchen_cogs_rub','Scenario COGS',1],['scenario_status','Scenario status'],['confidence','Confidence'],['procurement_block','Procurement'],['method','Method'],['limitations','Limitations']];
+  const pxt=addTable(s,sr+1,px.map(x=>x[1]),pick(proxyCosting,px.map(x=>({key:x[0],num:!!x[2]}))),"ProxyCosting",{A:12,B:27,C:18,D:15,E:15,F:15,G:12,H:15,I:31,J:15,K:15,L:48,M:58});
+  s.getRange(`D${sr+2}:H${pxt.endRow}`).format.numberFormat="#,##0.00;[Red](#,##0.00);-"; markStatus(s,s.getRange(`I${sr+2}:K${pxt.endRow}`));
 }
 
 // 05 — technology cards.
 {
-  const s=sh[SHEETS[5]]; styleTitle(s,17,"05 — Технологические карты","Процесс и время — draft assumptions; safety-critical values remain null under HOF-0003 veto.");
-  const specs=[['tech_card_code','Tech card'],['dish_code','Dish ID'],['dish_name','Блюдо'],['recipe_version','Версия'],['operation_sequence','Операции'],['draft_active_time','Активное время',1],['draft_total_time','Полное время',1],['draft_plating','Подача'],['draft_target_output','Выход',1],['output_unit','Ед.'],['safety_critical_parameters','Safety limits'],['safety_status','Safety status'],['parameter_status','Статус'],['evidence_ids','Evidence'],['safety_evidence_ids','Safety evidence'],['blocker_ids','Blockers'],['validation_note','Validation']];
-  const t=addTable(s,5,specs.map(x=>x[1]),pick(tech,specs.map(x=>({key:x[0],num:!!x[2]}))),"TechCards",{A:12,B:12,C:26,D:18,E:55,F:12,G:12,H:45,I:11,J:8,K:16,L:24,M:16,N:24,O:28,P:24,Q:45}); markStatus(s,s.getRange(`L6:M${t.endRow}`));
+  const s=sh[SHEETS[5]]; styleTitle(s,33,"05 — Технологические карты","Шесть обязательных полей HOF-0011 показаны отдельно со статусом. DRAFT/BLOCKED не означает готовность.");
+  const specs=[['tech_card_code','Tech card'],['dish_code','Dish ID'],['dish_name','Блюдо'],['recipe_version','Версия'],['application_scope','Область применения'],['application_scope_status','Scope status'],['raw_material_requirements','Требования к сырью'],['raw_material_requirements_status','Raw status'],['raw_material_preparation','Подготовка сырья'],['raw_material_preparation_status','Prep status'],['allowable_deviations','Допустимые отклонения'],['allowable_deviations_status','Tolerance status'],['organoleptic_indicators','Органолептика'],['organoleptic_indicators_status','Sensory status'],['storage_and_realization','Хранение и реализация'],['storage_and_realization_status','Storage status'],['operation_sequence','Операции'],['draft_active_time','Активное время',1],['active_time_unit','Ед.'],['draft_total_time','Полное время',1],['total_time_unit','Ед.'],['draft_plating','Подача'],['draft_target_output','Выход',1],['output_unit','Ед.'],['safety_critical_parameters','Safety limits'],['safety_status','Safety status'],['parameter_status','Статус'],['evidence_ids','Evidence'],['safety_evidence_ids','Safety evidence'],['safety_blocker_ids','Safety blockers'],['blocker_ids','Blockers'],['confirmation_owner','Owner'],['validation_note','Validation']];
+  const t=addTable(s,5,specs.map(x=>x[1]),pick(tech,specs.map(x=>({key:x[0],num:!!x[2]}))),"TechCards",{A:12,B:12,C:26,D:18,E:48,F:15,G:52,H:15,I:52,J:15,K:48,L:15,M:52,N:15,O:52,P:15,Q:55,R:12,S:8,T:12,U:8,V:45,W:11,X:8,Y:16,Z:24,AA:16,AB:24,AC:28,AD:24,AE:24,AF:20,AG:48}); markStatus(s,s.getRange(`F6:P${t.endRow}`)); markStatus(s,s.getRange(`Z6:AA${t.endRow}`));
 }
 
 // 06 — ingredient price selection and accepted source observations.
 {
-  const s=sh[SHEETS[6]]; styleTitle(s,13,"06 — Сырьё и цены","113 ингредиентов; 46 accepted direct-card observations covering 19 ingredients. 22 rejected records are not selected or present in active table.");
+  const s=sh[SHEETS[6]]; styleTitle(s,13,"06 — Сырьё и цены","113 ингредиентов; 68 accepted direct-card observations. 22 rejected records are excluded; proxy scenario prices are isolated from this evidence layer.");
   const ps=[['ingredient_id','Ingredient ID'],['ingredient_name','Ингредиент'],['total_gross_usage_g_in_28_drafts','Usage g',1],['significant_sku','SKU critical'],['selected_price_rub_per_kg','Selected RUB/kg',1],['price_basis','Basis'],['observation_count_compatible','Obs.',1],['price_source_ids','Source IDs'],['price_as_of','As of'],['parameter_status','Status'],['confidence','Confidence'],['approval_owner','Owner'],['next_action','Next action']];
   const a=addTable(s,5,ps.map(x=>x[1]),pick(prices,ps.map(x=>({key:x[0],num:!!x[2]}))),"RawPrices",{A:13,B:34,C:12,D:12,E:16,F:22,G:8,H:22,I:12,J:15,K:18,L:22,M:45}); s.getRange(`E6:E${a.endRow}`).format={fill:C.input,numberFormat:"#,##0.0000;[Red](#,##0.0000);-"}; markStatus(s,s.getRange(`J6:K${a.endRow}`));
-  const sr=a.endRow+3; s.getRange(`A${sr}:M${sr}`).merge(); s.getRange(`A${sr}`).values=[["Accepted HOF-0005 v0.2.1 price sources (46)"]]; s.getRange(`A${sr}:M${sr}`).format={fill:C.navy,font:{color:C.white,bold:true}};
+  const sr=a.endRow+3; s.getRange(`A${sr}:M${sr}`).merge(); s.getRange(`A${sr}`).values=[["Accepted HOF-0014 evidence price sources (68)"]]; s.getRange(`A${sr}:M${sr}`).format={fill:C.navy,font:{color:C.white,bold:true}};
   const ss=[['price_source_id','Source ID'],['ingredient_id','Ingredient ID'],['ingredient_name','Ингредиент'],['observed_product','Продукт'],['supplier_or_retailer','Поставщик'],['pack_qty','Pack qty',1],['pack_unit','Unit'],['pack_price_rub','Pack RUB',1],['normalized_price_rub','RUB/kg',1],['price_date','Date'],['source_url','URL'],['selection_flag','Selected',1],['provenance_review_status','Review']];
   addTable(s,sr+1,ss.map(x=>x[1]),pick(priceSources,ss.map(x=>({key:x[0],num:!!x[2]}))),"AcceptedPriceSources",{D:35,E:18,K:60,M:24});
 }
 
 // 07 — pricing formulas. Packaging zero from upstream is intentionally treated as unknown/blank.
 {
-  const s=sh[SHEETS[7]]; styleTitle(s,16,"07 — Ценообразование","Channel rows = 101. Project price, food cost and margin remain blank until complete COGS and channel costs are evidenced.");
+  const s=sh[SHEETS[7]]; styleTitle(s,16,"07 — Ценообразование","101 evidence-layer rows remain blocked; separate 101-row proxy scenario is planning-only and LOW_CONFIDENCE.");
   const headers=["Dish ID","Блюдо","Канал","Target COGS","Kitchen COGS","Packaging","Commission","Tax","Project price","Food cost","Gross margin","Contribution","Status","Method","Source","Blockers"];
   const rows=channels.map(r=>[r.dish_code,r.dish_name,r.channel,num(r.target_cogs_ratio),null,null,unknown(r.aggregator_commission_rate),unknown(r.tax_rate),null,null,null,null,r.pricing_status,r.method,r.source_or_assumption,r.blockers]);
   const t=addTable(s,5,headers,rows,"ChannelPricing",{A:12,B:27,C:20,D:13,E:15,F:13,G:13,H:11,I:14,J:13,K:14,L:15,M:25,N:45,O:28,P:30});
@@ -198,16 +217,22 @@ const sh = Object.fromEntries(SHEETS.map(n => [n, wb.worksheets.getItem(n)]));
     s.getRange(`L${r}`).formulas=[[`=IF(OR(K${r}="",G${r}="",H${r}=""),"",K${r}-I${r}*G${r}-I${r}*H${r})`]];
   }
   s.getRange(`D6:D${t.endRow}`).format.numberFormat="0.0%"; s.getRange(`F6:H${t.endRow}`).format.fill=C.input; s.getRange(`E6:L${t.endRow}`).format.numberFormat="#,##0.00;[Red](#,##0.00);-"; markStatus(s,s.getRange(`M6:M${t.endRow}`));
+  const sr=t.endRow+3; s.getRange(`A${sr}:P${sr}`).merge(); s.getRange(`A${sr}`).values=[["Proxy-сценарий HOF-0014 — 101/101, только для планирования, не project price"]]; s.getRange(`A${sr}:P${sr}`).format={fill:C.navy,font:{color:C.white,bold:true}};
+  const ps=[['dish_code','Dish ID'],['dish_name','Блюдо'],['channel','Канал'],['target_cogs_ratio_assumption','Target',1],['scenario_kitchen_cogs_rub','Scenario COGS',1],['packaging_rub_assumption','Packaging assumption',1],['scenario_price_rub_before_tax_commission','Scenario price',1],['scenario_food_cost_ratio','Food cost',1],['scenario_gross_margin_before_channel_costs_rub','Margin',1],['scenario_contribution_before_tax_commission_rub','Contribution',1],['tax_rate','Tax',1],['aggregator_commission_rate','Commission',1],['scenario_status','Status'],['confidence','Confidence'],['procurement_block','Procurement'],['limitations','Limitations']];
+  const pst=addTable(s,sr+1,ps.map(x=>x[1]),pick(proxyChannels,ps.map(x=>({key:x[0],num:!!x[2]}))),"ProxyChannelPricing",{A:12,B:27,C:20,D:12,E:15,F:16,G:15,H:13,I:15,J:15,K:11,L:13,M:31,N:15,O:15,P:58}); s.getRange(`D${sr+2}:L${pst.endRow}`).format.numberFormat="#,##0.00;[Red](#,##0.00);-"; markStatus(s,s.getRange(`M${sr+2}:O${pst.endRow}`));
 }
 
 // 08 — resource/equipment summary, plus detailed operation mapping.
 {
-  const s=sh[SHEETS[8]]; styleTitle(s,14,"08 — Оборудование и мощность","Equipment structure is estimated; passports, installed/connected status, demand and factual bottlenecks are blocked.");
+  const s=sh[SHEETS[8]]; styleTitle(s,23,"08 — Оборудование и мощность","HOF-0015: planning scenarios shown separately; selected model/passport, availability, connections and demonstrated suitability remain blocked.");
   const rs=[['resource_card_id','Resource ID'],['dish_code','Dish ID'],['dish_name','Блюдо'],['primary_area','Зона'],['operation_count','Ops',1],['mapped_operation_count','Mapped',1],['functional_codes','Functions'],['conditional_candidate_codes','Conditional'],['draft_active_time','Active min',1],['draft_total_time','Total min',1],['capacity_status','Capacity'],['availability_status','Availability'],['connections_status','Connections'],['blocker_ids','Blockers']];
   const a=addTable(s,5,rs.map(x=>x[1]),pick(resources,rs.map(x=>({key:x[0],num:!!x[2]}))),"ResourceCards",{A:13,B:12,C:28,D:24,E:8,F:9,G:30,H:24,I:11,J:11,K:17,L:17,M:17,N:34}); markStatus(s,s.getRange(`K6:M${a.endRow}`));
   const sr=a.endRow+3; s.getRange(`A${sr}:N${sr}`).merge(); s.getRange(`A${sr}`).values=[["Operation-to-function mapping (155)"]]; s.getRange(`A${sr}:N${sr}`).format={fill:C.navy,font:{color:C.white,bold:true}};
-  const es=[['mapping_id','Mapping'],['dish_code','Dish ID'],['dish_name','Блюдо'],['operation_no','Op',1],['operation_text','Операция'],['functional_codes','Functions'],['functional_equipment_names','Equipment/function'],['capex_inv_codes','CAPEX'],['requirement_role','Role'],['operation_duration_min','Min',1],['passport_capacity','Passport cap.',1],['capacity_status','Capacity'],['parameter_status','Status'],['blocker_ids','Blockers']];
-  addTable(s,sr+1,es.map(x=>x[1]),pick(equipment,es.map(x=>({key:x[0],num:!!x[2]}))),"EquipmentMappings",{E:55,F:24,G:45,H:20,I:18,N:28});
+  const es=[['mapping_id','Mapping'],['dish_code','Dish ID'],['dish_name','Блюдо'],['operation_no','Op',1],['operation_text','Операция'],['functional_codes','Functions'],['functional_equipment_names','Equipment/function'],['capex_inv_codes','CAPEX'],['requirement_role','Role'],['operation_duration_min','Min',1],['project_design_requirement','Project requirement'],['project_design_requirement_status','Req status'],['recipe_unit_load','Recipe load',1],['selected_manufacturer','Manufacturer'],['selected_model_article','Model/article'],['passport_document_or_official_url','Passport'],['passport_capacity','Passport cap.',1],['capacity_status','Capacity'],['equipment_availability_status','Availability'],['connections_status','Connections'],['suitability_status','Suitability'],['parameter_status','Status'],['blocker_ids','Blockers']];
+  const em=addTable(s,sr+1,es.map(x=>x[1]),pick(equipment,es.map(x=>({key:x[0],num:!!x[2]}))),"EquipmentMappings",{E:55,F:24,G:45,H:20,I:18,K:36,N:18,O:18,P:40,W:28}); markStatus(s,s.getRange(`R${sr+2}:V${em.endRow}`));
+  const cr=em.endRow+3; s.getRange(`A${cr}:W${cr}`).merge(); s.getRange(`A${cr}`).values=[["Capacity sensitivity — not passport-backed / not demand plan"]]; s.getRange(`A${cr}:W${cr}`).format={fill:C.navy,font:{color:C.white,bold:true}};
+  const cs=[['capacity_record_id','Capacity ID'],['dish_code','Dish ID'],['dish_name','Блюдо'],['capacity_group','Group'],['primary_function_codes','Functions'],['draft_active_time_min','Active min',1],['draft_total_time_min','Total min',1],['active_time_implied_units_per_labor_hour','Labor units/h',1],['labor_rate_status','Labor status'],['existing_model_group_capacity','Model estimate',1],['existing_model_capacity_status','Model status'],['planning_cycle_time_min_per_unit','Plan cycle',1],['planning_cycle_status','Plan status'],['one_recipe_scenario_batches','One-recipe batches',1],['one_recipe_scenario_status','Scenario status'],['demand_window_qty','Demand',1],['passport_batch_capacity','Passport batch',1],['required_batches','Required batches',1],['preliminary_bottleneck','Bottleneck'],['bottleneck_status','Bottleneck status'],['blocker_ids','Blockers'],['next_action','Next action']];
+  addTable(s,cr+1,cs.map(x=>x[1]),pick(capacity,cs.map(x=>({key:x[0],num:!!x[2]}))),"CapacityScenario",{A:14,B:12,C:27,D:14,E:24,F:11,G:11,H:14,I:16,J:14,K:17,L:12,M:18,N:16,O:26,P:12,Q:15,R:15,S:42,T:25,U:30,V:50});
 }
 
 // 09 — inventory and tableware side-by-side in one audit table.
@@ -220,18 +245,18 @@ const sh = Object.fromEntries(SHEETS.map(n => [n, wb.worksheets.getItem(n)]));
 
 // 10 — safety card and allergen screen.
 {
-  const s=sh[SHEETS[10]]; styleTitle(s,15,"10 — Аллергены и безопасность","Safety veto = BLOCK for all 28. Null means unknown; UNKNOWN_RECIPE_SKU is not allergen absence.");
-  const rows=safety.map((r,i)=>[r.safety_card_id,r.dish_code,r.dish_name,r.source_recipe_version,unknown(r.temperature_critical_limit),unknown(r.cooling_critical_limit),unknown(r.reheating_critical_limit),unknown(r.storage_shelf_life),r.parameter_status,r.readiness_veto,r.allergens_draft,allergens[i].cross_contact_status,r.evidence_ids,r.veto_reason,r.next_action]);
-  const t=addTable(s,5,["Safety card","Dish ID","Блюдо","Source recipe version","Temp limit","Cooling limit","Reheat limit","Shelf life","Status","Veto","Allergens draft","Cross contact","Evidence","Veto reason","Next action"],rows,"SafetyCards",{A:13,B:12,C:27,D:20,E:13,F:14,G:13,H:16,I:24,J:11,K:38,L:32,M:30,N:55,O:52});
-  s.getRange(`D6:H${t.endRow}`).format.fill=C.input; markStatus(s,s.getRange(`I6:J${t.endRow}`));
+  const s=sh[SHEETS[10]]; styleTitle(s,19,"10 — Аллергены и безопасность","HOF-0012 version-lock. 28/28 veto BLOCK; 112 unsupported numeric limits remain null; UNKNOWN_NOT_ABSENT is never absence.");
+  const rows=safety.map((r,i)=>[r.safety_card_id,r.dish_code,r.dish_name,r.source_recipe_version,r.source_recipe_blob_sha,unknown(r.temperature_critical_limit),unknown(r.cooling_critical_limit),unknown(r.reheating_critical_limit),unknown(r.storage_shelf_life),r.cooling_applicability,r.reheating_applicability,r.parameter_status,r.readiness_veto,r.allergens_draft,allergens[i].cross_contact_status,allergens[i].matrix_status,r.evidence_ids,r.veto_reason,r.unblock_condition]);
+  const t=addTable(s,5,["Safety card","Dish ID","Блюдо","Source recipe version","Recipe blob","Temp limit","Cooling limit","Reheat limit","Shelf life","Cooling applicability","Reheat applicability","Status","Veto","Allergens draft","Cross contact","Matrix status","Evidence","Veto reason","Unblock condition"],rows,"SafetyCards",{A:13,B:12,C:27,D:20,E:42,F:13,G:14,H:13,I:16,J:42,K:42,L:24,M:11,N:38,O:32,P:28,Q:30,R:55,S:60});
+  s.getRange(`F6:I${t.endRow}`).format.fill=C.input; markStatus(s,s.getRange(`L6:P${t.endRow}`));
 }
 
 // 11 — nutrition null-safe register.
 {
-  const s=sh[SHEETS[11]]; styleTitle(s,17,"11 — Пищевая ценность","All eight numeric nutrition fields are null for 28/28; no lab confirmation.");
-  const specs=[['nutrition_record_id','Nutrition ID'],['dish_code','Dish ID'],['dish_name','Блюдо'],['draft_sale_portion_mass','Portion g',1],['protein_g_per_declared_output','Protein/output',1],['fat_g_per_declared_output','Fat/output',1],['carbohydrate_g_per_declared_output','Carbs/output',1],['energy_kcal_per_declared_output','Kcal/output',1],['protein_g_per_100g','Protein/100g',1],['fat_g_per_100g','Fat/100g',1],['carbohydrate_g_per_100g','Carbs/100g',1],['energy_kcal_per_100g','Kcal/100g',1],['laboratory_confirmed','Lab'],['calculation_status','Status'],['evidence_ids','Evidence'],['blocker_ids','Blockers'],['next_action','Next action']];
+  const s=sh[SHEETS[11]]; styleTitle(s,25,"11 — Пищевая ценность","HOF-0013: numeric calculated draft 28/28 with official/proxy provenance and low/base/high; release remains blocked, laboratory confirmed 0/28.");
+  const specs=[['nutrition_record_id','Nutrition ID'],['dish_code','Dish ID'],['dish_name','Блюдо'],['draft_sale_portion_mass','Portion g',1],['protein_g_per_declared_output','Protein/output',1],['protein_g_per_declared_output_low','Protein low',1],['protein_g_per_declared_output_high','Protein high',1],['fat_g_per_declared_output','Fat/output',1],['fat_g_per_declared_output_low','Fat low',1],['fat_g_per_declared_output_high','Fat high',1],['carbohydrate_g_per_declared_output','Carbs/output',1],['carbohydrate_g_per_declared_output_low','Carbs low',1],['carbohydrate_g_per_declared_output_high','Carbs high',1],['energy_kcal_per_declared_output','Kcal/output',1],['energy_kcal_per_declared_output_low','Kcal low',1],['energy_kcal_per_declared_output_high','Kcal high',1],['protein_g_per_100g','Protein/100g',1],['fat_g_per_100g','Fat/100g',1],['carbohydrate_g_per_100g','Carbs/100g',1],['energy_kcal_per_100g','Kcal/100g',1],['laboratory_confirmed','Lab'],['calculation_status','Calc status'],['release_status','Release'],['evidence_ids','Evidence'],['blocker_ids','Blockers']];
   const t=addTable(s,5,specs.map(x=>x[1]),pick(nutrition,specs.map(x=>({key:x[0],num:!!x[2]}))),"Nutrition",{A:14,B:12,C:28,D:12,E:14,F:13,G:14,H:13,I:14,J:13,K:14,L:13,M:9,N:25,O:30,P:24,Q:55});
-  s.getRange(`E6:L${t.endRow}`).format.fill=C.input; markStatus(s,s.getRange(`N6:N${t.endRow}`));
+  s.getRange(`E6:T${t.endRow}`).format={fill:C.formula,numberFormat:"0.00"}; markStatus(s,s.getRange(`V6:W${t.endRow}`));
 }
 
 // 12 — chef questions.
@@ -263,29 +288,31 @@ const sh = Object.fromEntries(SHEETS.map(n => [n, wb.worksheets.getItem(n)]));
   const s=sh[SHEETS[15]]; styleTitle(s,7,"15 — Проверки Gate D","One assertion per row. PASS_WITH_CONDITIONS is expected while subject-matter blockers remain open.");
   const checks=[
     ["CHK-001","Dish scope count",28,"=COUNTA('01_МЕНЮ'!$A$6:$A$33)","Workbook scope"],
-    ["CHK-002","Sheet count",17,"=COUNTA($A$31:$A$47)","Exact required list below"],
-    ["CHK-003","Safety BLOCK veto",28,"=COUNTIF('10_АЛЛЕРГЕНЫ_БЕЗОПАСНОСТЬ'!$J$6:$J$33,\"BLOCK\")","HOF-0003"],
-    ["CHK-004","Nutrition blocked rows",28,"=COUNTIF('11_ПИЩЕВАЯ_ЦЕННОСТЬ'!$N$6:$N$33,\"BLOCKED_PENDING_VALIDATION\")","HOF-0007"],
-    ["CHK-005","Nutrition numeric blanks",224,"=COUNTBLANK('11_ПИЩЕВАЯ_ЦЕННОСТЬ'!$E$6:$L$33)","8 fields × 28"],
+    ["CHK-002","Sheet count",17,"=COUNTA($A$34:$A$50)","Exact required list below"],
+    ["CHK-003","Safety BLOCK veto",28,"=COUNTIF('10_АЛЛЕРГЕНЫ_БЕЗОПАСНОСТЬ'!$M$6:$M$33,\"BLOCK\")","HOF-0012"],
+    ["CHK-004","Nutrition release blocked rows",28,"=COUNTIF('11_ПИЩЕВАЯ_ЦЕННОСТЬ'!$W$6:$W$33,\"BLOCKED_PENDING_VALIDATION\")","HOF-0013"],
+    ["CHK-005","Nutrition numeric blanks",0,"=COUNTBLANK('11_ПИЩЕВАЯ_ЦЕННОСТЬ'!$E$6:$T$33)","16 calculated fields × 28"],
     ["CHK-006","Complete food cost blanks",28,"=COUNTBLANK('04_КАЛЬКУЛЯЦИИ'!$I$6:$I$33)","Complete COGS blocked"],
     ["CHK-007","Complete portion COGS blanks",28,"=COUNTBLANK('04_КАЛЬКУЛЯЦИИ'!$N$6:$N$33)","Complete COGS blocked"],
     ["CHK-008","Channel price blanks",101,"=COUNTBLANK('07_ЦЕНООБРАЗОВАНИЕ'!$I$6:$I$106)","Channel pricing blocked"],
-    ["CHK-009","Accepted price sources",46,"=COUNTA('06_СЫРЬЁ_И_ЦЕНЫ'!$A$122:$A$167)","HOF-0005 v0.2.1"],
-    ["CHK-010","Rejected source rows selected/present",0,"=COUNTIF('06_СЫРЬЁ_И_ЦЕНЫ'!$M$122:$M$167,\"*REJECT*\")","22 rejected excluded"],
+    ["CHK-009","Accepted price sources",68,"=COUNTA('06_СЫРЬЁ_И_ЦЕНЫ'!$A$123:$A$190)","HOF-0014 evidence layer"],
+    ["CHK-010","Rejected source rows selected/present",0,"=COUNTIF('06_СЫРЬЁ_И_ЦЕНЫ'!$M$123:$M$190,\"*REJECT*\")","22 rejected excluded"],
     ["CHK-011","Negative selected prices",0,"=COUNTIF('06_СЫРЬЁ_И_ЦЕНЫ'!$E$6:$E$118,\"<0\")","No negative prices"],
     ["CHK-012","Zero selected prices",0,"=COUNTIFS('06_СЫРЬЁ_И_ЦЕНЫ'!$E$6:$E$118,0,'06_СЫРЬЁ_И_ЦЕНЫ'!$E$6:$E$118,\"<>\")","Unknown must be blank"],
     ["CHK-013","VSF cards",34,"=COUNTA('03_ПОЛУФАБРИКАТЫ'!$A$6:$A$39)","HOF-0004"],
     ["CHK-014","DAG edges",42,"=COUNTA('03_ПОЛУФАБРИКАТЫ'!$A$43:$A$84)","No orphan/cycle per Gate C"],
     ["CHK-015","Recipe lines",253,"=COUNTA('02_РЕЦЕПТУРЫ'!$A$6:$A$258)","HOF-0002"],
+    ["CHK-016","Proxy scenario dish COGS",28,"=COUNTA('04_КАЛЬКУЛЯЦИИ'!$A$38:$A$65)","HOF-0014 separate assumption layer"],
+    ["CHK-017","Proxy scenario channel metrics",101,"=COUNTA('07_ЦЕНООБРАЗОВАНИЕ'!$A$111:$A$211)","HOF-0014 separate assumption layer"],
   ];
-  s.getRange("A5:G20").values=[["Check ID","Assertion","Expected","Actual","Delta","Status","Notes"],...checks.map(x=>[x[0],x[1],x[2],null,null,null,x[4]])];
-  s.tables.add("A5:G20",true,"GateDChecks").style="TableStyleMedium2";
+  s.getRange("A5:G22").values=[["Check ID","Assertion","Expected","Actual","Delta","Status","Notes"],...checks.map(x=>[x[0],x[1],x[2],null,null,null,x[4]])];
+  s.tables.add("A5:G22",true,"GateDChecks").style="TableStyleMedium2";
   for(let i=0;i<checks.length;i++){const r=6+i;s.getRange(`D${r}`).formulas=[[checks[i][3]]];s.getRange(`E${r}`).formulas=[[`=D${r}-C${r}`]];s.getRange(`F${r}`).formulas=[[`=IF(E${r}=0,"PASS","FAIL")`]];}
-  s.getRange("A23:B28").values=[["Model status","Formula / meaning"],["Structural Gate D","=IF(COUNTIF(F6:F20,\"FAIL\")=0,\"PASS\",\"FAIL\")"],["Subject matter status","PASS_WITH_CONDITIONS"],["Safety release","BLOCKED 28/28"],["Economic release","BLOCKED 28/28"],["Nutrition release","BLOCKED 28/28"]];
-  s.getRange("B24").formulas=[["=IF(COUNTIF(F6:F20,\"FAIL\")=0,\"PASS\",\"FAIL\")"]];
-  s.getRange("A31:A47").values=SHEETS.map(x=>[x]); s.getRange("A30:B30").values=[["Required sheet name","Logical print/used range"]];
-  s.getRange("B31:B47").values=[["A1:J40"],["A1:N33"],["A1:P258"],["A1:O85"],["A1:Q33"],["A1:Q33"],["A1:M168"],["A1:P106"],["A1:N192"],["A1:P33"],["A1:O33"],["A1:Q33"],["A1:N149"],["A1:L33"],["A1:P33"],["A1:G47"],["A1:M118"]];
-  s.getRange("A5:G5").format={fill:C.blue,font:{color:C.white,bold:true}}; s.getRange("A23:B23").format={fill:C.navy,font:{color:C.white,bold:true}}; s.getRange("A30:B30").format={fill:C.blue,font:{color:C.white,bold:true}}; s.getRange("A:G").format.columnWidth=18; s.getRange("A:A").format.columnWidth=38; s.getRange("A31:A47").format.wrapText=true; s.getRange("B:B").format.columnWidth=32; s.getRange("G:G").format.columnWidth=40; markStatus(s,s.getRange("F6:F20")); s.freezePanes.freezeRows(5);
+  s.getRange("A25:B30").values=[["Model status","Formula / meaning"],["Structural Gate D","=IF(COUNTIF(F6:F22,\"FAIL\")=0,\"PASS\",\"FAIL\")"],["Subject matter status","PASS_WITH_CONDITIONS"],["Safety release","BLOCKED 28/28"],["Economic evidence release","BLOCKED 28/28"],["Nutrition release","BLOCKED 28/28"]];
+  s.getRange("B26").formulas=[["=IF(COUNTIF(F6:F22,\"FAIL\")=0,\"PASS\",\"FAIL\")"]];
+  s.getRange("A34:A50").values=SHEETS.map(x=>[x]); s.getRange("A33:B33").values=[["Required sheet name","Logical print/used range"]];
+  s.getRange("B34:B50").values=[["A1:J40"],["A1:N33"],["A1:P258"],["A1:O85"],["A1:Q65"],["A1:AG33"],["A1:M190"],["A1:P211"],["A1:W224"],["A1:P33"],["A1:S33"],["A1:Y33"],["A1:N149"],["A1:L33"],["A1:P33"],["A1:G50"],["A1:M140+"]];
+  s.getRange("A5:G5").format={fill:C.blue,font:{color:C.white,bold:true}}; s.getRange("A25:B25").format={fill:C.navy,font:{color:C.white,bold:true}}; s.getRange("A33:B33").format={fill:C.blue,font:{color:C.white,bold:true}}; s.getRange("A:G").format.columnWidth=18; s.getRange("A:A").format.columnWidth=38; s.getRange("A34:A50").format.wrapText=true; s.getRange("B:B").format.columnWidth=32; s.getRange("G:G").format.columnWidth=40; markStatus(s,s.getRange("F6:F22")); s.freezePanes.freezeRows(5);
 }
 
 // 16 — unified source/evidence register. No rejected price observation is present.
@@ -307,6 +334,8 @@ for (const name of SHEETS) {
 
 await fs.mkdir(path.dirname(OUT), {recursive:true});
 const blob=await SpreadsheetFile.exportXlsx(wb); await blob.save(OUT);
+const freeze = spawnSync(process.env.ISSUE82_PYTHON || "python3", [path.join(ROOT,"scripts/qa_issue_82_workbook.py"), "--fix-freeze", OUT], {cwd:ROOT,encoding:"utf8"});
+if (freeze.status !== 0) throw new Error(`freeze_panes post-process failed: ${freeze.stdout}\n${freeze.stderr}`);
 
 const rendered=[];
 if (process.argv.includes("--render")) {
@@ -319,6 +348,6 @@ if (process.argv.includes("--render")) {
 
 const formulaInspect=await wb.inspect({kind:"formula",sheetId:"04_КАЛЬКУЛЯЦИИ",range:"F5:N33",maxChars:6000,options:{maxResults:80}});
 const errors=await wb.inspect({kind:"match",searchTerm:"#REF!|#DIV/0!|#VALUE!|#NAME\\?|#N/A",options:{useRegex:true,maxResults:300},summary:"Issue 82 final formula error scan"});
-const checksInspect=await wb.inspect({kind:"table",range:"15_ПРОВЕРКИ!A5:G28",include:"values,formulas",tableMaxRows:30,tableMaxCols:8,maxChars:12000});
+const checksInspect=await wb.inspect({kind:"table",range:"15_ПРОВЕРКИ!A5:G30",include:"values,formulas",tableMaxRows:32,tableMaxCols:8,maxChars:12000});
 const fileBytes=await fs.readFile(OUT); const sha=crypto.createHash("sha256").update(fileBytes).digest("hex");
-console.log(JSON.stringify({output:OUT,sha256:sha,sheets:SHEETS.length,dishes:passports.length,accepted_price_sources:priceSources.length,rejected_price_sources_excluded:22,safety_veto_block:safety.filter(x=>x.readiness_veto==="BLOCK").length,nutrition_null_rows:nutrition.length,rendered:rendered.length,formulaInspect:formulaInspect.ndjson,errorScan:errors.ndjson,checks:checksInspect.ndjson},null,2));
+console.log(JSON.stringify({output:OUT,sha256:sha,sheets:SHEETS.length,dishes:passports.length,accepted_price_sources:priceSources.length,rejected_price_sources_excluded:22,safety_veto_block:safety.filter(x=>x.readiness_veto==="BLOCK").length,nutrition_numeric_rows:nutrition.length,proxy_cost_rows:proxyCosting.length,proxy_channel_rows:proxyChannels.length,equipment_mappings:equipment.length,capacity_rows:capacity.length,freeze_panes:JSON.parse(freeze.stdout),rendered:rendered.length,formulaInspect:formulaInspect.ndjson,errorScan:errors.ndjson,checks:checksInspect.ndjson},null,2));

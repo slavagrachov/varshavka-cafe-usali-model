@@ -8,6 +8,7 @@ The script reads accepted handoff CSVs and writes only the SystemArchitect's
 from __future__ import annotations
 
 import csv
+import os
 import statistics
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -196,10 +197,10 @@ def main() -> None:
     # formula mechanics, not the semantic truth of the quarantined source links.
     source_by_ing: dict[str, list[dict[str, str]]] = defaultdict(list)
     active_price_ids = {row["price_source_id"] for row in price_sources}
-    universe_price_ids = {f"PSR-{i:04d}" for i in range(1, 69)}
+    universe_price_ids = {f"PSR-{i:04d}" for i in range(1, 91)}
     assert active_price_ids.isdisjoint(QUARANTINED_PRICE_SOURCE_IDS)
     assert active_price_ids | QUARANTINED_PRICE_SOURCE_IDS == universe_price_ids
-    assert len(active_price_ids) == 46 and len(QUARANTINED_PRICE_SOURCE_IDS) == 22
+    assert len(active_price_ids) == 68 and len(QUARANTINED_PRICE_SOURCE_IDS) == 22
     for row in price_sources:
         assert row.get("provenance_review_status") == "VERIFIED_DIRECT_CARD"
         assert row["source_url"] and row["price_date"] and row["evidence_status"]
@@ -334,7 +335,8 @@ def main() -> None:
             for code in split_ids(row["capex_inv_codes"]):
                 assert code in capex_codes
 
-    # Blocker propagation: unknown safety/nutrition/capacity/economics stays unknown.
+    # Blocker propagation: safety/capacity/evidence economics stay unknown; HOF-0013
+    # nutrition is numerically calculated but remains release-blocked.
     nutrient_fields = [
         "protein_g_per_declared_output", "fat_g_per_declared_output",
         "carbohydrate_g_per_declared_output", "energy_kcal_per_declared_output",
@@ -343,14 +345,17 @@ def main() -> None:
     ]
     for dish in EXPECTED:
         assert safe_by[dish]["readiness_veto"] == "BLOCK"
-        assert safe_by[dish]["source_recipe_version"] == "null"
+        assert safe_by[dish]["source_recipe_version"] == RECIPE_VERSION
+        assert safe_by[dish]["source_recipe_blob_sha"] == "c6b22ad5f2812cc989a0d3593f40e21207da8f53"
         for field in ("temperature_critical_limit", "cooling_critical_limit", "reheating_critical_limit", "storage_shelf_life"):
             assert safe_by[dish][field] == "null"
         assert c_by[dish]["cost_status"] == "BLOCKED_PENDING_VALIDATION"
         assert not c_by[dish]["complete_food_cost_rub"]
         assert cap_by[dish]["bottleneck_status"] == "BLOCKED_PENDING_VALIDATION"
-        assert nut_by[dish]["calculation_status"] == "BLOCKED_PENDING_VALIDATION"
-        assert all(nut_by[dish][field] == "null" for field in nutrient_fields)
+        assert nut_by[dish]["calculation_status"].startswith("CALCULATED_DRAFT")
+        assert nut_by[dish]["release_status"] == "BLOCKED_PENDING_VALIDATION"
+        assert nut_by[dish]["laboratory_confirmed"] == "false"
+        assert all(float(nut_by[dish][field]) >= 0 for field in nutrient_fields)
 
     contaminated_ingredients = {
         row["ingredient_id"] for row in price_sources
@@ -395,7 +400,7 @@ def main() -> None:
             ),
             "equipment_link": "PASS_STRUCTURE_CAPACITY_BLOCKED",
             "safety_link": "PASS_LINK_VETO_BLOCK",
-            "nutrition_link": "PASS_LINK_VALUES_NULL",
+            "nutrition_link": "PASS_LINK_CALCULATED_DRAFT_RELEASE_BLOCKED",
             "unit_output_consistency": "PASS",
             "double_counting_check": "PASS_STRUCTURE_AND_RECALC",
             "blocker_propagation": "PASS",
@@ -407,10 +412,11 @@ def main() -> None:
                 else "Re-run Gate C after accepted corrected HOF-0005; preserve all domain blockers"
             ),
         })
-    with OUT.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
+    if os.environ.get("ISSUE82_WRITE_RECONCILIATION") == "1":
+        with OUT.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
 
     print("scope=28 PASS")
     print("stable_codes=28 PASS")
@@ -419,13 +425,13 @@ def main() -> None:
     print(f"equipment_operations={len(equipment)} mapped={len(equipment)}")
     print("cost_formula_recalculation=28 PASS_MECHANICS")
     print("semi_finished_cost_recalculation=40 PASS_MECHANICS")
-    print("price_source_partition=46_ACCEPTED+22_REJECTED=68 PASS")
+    print("price_source_partition=68_ACCEPTED+22_REJECTED=90 PASS")
     print("rejected_price_ids_in_downstream_selection=0 PASS")
     print("channel_pricing=101 STRUCTURE_PASS_VALUES_BLOCKED")
     print(f"known_rejected_or_pending_price_source_ids={len(QUARANTINED_PRICE_SOURCE_IDS)}")
     print(f"active_quarantined_price_sources={len(active_quarantined)}")
     print(f"dishes_touched_by_quarantined_sources={len(contaminated_dishes)}")
-    print("safety_veto=28 nutrition_null=28 capacity_blocked=28")
+    print("safety_veto=28 nutrition_calculated_release_blocked=28 capacity_blocked=28")
     gate = "PASS_WITH_CONDITIONS" if not active_quarantined else "FAIL_PENDING_COSTING_RECHECK"
     print(f"gate_c={gate}")
 

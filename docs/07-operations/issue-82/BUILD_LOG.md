@@ -1,36 +1,46 @@
-# BUILD LOG — Issue #82 workbook v2.0.0
+# BUILD LOG — Issue #82 workbook v2.0.0 remediation RC
 
 - Builder: `releases/builds/build_issue_82_menu_cards.mjs`
 - Output: `VARSHAVKA_MENU_COSTING_TECH_CARDS_DRAFT_v2.0.0.xlsx`
+- Frozen domain input head: `9efd2de7ffe2092d40419f9d93dff73fcb1eec34`
 - Build date / data cut-off: 2026-08-03
-- Runtime: Codex primary runtime Node + `@oai/artifact-tool`
+- Runtime: Codex primary runtime Node + `@oai/artifact-tool`; Python 3 + `openpyxl`
 - Scope: 28 dishes (`VKM-001…VKM-025`, `VKM-029…VKM-031`); `VKM-026…VKM-028` excluded.
+
+## Accepted handoffs consumed
+
+- HOF-0011: six mandatory technology-card fields and statuses.
+- HOF-0012: recipe-blob-locked safety profiles; 28/28 vetoes remain `BLOCK`.
+- HOF-0013: 28/28 calculated nutrition records with sensitivity and release locks.
+- HOF-0014 v1.1: evidence economics plus a separately labelled proxy scenario.
+- HOF-0015: equipment mapping and planning capacity scenario with passport/site blockers.
 
 ## Reproducible build sequence
 
-1. Parsed and schema-checked all Issue #82 CSV inputs.
-2. Enforced HOF-0005 v0.2.1 only: 46 accepted observations; 22 rejected observations excluded.
-3. Enforced 28 safety vetoes, 28 nutrition-null records, and blank complete COGS/channel outputs.
-4. Built the exact 17-sheet workbook twice from the same inputs; both runs returned the same sheet/data/formula/check results.
-5. The binary SHA-256 differs between artifact-tool exports because generated internal relationship/table IDs are non-deterministic. This does not affect workbook content. After CR-0002, the final artifact SHA-256 is `914a70c4c5ba67c8cba1750a17c667157bdf97b79e0b2ea5da7ef64a114cc0b6`; rebuilds should be compared semantically, not byte-for-byte.
-6. Rendered all 17 sheets and completed a visual pass.
-7. Recalculated a copy with LibreOffice and re-imported it for artifact-tool inspection.
-8. Re-ran `scripts/qa_issue_82_integration.py`: `gate_c=PASS_WITH_CONDITIONS`.
-
-## CR-0002 / IV-008
-
-- IndependentVerifier defect: `15_ПРОВЕРКИ!A31:A47` clipped long required sheet names.
-- Resolution: column A width increased from 18 to 38 and wrapping enabled for A31:A47 only.
-- Exact names, formulas, checks and subject data were preserved.
-- Artifact error/check scan, render comparison and LibreOffice re-inspection passed after the change.
+1. Schema/scope contracts are checked before workbook creation.
+2. The exact 17 sheets are created in their required order.
+3. Evidence economics blanks are preserved; proxy scenario COGS (28) and channel metrics (101) are placed in separate tables.
+4. The exact nutrition, safety and equipment handoff statuses are carried into the workbook without readiness promotion.
+5. The OOXML post-processor sets the explicit 17-sheet freeze map, automatic/full recalculation flags and canonical package metadata/order.
+6. Two consecutive final builds produced the same binary SHA-256: `38462a6df3c9c429e17bc759fb522f4fb6aee7c28c378d8e421c0441a14ac382`.
+7. All 17 sheets were rendered and visually inspected.
 
 ## Final build facts
 
-- 17 worksheets, 28 dishes, 253 recipe lines, 34 VSF cards, 42 DAG edges.
-- 20 structured tables, 803 formula cells, 7 validation rules, 28 conditional-format rules.
-- Filters are present on the working tables; header-freeze operations are declared in the builder. Logical print/used ranges are listed on `15_ПРОВЕРКИ` because the artifact-tool version used does not expose a documented print-area API.
-- No common formula error token found.
+- 17 worksheets; freeze panes 17/17 (`00_ПАСПОРТ=A13`, all others `A6`).
+- 23 structured/filterable tables; 809 formula cells; 4 data-validation rules; 18 conditional-format ranges.
+- 28 dishes; 253 recipe lines; 34 VSF cards; 42 DAG edges.
+- 28 evidence cost cards with complete evidence COGS still blank; 28 isolated proxy COGS rows.
+- 101 evidence channel rows with project price still blank; 101 isolated proxy-scenario rows.
+- 28 nutrition rows with 16 displayed calculated numeric fields; 28 release blocks; 0 laboratory-confirmed rows.
+- 28 safety profiles; 28 `BLOCK`; 112 unsupported numeric safety cells blank.
+- 155 equipment mappings; 28 capacity sensitivity rows; selected passport/suitability remains blocked.
+- Formula error literal scan: 0.
+
+## External recalculation note
+
+The artifact runtime recalculated formulas during construction, and the saved package is flagged `calcMode=auto`, `fullCalcOnLoad=true`, `forceFullCalc=true`. LibreOffice is not installed in this execution environment, so no claim of a LibreOffice run is made. Exact external Excel/LibreOffice opening/recalculation remains an IndependentVerifier retest item; unknown evidence inputs are expected to remain blank after recalculation.
 
 ## Gate D
 
-`PASS_WITH_CONDITIONS`: workbook construction, formula, external-recalc, data and visual controls passed. Release approval remains blocked by the preserved safety, costing, nutrition, capacity and Chef/Owner conditions.
+`STRUCTURAL PASS`. Subject-matter readiness remains blocked/conditional exactly as stated by the domain handoffs. This workbook is not an approved technological, safety, pricing or production release.
