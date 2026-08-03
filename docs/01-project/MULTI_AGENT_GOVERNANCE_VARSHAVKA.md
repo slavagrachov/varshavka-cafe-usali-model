@@ -1,6 +1,6 @@
 # MULTI_AGENT_GOVERNANCE_VARSHAVKA
 
-Статус: `Draft / Pending Owner Approval`  
+Статус: `Approved`  
 Программа: [VAR-000 / Issue #69](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/69)  
 Версия: `1.1.0`  
 Дата: 3 августа 2026 года
