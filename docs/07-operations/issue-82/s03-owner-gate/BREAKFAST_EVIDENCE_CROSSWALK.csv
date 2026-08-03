@@ -1,6 +1,0 @@
-breakfast_scope,legacy_item_or_component,legacy_source_path,legacy_document_or_rfq,legacy_status,new_evidence_id,new_source_class,primary_evidence_missing,linked_issue_register_ids,reuse_rule,notes
-VKM-026…028,Fontina DOP / Fontal,docs/09-procurement/rfq-breakfast/,prepared RFQ,NOT_SENT,,BREAKFAST_LEGACY_DRAFT,"commercial offers; specification; conformity; tasting",V-I-098,CANDIDATE_PROVENANCE_ONLY,"At least two comparable offers were planned"
-VKM-026…028,Frozen croissant 80 g,docs/09-procurement/rfq-breakfast/,prepared RFQ,NOT_SENT,,BREAKFAST_LEGACY_DRAFT,"second offer; composition; baking instruction; sample test",V-I-099,CANDIDATE_PROVENANCE_ONLY,
-VKM-027,GROVO melange,docs/09-procurement/rfq-breakfast/,prepared RFQ,NOT_SENT,,BREAKFAST_LEGACY_DRAFT,"exact article; net mass; price; VAT",V-I-100,CANDIDATE_PROVENANCE_ONLY,
-VKM-027…028,Milk 3.2%,docs/09-procurement/rfq-breakfast/,prepared RFQ,NOT_SENT,,BREAKFAST_LEGACY_DRAFT,"net mass; price; VAT",V-I-101,CANDIDATE_PROVENANCE_ONLY,
-VKM-026…028,All breakfast price rows,docs/06-validation/issue-52/ISSUE_52_CLOSURE_EVIDENCE_MATRIX.md,closure evidence matrix,EVIDENCE_OPEN,,BREAKFAST_LEGACY_DRAFT,"document; date; unit; pack; VAT; final recalculation",V-I-103,CANDIDATE_PROVENANCE_ONLY,"Issue52 closure did not claim missing evidence complete"
