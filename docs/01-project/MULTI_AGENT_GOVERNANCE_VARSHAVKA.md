@@ -1,6 +1,6 @@
 # MULTI_AGENT_GOVERNANCE_VARSHAVKA
 
-Статус: `Draft for approval`  
+Статус: `Approved`  
 Программа: [VAR-000 / Issue #69](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/69)  
 Версия: `1.0.0`  
 Дата: 3 августа 2026 года
@@ -37,7 +37,7 @@
 
 В одной сессии запрещено одновременно выполнять две самостоятельные Issues. Допускается читать связанные Issues и использовать их результаты как входные данные, но расширение scope оформляется отдельным решением.
 
-Issue #74 запускается первой отдельной содержательной сессией после утверждения этого документа. Текущая governance-сессия не считается началом выполнения #74.
+Issue #80 запускается первой отдельной срочной содержательной сессией после утверждения этого документа. После завершения #80 отдельной сессией запускается Issue #74. Текущая governance-сессия не считается началом выполнения #80 или #74.
 
 ## 3. Обязательная фактическая мультиагентность
 
@@ -317,10 +317,11 @@ ProcurementAssetAgent не выбирает оборудование, не пр�
 
 Все роли не запускаются одновременно. Они создаются волнами в пределах доступной параллельности, чтобы избежать дублирования и потери управляемости.
 
-## 11. Состав первой очереди Gate 0
+## 11. Состав срочного контура и первой очереди Gate 0
 
 | Issue | Ведущий агент | Обязательные дополнительные роли |
 |---|---|---|
+| #80 / VAR-URG-001 | ChefTechnologyAgent / CostingAgent | SourceAuditor, ExcelBuilder, FoodSafetyAgent при необходимости, IndependentVerifier |
 | #74 / VAR-401 | LegalContractAgent | SourceAuditor, TaxAccountingAgent, IndependentVerifier |
 | #78 / VAR-501 | EngineeringConstructionAgent | OperationsTechnologyAgent, LegalContractAgent, IndependentVerifier |
 | #70 / VAR-101 | MarketProductAgent | OperationsTechnologyAgent, FinancialModelAgent, IndependentVerifier |
@@ -331,9 +332,23 @@ ProcurementAssetAgent не выбирает оборудование, не пр�
 | #73 / VAR-304 | InvestmentAgent | FinancialModelAgent, LegalContractAgent, IndependentVerifier |
 | #76 / VAR-405 | ComplianceLaunchAgent | LegalContractAgent, OperationsTechnologyAgent, IndependentVerifier |
 
-## 12. Первый запуск
+## 12. Первый запуск и срочное исключение
 
-Первой содержательной мультиагентной сессией является Issue #74 — `VAR-401 — Утвердить единого оператора и договорную модель с РСВО`.
+Первой содержательной мультиагентной сессией является Issue #80 — `VAR-URG-001 — Подготовить меню, калькуляционные и технологические карты для согласования с шеф-поваром`.
+
+Срочный приоритет #80 является документированным исключением из последовательности Gate 0, но не заменяет и не закрывает Gate 0. Issue #80 формирует входные данные для #37, #38, #39 и #47.
+
+Для #80 обязательны отдельные агенты:
+
+1. SourceAuditor;
+2. ChefTechnologyAgent;
+3. CostingAgent;
+4. ExcelBuilder;
+5. IndependentVerifier.
+
+При необходимости создаётся FoodSafetyAgent для сроков, температур, аллергенов и санитарных ограничений.
+
+После завершения #80 первой отдельной сессией Gate 0 запускается Issue #74 — `VAR-401 — Утвердить единого оператора и договорную модель с РСВО`.
 
 Для #74 обязательны отдельные агенты:
 
@@ -344,7 +359,7 @@ ProcurementAssetAgent не выбирает оборудование, не пр�
 
 EngineeringConstructionAgent подключается для матрицы помещений, зон, оборудования и ответственности.
 
-Запуск #74 выполняется новым запросом в отдельной сессии после слияния governance-документа в `main`.
+Запуск #80 и последующий запуск #74 выполняются отдельными запросами в отдельных сессиях после слияния governance-документа в `main`.
 
 ## 13. Критерии соблюдения governance
 
