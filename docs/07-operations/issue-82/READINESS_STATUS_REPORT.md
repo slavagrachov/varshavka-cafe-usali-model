@@ -1,57 +1,76 @@
-# Readiness Status Report — Issue #82 remediation
+# Readiness Status Report — Issue #82 remediation RC2
 
-Срез: `2026-08-03`; пакет: draft PR #83; входной head:
-`e3bdbe8fda42482c82adedbc4b821c7da6a2264d`.
+Срез: `2026-08-03`; пакет: draft PR #83.
 
-Этот документ разделяет структурное покрытие и предметную готовность. Он не
-является итоговым заключением IndependentVerifier и не разрешает merge,
-закрытие или производственное применение документов.
+## 1. Exact-object traceability
 
-## Каноническая таксономия готовности
-
-| Измерение | Метрика | Статус |
-|---|---:|---|
-| Структурное покрытие | 28/28 позиций; 364/364 контролируемых ячеек матрицы; обязательная схема TECH_CARDS 28/28 | STRUCTURAL_COMPLETE |
-| Содержательная готовность рецептур | утверждённые рецептуры 0/28; текущая версия `0.1.0-DRAFT` | NOT_READY |
-| Экономика с доказательствами | complete evidence COGS 0/28; утверждённые проектные цены 0/101 | BLOCKED |
-| Сценарная экономика | LOW_CONFIDENCE proxy COGS 28/28; proxy channel economics 101/101 | ASSUMPTION_BLOCKED_PENDING_VALIDATION |
-| Пищевая ценность | расчётные проектные значения 28/28; лабораторно подтверждённые 0/28; release-ready 0/28 | CALCULATED_DRAFT / BLOCKED_FOR_RELEASE |
-| Безопасность | safety profiles 28/28; veto `BLOCK` 28/28 | BLOCKED |
-| Оборудование | функциональные карты 28/28; паспортно подтверждённая пригодность 0/28; фактическая производительность 0/28 | BLOCKED |
-| Excel | 17/17 листов; `freeze_panes` 17/17; профильный workflow успешен на входном head | STRUCTURAL_PASS |
-| Owner/Chef Gate | решения и контрольные проработки не завершены | NOT_READY |
-| Финальная независимая проверка remediation RC | ещё не выполнена | PENDING |
-
-Непустые статусы `DRAFT`, `ASSUMPTION`, `BLOCKED` и
-`BLOCKED_PENDING_VALIDATION` не считаются завершёнными документами. Поэтому
-формулировка `364/364 complete` не применяется: допустимо только
-`364/364 structural controlled cells`.
-
-## GitHub-синхронизация
-
-| Объект | Фактический статус | Допустимое действие сейчас |
+| Object | Exact identity | Meaning |
 |---|---|---|
-| Issue #69 | OPEN, родительская программа | сохранить связь с #82; не объявлять Gate 0 завершённым |
-| Issue #80 | OPEN | не начинать повторную работу; следующая отдельная сессия только после решения по #82 |
-| Issue #82 | OPEN / REMEDIATION | довести frozen RC до IndependentVerifier и Owner Gate |
-| PR #81 | OPEN / DRAFT / NOT MERGED / reference-only | не сливать и не закрывать как `SUPERSEDED` без письменного разрешения владельца |
-| PR #83 | OPEN / DRAFT / NOT MERGE-READY | сохранить draft до итоговой независимой проверки и отдельного решения владельца |
+| RC2 input data | `candidate_data_sha=0d22ac8d0bb1ab198dcd18da21f3a8b741d186c1` | Exact domain, workbook and IV-016 QA input; RegisterSyncAgent did not edit those artifacts |
+| Readiness publication | `publication_commit_sha = commit containing the exact blobs of this report, ISSUE_REGISTER and HOF-0020` | Deliberately resolved externally after commit; embedding its own SHA would change the commit and create impossible self-reference |
+| RC2 head | exact `publication_commit_sha` after fast-forward publication to `agent/issue-82-menu-docs` | Object on which the Issue #82 workflow must succeed and which the next IndependentVerifier must inspect |
 
-## CI-срез
+The external GitHub attestation must bind the final publication commit, the
+three exact file blob SHAs and the exact-head workflow run. Updating PR body
+or existing comments after that is metadata-only and does not change RC2.
 
-Профильный workflow `Validate Issue 82 menu package` завершился успешно на
-head `e3bdbe8fda42482c82adedbc4b821c7da6a2264d`, run `30829944096`.
-Старый workflow `Validate S03 v0.1.7` также успешен, но не является
-профильной проверкой Issue #82. Успех CI подтверждает автоматизированные
-проверки пакета, а не предметную безопасность, утверждение цен, рецептур,
-пищевой ценности или оборудования.
+## 2. Preserved RC1 result
 
-## Запреты до отдельного решения владельца
+- RC1 subject candidate:
+  `49cd9f4bd896ea11dc8afbce3a93539f761b52a6`.
+- RC1 Issue #82 workflow:
+  [run 30830497424](https://github.com/slavagrachov/varshavka-cafe-usali-model/actions/runs/30830497424),
+  `success`.
+- RC1 final Independent Verification:
+  [`FAIL / NOT_MERGE_READY`](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/4fec6712b16a8b20d4fe8036d802537da63aff20/docs/07-operations/issue-82/FINAL_INDEPENDENT_VERIFICATION_REPORT_RC1.md).
+- RC1 failed because IV-016 and IV-017 remained open. Its historical verdict
+  is not overwritten by RC2 remediation.
 
-- не сливать PR #83;
-- не закрывать Issue #82 или Issue #80;
-- не сливать и не закрывать PR #81;
-- не объявлять технологические карты утверждёнными;
-- не публиковать proxy-сценарий как утверждённые цены или доказательный COGS;
-- не снимать safety veto и equipment blockers без предусмотренных доказательств;
-- не объявлять remediation `PASS` до заключения отдельного IndependentVerifier.
+## 3. Canonical readiness taxonomy
+
+| Dimension | Metric | RC2 pre-IV status |
+|---|---:|---|
+| Structural coverage | 28/28 positions; 364/364 controlled cells; TECH_CARDS mandatory schema 28/28 | STRUCTURAL_COMPLETE |
+| Substantive recipes | approved recipes 0/28; recipe version `0.1.0-DRAFT` | NOT_READY |
+| Evidence economics | complete evidence COGS 0/28; approved project prices 0/101 | BLOCKED |
+| Scenario economics | LOW_CONFIDENCE proxy COGS 28/28; proxy channel economics 101/101 | ASSUMPTION_BLOCKED_PENDING_VALIDATION |
+| Nutrition | calculated draft 28/28; laboratory confirmed 0/28; release-ready 0/28 | CALCULATED_DRAFT / BLOCKED_FOR_RELEASE |
+| Safety | profiles 28/28; veto `BLOCK` 28/28 | BLOCKED |
+| Equipment | functional maps 28/28; passport-backed suitability 0/28; actual capacity proof 0/28 | BLOCKED |
+| Excel | 17/17 sheets; `freeze_panes` 17/17; workbook unchanged from HOF-0016 | STRUCTURAL_PASS |
+| IV-016 QA remediation | repository IV contract QA updated and added as fourth workflow step at `candidate_data_sha` | READY_FOR_EXACT_HEAD_CI_AND_IV_RETEST |
+| Owner/Chef Gate | required decisions, documents and trials incomplete | NOT_READY |
+| RC2 Independent Verification | not yet issued | PENDING |
+
+`364/364` means structural controlled cells only. `DRAFT`, `ASSUMPTION`,
+`BLOCKED` and `BLOCKED_PENDING_VALIDATION` are not completed documents.
+
+## 4. GitHub status
+
+| Object | Status |
+|---|---|
+| Issue #69 | OPEN; #82 remains an urgent child contour and does not close Gate 0 |
+| Issue #80 | OPEN; no restart in this session |
+| Issue #82 | OPEN / RC2 REMEDIATION |
+| PR #81 | OPEN / DRAFT / NOT MERGED / reference-only; no authorized `SUPERSEDED` closure |
+| PR #83 | OPEN / DRAFT / NOT_MERGE_READY; RC1 `FAIL` preserved; RC2 IV `PENDING` |
+
+## 5. RC2 acceptance sequence
+
+1. Publish the register-sync commit; it becomes `publication_commit_sha` and
+   exact RC2 head.
+2. Obtain `Validate Issue 82 menu package = success` on that exact head,
+   including all four substantive QA steps.
+3. Update PR #83 body and the prior synchronization comments in place with
+   exact RC2 head/run and `RC2 IV=PENDING`; this is metadata-only.
+4. Submit exact RC2 to a separate IndependentVerifier.
+5. Treat IV-017, IV-013 and IV-015 only as `READY_FOR_IV_RETEST`, not resolved.
+
+## 6. Prohibitions
+
+- no merge or closure;
+- no `PASS` or merge-ready claim before RC2 Independent Verification;
+- no approval claim for recipes, cards, prices, nutrition release, safety or equipment;
+- no substitution of proxy values for evidence;
+- no removal of safety/equipment/economics blockers;
+- no rewriting of the RC1 `FAIL` history.
