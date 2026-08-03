@@ -1,6 +1,6 @@
 # Единый реестр вопросов и контрольных действий VARSHAVKA
 
-Дата среза: 3 августа 2026 года.
+Дата среза: 4 августа 2026 года.
 
 ## Назначение и статус реестра
 
@@ -69,10 +69,10 @@
 | GitHub объект | Пакет работ | Статус |
 |---|---|---|
 | [#69](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/69) | Родительская программа VAR-000 | OPEN; Issue #82 остаётся дочерним срочным контуром и не закрывает Gate 0 |
-| [#80](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/80) | Комплект 31 позиции для итогового рассмотрения шеф-поваром | OPEN; повторная работа запрещена до отдельной новой сессии после решения по #82 |
-| [#82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82) | Рецептурные, калькуляционные, технологические, ресурсные и контрольные документы для 28 позиций | OPEN; RC2 Independent Verification `CONDITIONAL / NOT_MERGE_READY`; controlled draft; предметные S1/S2 блокеры открыты |
+| [#80](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/80) | Комплект 31 позиции для итогового рассмотрения шеф-поваром | OPEN; содержательная работа не начата; S03 расчётный слой 31/31 может быть принят только как `DRAFT / ASSUMPTION / PRELIMINARY / CALCULATED` input после Owner acceptance `HO-VAR-82-S03-V1.0`; доказательное завершение 31/31 остаётся открытым |
+| [#82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82) | Рецептурные, калькуляционные, технологические, ресурсные и контрольные документы для 28 позиций | OPEN; PR #83 merged at `cd23852fda61d9ee42dc7bae453e164c8f4d130c`; S03 calculation/evidence-organization package находится в `main`; handoff `PASS_WITH_REMARKS`; `IV-002/S1` и `IV-003/004/006/007/S2` открыты; safety `BLOCK` 28/28; предметного PASS/closure нет |
 | [PR #81](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/81) | Исторический checkpoint Issue #80: 3 эталонных завтрака и 28 `BLOCKED`-каркасов | OPEN / DRAFT / NOT MERGED; reference-only; не закрыт как `SUPERSEDED` без разрешения владельца |
-| [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83) | Рабочий пакет Issue #82 | OPEN / DRAFT / NOT_MERGE_READY; RC1 `FAIL` сохранён; RC2 `CONDITIONAL` |
+| [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83) | Рабочий пакет Issue #82 | CLOSED / MERGED; merge `cd23852fda61d9ee42dc7bae453e164c8f4d130c`; RC1 `FAIL` и RC2 `CONDITIONAL / NOT_MERGE_READY` сохранены; S03 `PASS_STRUCTURE / SUBJECT_EVIDENCE_OPEN`; merge не утверждает рецептуры, цены, пищевую ценность, безопасность или оборудование и не закрывает #82 |
 | [#36](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/36) | Актуализация S03 и документации по VARSHAVKA 3.0.0 | CLOSED |
 | [#37](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/37) | Контрольные проработки 31 активной позиции меню | OPEN |
 | [#38](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/38) | Сроки, температуры и производственный контроль | OPEN |
@@ -130,6 +130,22 @@
 [run 30832433440](https://github.com/slavagrachov/varshavka-cafe-usali-model/actions/runs/30832433440),
 4/4 substantive QA шага. IndependentVerifier выдал `CONDITIONAL`, а не
 `PASS`: открыты `IV-002/S1` и `IV-003`, `IV-004`, `IV-006`, `IV-007/S2`.
+
+### Post-merge reconciliation S03 — 4 августа 2026 года
+
+| Измерение | Проверенный результат |
+|---|---|
+| GitHub state | `main` и merge SHA PR #83 равны `cd23852fda61d9ee42dc7bae453e164c8f4d130c`; Issues #82, #80 и #69 открыты; PR #81 остаётся OPEN/DRAFT/NOT MERGED |
+| Расчётный слой | 31/31 позиций и 104/104 position×channel; только `DRAFT / ASSUMPTION / PRELIMINARY / CALCULATED`; допустим как предварительный input финансовой модели после Owner acceptance |
+| Доказательный слой | evidence-поля пусты; RFQ, quotations и dispatch — 0; утверждённые рецептуры 0/28, evidence COGS 0/28, утверждённые цены 0/101, safety release 0/28, passport/load proof 0/28, контрольные проработки и решения шеф-повара не завершены |
+| Дефекты и veto | `IV-002/S1`, `IV-003/S2`, `IV-004/S2`, `IV-006/S2`, `IV-007/S2` OPEN; safety veto `BLOCK` 28/28 |
+| Handoff | `HO-VAR-82-S03-V1.0`, blob `c07eda2ce38cb1b84d3d1db3aa675c6386368a89`; IndependentVerifier `PASS_WITH_REMARKS` по качеству передачи, не по предметной готовности |
+| Procedural drift | PR #83 слит после письменных ограничений «merge не разрешён» и при `CONDITIONAL / NOT_MERGE_READY`; отдельного разрешающего комментария до merge не найдено; recovery handoff документирует, но не устраняет это противоречие |
+| Issue #80 | отдельная сессия возможна только после Owner acceptance handoff и отдельного письменного разрешения; незакрытые обязательства Issue #82 не переносятся скрыто |
+
+Финансовая модель в S03 не перестраивалась. Расчётные мосты и формы
+доказательной работы являются входами/контролями, а не утверждёнными
+предметными результатами.
 
 ## Полный реестр
 
