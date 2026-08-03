@@ -105,6 +105,31 @@ OBS = [
     ("ING-108", "Кремчиз Bonfesto", "Лента", 0.4, "кг", 278.99, "https://lenta.com/product/syr-tvorozhnyjj-kremchiz-70-bez-zmzh-belarus-400g-667751/"),
     ("ING-109", "Сахарная пудра ЛЕНТА", "Лента", 0.25, "кг", 39.99, "https://lenta.com/product/syr-tvorozhnyjj-violetta-slivochnyjj-70-bez-zmzh-rossiya-400g-538643/"),
     ("ING-110", "Крахмал кукурузный ЛЕНТА", "Лента", 0.4, "кг", 69.99, "https://lenta.com/product/syr-tvorozhnyjj-violetta-slivochnyjj-70-bez-zmzh-rossiya-400g-538643/"),
+    # Remediation observations verified on 2026-08-03 against the exact public
+    # product card (same product, pack and displayed card price).  These remain
+    # retail benchmarks, not supplier quotations or approved procurement data.
+    ("ING-006", "Томаты протертые POMI", "Лента", 0.5, "кг", 109.99, "https://lenta.com/product/pomidory-protjrtye-italiya-500g-608376/"),
+    ("ING-020", "Мука ржаная MAKFA хлебопекарная обдирная", "Лента", 1.0, "кг", 69.99, "https://lenta.com/product/muka-rzhanaya-rossiya-1kg-525888/"),
+    ("ING-016", "Лук репчатый весовой", "Лента", 0.5, "кг", 24.45, "https://lenta.com/product/luk-repchatyjj-ves-1kg-303640/"),
+    ("ING-038", "Огурцы среднеплодные гладкие весовые", "Лента", 0.5, "кг", 72.50, "https://lenta.com/product/ogurcy-sredneplodnye-gladkie-ves-162743/"),
+    ("ING-043", "Перец красный весовой", "Лента", 0.35, "кг", 106.75, "https://lenta.com/product/perec-krasnyjj-ves-41203/"),
+    ("ING-015", "Шампиньоны ЛЕНТА FRESH", "Лента", 0.25, "кг", 119.99, "https://lenta.com/product/griby-shampinony-250g-558639/"),
+    ("ING-017", "Колбаса сырокопченая РЕМИТ Пепперони нарезка", "Лента", 0.09, "кг", 129.99, "https://lenta.com/product/kolbasa-pepperoni-sk-vu-nar-rossiya-90g-696658/"),
+    ("ING-057", "Сельдь ЛЕНТА филе в масле", "Лента", 0.25, "кг", 129.99, "https://lenta.com/product/seld-file-v-masle-rossiya-250g-440268/"),
+    ("ING-046", "Лук красный весовой", "Лента", 0.5, "кг", 65.00, "https://lenta.com/product/luk-krasnyjj-ves-52603/"),
+    ("ING-064", "Капуста белокочанная весовая", "Лента", 1.0, "кг", 49.99, "https://lenta.com/product/kapusta-belokochannaya-ves-11189/"),
+    ("ING-071", "Свекла весовая", "Лента", 0.5, "кг", 19.50, "https://lenta.com/product/svekla-ves-1kg-300884/"),
+    ("ING-074", "Морковь весовая", "Лента", 0.5, "кг", 27.50, "https://lenta.com/product/morkov-ves-1kg-303639/"),
+    ("ING-055", "Лимоны весовые", "Лента", 0.2, "кг", 32.00, "https://lenta.com/product/limony-ves-94429/"),
+    ("ING-102", "Баклажаны весовые", "Лента", 0.5, "кг", 135.00, "https://lenta.com/product/baklazhany-ves-380001/"),
+    ("ING-103", "Капуста брокколи весовая", "Лента", 0.8, "кг", 239.99, "https://lenta.com/product/kapusta-brokkoli-ves-55648/"),
+    ("ING-104", "Мука пшеничная ФРАНЦУЗСКАЯ ШТУЧКА сорт экстра", "Лента", 2.0, "кг", 129.99, "https://lenta.com/product/muka-ekstra-pshenichnaya-hlebopekarnaya-gost-rossiya-2kg-390152/"),
+    ("ING-105", "Разрыхлитель теста DR.BAKERS", "Лента", 0.01, "кг", 12.99, "https://lenta.com/product/razryhlitel-testa-rossiya-10g-26531/"),
+    ("ING-109", "Сахарная пудра ЛЕНТА", "Лента", 0.25, "кг", 39.99, "https://lenta.com/product/saharnaya-pudra-rossiya-250g-548047/"),
+    ("ING-110", "Крахмал кукурузный ЛЕНТА", "Лента", 0.4, "кг", 69.99, "https://lenta.com/product/krahmal-kukuruznyjj-rossiya-400g-557859/"),
+    ("ING-006", "Томаты протертые VALFRUTTA", "Лента", 0.5, "кг", 209.99, "https://lenta.com/product/tomaty-protertye-tpak-italiya-500g-449490/"),
+    ("ING-007", "Чеснок новый урожай весовой", "Лента", 0.1, "кг", 38.00, "https://lenta.com/product/chesnok-novyjj-urozhajj-ves-50739/"),
+    ("ING-072", "Картофель новый урожай весовой", "Лента", 1.0, "кг", 99.99, "https://lenta.com/product/kartofel-novyjj-urozhajj-ves-egipet-674938/"),
 ]
 
 # 100% provenance review after Gate C. Active evidence is restricted to direct
@@ -145,6 +170,9 @@ VERIFIED_DIRECT_PRODUCT_PACK_IDS = {
     "PSR-0052", "PSR-0054", "PSR-0055", "PSR-0056", "PSR-0057", "PSR-0058",
     "PSR-0061", "PSR-0062", "PSR-0063", "PSR-0064",
 }
+VERIFIED_DIRECT_PRODUCT_PACK_IDS.update(
+    f"PSR-{i:04d}" for i in range(69, len(OBS) + 1)
+)
 
 
 recipes = read_csv("RECIPES.csv")
@@ -391,15 +419,38 @@ for p in passports:
             food_cost = c["kitchen"] / price if price else None
             gross_margin = price - c["kitchen"] if price is not None else None
             contribution = price - full if price is not None else None
+            # When complete COGS is unavailable, provide a numeric lower-bound
+            # scenario without presenting it as a sale-price recommendation.
+            # Unknown components are not replaced with zero: the row remains
+            # BLOCKED and the complete project-price fields remain null.
+            partial_kitchen_lb = c["partial"] * 1.015 if c["partial"] is not None else None
+            partial_full_lb = partial_kitchen_lb + pack if partial_kitchen_lb is not None else None
+            provisional_price_lb = partial_full_lb / target if partial_full_lb is not None else None
+            provisional_food_ratio_lb = (
+                partial_kitchen_lb / provisional_price_lb if provisional_price_lb else None
+            )
+            provisional_gross_margin_lb = (
+                provisional_price_lb - partial_kitchen_lb if provisional_price_lb is not None else None
+            )
+            provisional_contribution_lb = (
+                provisional_price_lb - partial_full_lb if provisional_price_lb is not None else None
+            )
             pricing_rows.append({
                 "dish_code": p["dish_code"], "dish_name": p["dish_name"], "channel": channel,
                 "target_cogs_ratio": fmt(target), "kitchen_cogs_rub": fmt(c["kitchen"]),
-                "packaging_rub": fmt(pack), "aggregator_commission_rate": "", "tax_rate": "",
+                "packaging_rub": fmt(pack), "packaging_status": "PROJECT_INPUT_NOT_QUOTED",
+                "aggregator_commission_rate": "", "aggregator_commission_status": "BLOCKED_OWNER_CONTRACT_INPUT",
+                "tax_rate": "", "tax_rate_status": "BLOCKED_OWNER_FINANCE_INPUT",
                 "project_price_rub": fmt(price), "food_cost_ratio": fmt(food_cost),
                 "gross_margin_rub_before_channel_costs": fmt(gross_margin), "contribution_rub_before_tax_and_commission": fmt(contribution),
+                "partial_kitchen_cogs_lower_bound_rub": fmt(partial_kitchen_lb),
+                "provisional_price_lower_bound_rub": fmt(provisional_price_lb),
+                "provisional_food_cost_ratio_lower_bound": fmt(provisional_food_ratio_lb),
+                "provisional_gross_margin_lower_bound_before_channel_costs_rub": fmt(provisional_gross_margin_lb),
+                "provisional_contribution_lower_bound_before_tax_commission_rub": fmt(provisional_contribution_lb),
                 "pricing_status": "ESTIMATE_NOT_APPROVED" if price is not None else "BLOCKED_PENDING_VALIDATION",
-                "method": "(complete kitchen COGS + channel packaging) / S04 target COGS ratio; commission and tax excluded because unconfirmed",
-                "source_or_assumption": "S04 inputs + docs/03-methodology/COGS.md",
+                "method": "Complete price=(complete kitchen COGS+packaging)/target; lower bound=(known partial food cost*1.015+packaging)/target; tax and commission excluded and explicitly blocked",
+                "source_or_assumption": "Public dated retail price cards + S04 target/packaging project inputs + docs/03-methodology/COGS.md",
                 "blockers": "" if price is not None else ";".join(c["missing"]),
             })
 write_csv("CHANNEL_PRICING_TABLE.csv", pricing_rows, list(pricing_rows[0]))
@@ -447,26 +498,88 @@ for code, reason in [
         "control_point": "Gate C / Owner Gate", "status": "OPEN"})
 write_csv("ECONOMIC_BLOCKER_REGISTER.csv", blocker_rows, list(blocker_rows[0]))
 
+# Exact Owner/Chef/Procurement decisions for every ingredient still lacking a
+# comparable RUB/kg observation.  Ambiguous/prepared component names require a
+# Chef specification before Procurement can obtain comparable quotations.
+ambiguous_tokens = (
+    " или ", "проектн", "готов", "отвар", "запеч", "бульон", "соус",
+    "маринад", "глазур", "декор", "подготов", "смазк", "смесь",
+)
+decision_rows = []
+for raw in raw_rows:
+    if raw["selected_price_rub_per_kg"]:
+        continue
+    name_l = raw["ingredient_name"].lower()
+    ambiguous = any(token in name_l for token in ambiguous_tokens)
+    decision_rows.append({
+        "decision_id": f"CPD-{len(decision_rows)+1:03d}",
+        "scope": raw["ingredient_id"],
+        "required_decision": (
+            f"Утвердить точную спецификацию и модель make/buy для «{raw['ingredient_name']}»"
+            if ambiguous else f"Выбрать закупочный SKU и цену для «{raw['ingredient_name']}»"
+        ),
+        "options": (
+            "A: собственный VSF с утвержденной рецептурой и выходом; B: готовый покупной SKU; C: исключить/заменить через Chef change control"
+            if ambiguous else "A: HoReCa SKU по 3 сопоставимым КП; B: временный retail benchmark точного SKU; C: заменить ингредиент через Chef change control"
+        ),
+        "recommended_option": (
+            "Chef сначала фиксирует один состав/make-buy и выход; затем Procurement получает 3 сопоставимых КП"
+            if ambiguous else "Получить минимум 3 сопоставимых КП HoReCa и выбрать landed price с НДС, доставкой и MOQ"
+        ),
+        "evidence": f"RAW_MATERIAL_PRICE_REGISTER:{raw['ingredient_id']}; recipe blob c6b22ad5f2812cc989a0d3593f40e21207da8f53",
+        "cost_impact": f"Неизвестная стоимость входит в {raw['total_gross_usage_g_in_28_drafts']} г суммарного draft gross usage; полный COGS затронутых блюд заблокирован",
+        "price_margin_impact": "Проектная цена, food cost и маржа остаются недостоверными; опубликован только нижний предел известных затрат",
+        "safety_impact": "Спецификация SKU/make-buy может менять аллергены и safety profile; передать FoodSafetyAgent после решения",
+        "equipment_impact": "При выборе собственного VSF проверить операции, партии и оборудование; покупной SKU может изменить нагрузку",
+        "decision_owner": "Chef + Owner + Procurement" if ambiguous else "Owner + Procurement",
+        "unblock_condition": (
+            "Chef-approved exact specification/make-buy + approved yield/recipe when made in-house + dated comparable supplier quotation(s) normalized to RUB/kg"
+            if ambiguous else "Selected exact SKU + dated supplier quotation with net/drained mass, VAT, delivery, MOQ and normalized landed RUB/kg"
+        ),
+        "status": "OPEN",
+    })
+
+for scope, requirement, options, recommendation, owner, unblock in [
+    ("ALL_CHANNELS", "Утвердить налоговый режим и применимые ставки", "A: УСН доходы; B: УСН доходы-расходы; C: ОСНО/иной подтвержденный режим", "Finance моделирует фактическое юрлицо и подтверждает ставку письменным решением", "Owner + Finance", "Письменное решение о режиме/ставках и формулах налоговой базы"),
+    ("DELIVERY", "Утвердить комиссию агрегатора/эквайринга", "A: договор агрегатора; B: собственная доставка+эквайринг; C: смешанная модель", "Сравнить подписываемые договоры на единой базе GMV и включить эффективную ставку", "Owner + Commercial + Finance", "Договор/тариф с комиссией, базой начисления и сроком действия"),
+    ("DELIVERY;TAKEAWAY", "Утвердить упаковочные SKU и landed cost", "A: текущие модельные 65/40 руб.; B: выбранные SKU по КП; C: многоразовая/иная комплектация", "Получить 3 КП на специфицированный комплект по каждому каналу", "Owner + Procurement + FoodSafety", "Спецификация комплекта + КП с НДС, доставкой и MOQ + food-contact evidence"),
+    ("ALL_DISHES", "Подтвердить норму списания/порчи 1.5%", "A: 1.5% project input; B: норма по контрольным проработкам; C: дифференциация по категории", "После запуска контрольных проработок использовать категорийные нормы и фактический журнал списаний", "Owner + Chef + Finance", "Утвержденная методика и измеренные/обоснованные нормы"),
+]:
+    decision_rows.append({
+        "decision_id": f"CPD-{len(decision_rows)+1:03d}", "scope": scope,
+        "required_decision": requirement, "options": options,
+        "recommended_option": recommendation,
+        "evidence": "CHANNEL_PRICING_TABLE.csv; ECONOMIC_BLOCKER_REGISTER.csv",
+        "cost_impact": "Меняет полный COGS или contribution",
+        "price_margin_impact": "Меняет проектную цену/food cost/contribution; без решения итоговая маржа не утверждается",
+        "safety_impact": "Проверить применимость к упаковке/операциям",
+        "equipment_impact": "Проверить влияние выбранной delivery/make-buy модели",
+        "decision_owner": owner, "unblock_condition": unblock, "status": "OPEN",
+    })
+write_csv("OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv", decision_rows, list(decision_rows[0]))
+
 priced = sum(1 for r in raw_rows if r["selected_price_rub_per_kg"])
 medium = sum(1 for r in raw_rows if r["confidence"] == "MEDIUM")
 complete_cards = sum(1 for r in cost_cards if r["complete_food_cost_rub"])
 accepted_obs = sum(r["review_result"] == "ACCEPTED" for r in provenance_review_rows)
 rejected_obs = sum(r["review_result"] == "REJECTED" for r in provenance_review_rows)
 
-report = f"""# Costing & Pricing Report — Issue #82
+report = f"""# Costing & Pricing Remediation Report — Issue #82
 
-Версия: 0.2.1 после повторного Gate C provenance correction. Дата среза: {AS_OF}. Scope: 28 блюд, 253 строки frozen-рецептур, {len(ingredient_names)} уникальных сырьевых идентификатора.
+Версия: 0.3.0-REMEDIATION. Дата среза: {AS_OF}. Scope: 28 блюд, 253 строки frozen-рецептур, {len(ingredient_names)} уникальных сырьевых идентификатора. Вход рецептур: `RECIPES.csv` blob `c6b22ad5f2812cc989a0d3593f40e21207da8f53`, recipe version `0.1.0-DRAFT`, HOF-0011.
 
 ## Итог
 
 - Создано 28 калькуляционных карт; complete COGS рассчитан для {complete_cards}/28.
 - Выполнена 100% provenance-сверка {len(provenance_review_rows)} исходных наблюдений: accepted {accepted_obs}, rejected {rejected_obs}. Rejected-наблюдения исключены из активного реестра и всех расчётов.
 - Публичные сопоставимые benchmark-цены руб./кг после correction получены для {priced}/{len(ingredient_names)} ингредиентов; confidence MEDIUM (не менее 3 наблюдений) — {medium} SKU.
-- Impact относительно v0.1.0: активные observations 68→46 (-22), priced ingredients 32→19 (-13), MEDIUM-confidence SKU 14→9 (-5), блюда с числовым partial cost 24→21 (-3); partial cost изменился у 24/28 блюд: у 21 изменилось числовое значение, у 3 стало null. Complete COGS остался 0/28.
+- Remediation добавила 22 прямые публичные карточки по 20 дополнительным ingredient IDs; это увеличило покрытие выбранными ценами с 19 до {priced} из {len(ingredient_names)}.
 - Остальные значения оставлены пустыми и блокируют полный COGS. Нули вместо неизвестных данных не применялись.
+- Создан `OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv`: {len(decision_rows)} точных решений, включая каждый непроцененный ingredient ID и четыре глобальных экономических входа.
 - Все цены — публичные розничные наблюдения, не КП и не утверждённые закупочные цены.
 - Semi-finished costing использует DAG: дочерний VSF учитывается один раз; его сырьевые строки повторно не включаются. Проверка двойного учёта: PASS.
-- `CHANNEL_PRICING_TABLE.csv` применяет только явные входы S04: target COGS 30%/40%/42.8571%, упаковка 65/40 руб.; налог и комиссия оставлены пустыми.
+- `CHANNEL_PRICING_TABLE.csv` содержит 101/101 строк. Полная проектная цена остаётся пустой при incomplete COGS; одновременно для каждой строки рассчитан явно маркированный нижний предел на базе только известных затрат. Это не рекомендация цены: любая неизвестная стоимость увеличивает необходимую цену.
+- Упаковка 0/65/40 руб. отражена как `PROJECT_INPUT_NOT_QUOTED`; налог и комиссия пусты со статусами `BLOCKED_OWNER_*`.
 
 ## Формулы
 
@@ -476,6 +589,7 @@ report = f"""# Costing & Pricing Report — Issue #82
 4. Блюдо = прямые немаппированные строки + каждый mapped VSF один раз.
 5. Списание/порча = 1.5% food cost только при complete COGS.
 6. Проектная цена канала = (complete kitchen COGS + упаковка) / target COGS ratio.
+7. Нижний предел = (известная частичная стоимость × 1.015 + упаковка) / target COGS ratio. Это аналитический минимум, не цена для запуска продаж.
 
 ## Критические ограничения
 
@@ -490,6 +604,37 @@ report = f"""# Costing & Pricing Report — Issue #82
 CostingPricingAgent рецептуры не менял. Требуются решения Chef: специфицировать альтернативные ингредиенты, определить собственные/покупные соусы, бульоны, маринады, глазурь и декор; подтвердить единицы масла/молока и фактические выходы VSF.
 """
 (OUT / "COSTING_PRICING_REPORT.md").write_text(report, encoding="utf-8")
+
+remediation_handoff = f"""# HOF-0014 — CostingPricingAgent remediation
+
+- Session: `VAR-ISSUE-82-S02-REMEDIATION`
+- Role: separate CostingPricingAgent
+- Scope: Issue #82 / draft PR #83, economics only
+- Input recipe blob: `c6b22ad5f2812cc989a0d3593f40e21207da8f53`
+- Recipe version: `0.1.0-DRAFT`
+- Chef handoff: `HOF-0011`
+- As-of date: `{AS_OF}`
+
+## Results
+
+- Costing cards: 28/28 generated; numeric known-cost lower bound: 28/28; complete evidence-backed COGS: {complete_cards}/28.
+- Channel rows: {len(pricing_rows)}/101; numeric provisional lower-bound scenario: {sum(bool(r['provisional_price_lower_bound_rub']) for r in pricing_rows)}/101; complete project price/food cost/margin: {sum(bool(r['project_price_rub']) for r in pricing_rows)}/101.
+- Unique raw ingredient IDs: {len(ingredient_names)}; selected public RUB/kg benchmarks: {priced}; blocked exact price: {len(ingredient_names)-priced}.
+- Provenance: reviewed {len(provenance_review_rows)} observations; accepted {accepted_obs}; rejected {rejected_obs}; rejected observations do not flow downstream.
+- VSF costing variants: {len(sf_cost_rows)}; recursive no-double-count control: PASS; complete variants: {sum(r['cost_status']=='CALCULATED' for r in sf_cost_rows)}.
+- Decision pack: {len(decision_rows)} open exact Owner/Chef/Procurement decisions.
+
+## Acceptance status
+
+`HOF-0014: READY_WITH_BLOCKERS`. Numeric lower bounds are analytical floors only. They must not be used as sale prices because unknown costs can only increase required prices.
+
+`IV-004` remains `OPEN`: 0/28 complete COGS and 0/101 complete project-price rows. Closure requires exact recipe/SKU/make-buy decisions, quotations and global tax/commission/packaging decisions followed by regeneration and independent verification.
+
+## Owned outputs
+
+`RAW_MATERIAL_PRICE_REGISTER.csv`, `PRICE_SOURCE_REGISTER.csv`, `COSTING_CARDS.csv`, `SEMI_FINISHED_COSTING.csv`, `CHANNEL_PRICING_TABLE.csv`, `SENSITIVITY_REPORT.csv`, `ECONOMIC_BLOCKER_REGISTER.csv`, `OWNER_PROCUREMENT_DECISION_PACK_ECONOMICS.csv`, `COSTING_PRICING_REPORT.md`, generator and QA.
+"""
+(OUT / "HANDOFF_HOF-0014_COSTING_PRICING_REMEDIATION.md").write_text(remediation_handoff, encoding="utf-8")
 
 accepted_lines = "\n".join(
     f"- `{r['price_source_id']}` — {r['ingredient_id']} / {r['observed_product']}"
@@ -559,8 +704,8 @@ handoff = f"""# HOF-0005 v0.2.1 — CostingPricingAgent → SystemArchitect / Ex
 
 # Hard QA assertions.
 assert len(cost_cards) == 28
-assert len(provenance_review_rows) == 68
-assert accepted_obs + rejected_obs == 68
+assert len(provenance_review_rows) == len(OBS)
+assert accepted_obs + rejected_obs == len(OBS)
 assert not ({r["price_source_id"] for r in source_rows} & set(REJECTED_PROVENANCE))
 assert {r["price_source_id"] for r in source_rows} == VERIFIED_DIRECT_PRODUCT_PACK_IDS
 assert all(float(r["pack_qty"]) > 0 and r["pack_unit"] in {"кг", "л", "шт."} for r in source_rows)
@@ -570,6 +715,10 @@ assert all(float(r["pack_price_rub"]) > 0 and float(r["normalized_price_rub"]) >
 assert all(not (r["complete_food_cost_rub"] == "0") for r in cost_cards)
 assert all(r["double_counting_check"] == "PASS" for r in cost_cards)
 assert len({r["dish_code"] for r in pricing_rows}) == 28
+assert len(pricing_rows) == 101
+assert all(r["tax_rate"] == "" and r["aggregator_commission_rate"] == "" for r in pricing_rows)
+assert all(r["tax_rate_status"].startswith("BLOCKED_") for r in pricing_rows)
+assert len(decision_rows) == (len(ingredient_names) - priced) + 4
 print({"ingredients": len(ingredient_names), "price_observations": len(source_rows), "priced_ingredients": priced,
        "medium_confidence": medium, "cost_cards": len(cost_cards), "complete_cards": complete_cards,
        "semi_finished_variants": len(sf_cost_rows), "pricing_rows": len(pricing_rows), "blockers": len(blocker_rows),
