@@ -5,7 +5,10 @@ Governance: `MULTI_AGENT_GOVERNANCE_VARSHAVKA.md v1.1.0 / Approved`
 
 | Handoff ID | Session ID | Issue / PR | Type | Status | Handoff | Verification | Publication Attestation |
 |---|---|---|---|---|---|---|---|
-| `HO-VAR-82-S01-V1.0` | `VAR-ISSUE-82-S01-LEGACY_BOOTSTRAP` | Issue #82 / PR #83 | `LEGACY_BOOTSTRAP` | `READY_WITH_DRIFT / VERIFIED_WITH_REMARKS / OWNER_DECISION_PENDING` | [blob `19ed859d…`](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/e466ca9e451064a076bf44822a8b2b992b8c3673/docs/01-project/session-handoffs/ISSUE-82/SESSION-20260803-01-HANDOFF.md) | [blob `2b09b929…`](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/2aa0a30ac6a2b4916c71c18a2d017f602fa97aa5/docs/01-project/session-handoffs/ISSUE-82/SESSION-20260803-01-VERIFICATION.md) | [Issue #82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82#issuecomment-5167960589); [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83#issuecomment-5167963983) |
+| `HO-VAR-82-S01-V1.0` | `VAR-ISSUE-82-S01-LEGACY_BOOTSTRAP` | Issue #82 / PR #83 | `LEGACY_BOOTSTRAP` | `READY_WITH_DRIFT / VERIFIED_WITH_REMARKS / ACCEPTED_WITH_CONDITIONS` | [blob `19ed859d…`](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/e466ca9e451064a076bf44822a8b2b992b8c3673/docs/01-project/session-handoffs/ISSUE-82/SESSION-20260803-01-HANDOFF.md) | [blob `2b09b929…`](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/2aa0a30ac6a2b4916c71c18a2d017f602fa97aa5/docs/01-project/session-handoffs/ISSUE-82/SESSION-20260803-01-VERIFICATION.md) | [Issue #82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82#issuecomment-5167960589); [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83#issuecomment-5167963983) |
+
+
+Owner acceptance: [Issue #82 comment](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82#issuecomment-5168039672); [PR #83 comment](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83#issuecomment-5168039941).
 
 ## Rules
 
