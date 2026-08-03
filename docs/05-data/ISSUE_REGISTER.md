@@ -70,9 +70,9 @@
 |---|---|---|
 | [#69](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/69) | Родительская программа VAR-000 | OPEN; Issue #82 остаётся дочерним срочным контуром и не закрывает Gate 0 |
 | [#80](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/80) | Комплект 31 позиции для итогового рассмотрения шеф-поваром | OPEN; повторная работа запрещена до отдельной новой сессии после решения по #82 |
-| [#82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82) | Рецептурные, калькуляционные, технологические, ресурсные и контрольные документы для 28 позиций | OPEN / RC2 REMEDIATION; `candidate_data_sha=0d22ac8d0bb1ab198dcd18da21f3a8b741d186c1`; RC2 Independent Verification `PENDING` |
+| [#82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82) | Рецептурные, калькуляционные, технологические, ресурсные и контрольные документы для 28 позиций | OPEN; RC2 Independent Verification `CONDITIONAL / NOT_MERGE_READY`; controlled draft; предметные S1/S2 блокеры открыты |
 | [PR #81](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/81) | Исторический checkpoint Issue #80: 3 эталонных завтрака и 28 `BLOCKED`-каркасов | OPEN / DRAFT / NOT MERGED; reference-only; не закрыт как `SUPERSEDED` без разрешения владельца |
-| [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83) | Рабочий пакет Issue #82 | OPEN / DRAFT / RC2; не merge-ready; RC1 `FAIL` сохранён; RC2 Independent Verification `PENDING` |
+| [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83) | Рабочий пакет Issue #82 | OPEN / DRAFT / NOT_MERGE_READY; RC1 `FAIL` сохранён; RC2 `CONDITIONAL` |
 | [#36](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/36) | Актуализация S03 и документации по VARSHAVKA 3.0.0 | CLOSED |
 | [#37](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/37) | Контрольные проработки 31 активной позиции меню | OPEN |
 | [#38](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/38) | Сроки, температуры и производственный контроль | OPEN |
@@ -98,16 +98,21 @@
 
 - `candidate_data_sha=0d22ac8d0bb1ab198dcd18da21f3a8b741d186c1` — точный
   commit входных domain/workbook/QA данных, не изменяемых RegisterSyncAgent;
-- `publication_commit_sha` — commit, содержащий точные blobs настоящего
-  реестра, `READINESS_STATUS_REPORT.md` и HOF-0020. Он намеренно не встраивается
-  в собственное содержимое во избежание невозможной Git self-reference и
-  фиксируется внешней GitHub attestation после публикации;
+- `verified_candidate_sha=88859b25963f8d2f99883901201a81ce0fbf0257` — точный
+  RC2 candidate, независимо проверенный с run `30832433440`;
+- `iv_publication_commit_sha=407105648fa4d58f09027fe6a7967b53823c7e78` —
+  commit публикации неизменяемых RC2 report/HOF-0021;
+- `final_register_sync_publication_commit_sha` — commit, содержащий точные
+  blobs настоящего реестра, `DEFECT_REGISTER.csv`,
+  `READINESS_STATUS_REPORT.md` и HOF-0022. Он фиксируется внешней attestation,
+  поскольку собственный SHA невозможно встроить в commit без изменения SHA;
 - [RC1 Independent Verification](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/4fec6712b16a8b20d4fe8036d802537da63aff20/docs/07-operations/issue-82/FINAL_INDEPENDENT_VERIFICATION_REPORT_RC1.md):
   `candidate_sha=49cd9f4bd896ea11dc8afbce3a93539f761b52a6`, workflow run
   `30830497424`, verdict `FAIL / NOT_MERGE_READY` из-за IV-016 и IV-017;
-- RC2 создаётся публикацией настоящего register-sync пакета поверх
-  `candidate_data_sha`; его exact-head CI и Independent Verification должны
-  быть зафиксированы только после появления exact publication commit.
+- [RC2 Independent Verification](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/407105648fa4d58f09027fe6a7967b53823c7e78/docs/07-operations/issue-82/FINAL_INDEPENDENT_VERIFICATION_REPORT_RC2.md):
+  report blob `7eb1a4182514cdb89b92b3849d60ef9317e9a507`, verdict
+  `CONDITIONAL / NOT_MERGE_READY`;
+- HOF-0021 blob: `e522f3428ce1c0936e93271f353a0830ab749802`.
 
 Запись `28 × 13 = 364` описывает структурный объём контрольной матрицы, а
 не 364 завершённых документа. На remediation-срезе:
@@ -118,13 +123,13 @@
 | Содержательная готовность | 0/28 рецептур утверждены; полная доказательная себестоимость 0/28; утверждённые цены 0/101; безопасность 0/28; паспортно подтверждённая пригодность оборудования 0/28 |
 | Расчётные результаты с допущениями | Пищевая ценность рассчитана для 28/28 как проектный расчёт, лабораторных подтверждений 0/28; отдельный низкодостоверный proxy-сценарий COGS рассчитан для 28/28 и каналов для 101/101 |
 | Заблокированные результаты | Safety veto `BLOCK` 28/28; доказательный COGS и проектные цены заблокированы; паспортные характеристики, фактическая мощность и производительность заблокированы |
-| Готовность к Owner/Chef Gate | `NOT_READY`; требуются решения Owner/Chef, документы поставщиков и оборудования, контрольные проработки и финальная независимая проверка frozen RC |
+| Готовность к Owner/Chef Gate | `NOT_READY`; требуются решения Owner/Chef, документы поставщиков и оборудования и контрольные проработки; RC2 IV завершён `CONDITIONAL` |
 
-Профильный GitHub Actions workflow `Validate Issue 82 menu package` включает
-четыре substantive QA шага после HOF-0019. Для RC2 принимается только run,
-ассоциированный с exact `publication_commit_sha`; его URL и номер публикуются
-в GitHub metadata attestation без изменения commit. Успех workflow не снимает
-предметные блокеры и не является итоговым вердиктом IndependentVerifier.
+Профильный workflow `Validate Issue 82 menu package` успешно прошёл на
+проверенном candidate `88859b25963f8d2f99883901201a81ce0fbf0257`:
+[run 30832433440](https://github.com/slavagrachov/varshavka-cafe-usali-model/actions/runs/30832433440),
+4/4 substantive QA шага. IndependentVerifier выдал `CONDITIONAL`, а не
+`PASS`: открыты `IV-002/S1` и `IV-003`, `IV-004`, `IV-006`, `IV-007/S2`.
 
 ## Полный реестр
 

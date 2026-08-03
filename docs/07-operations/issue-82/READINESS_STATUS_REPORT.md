@@ -1,76 +1,65 @@
-# Readiness Status Report — Issue #82 remediation RC2
+# Readiness Status Report — Issue #82 remediation RC2 post-verdict
 
-Срез: `2026-08-03`; пакет: draft PR #83.
+Срез: `2026-08-03`; draft PR #83.
 
-## 1. Exact-object traceability
+## Exact-object traceability
 
 | Object | Exact identity | Meaning |
 |---|---|---|
-| RC2 input data | `candidate_data_sha=0d22ac8d0bb1ab198dcd18da21f3a8b741d186c1` | Exact domain, workbook and IV-016 QA input; RegisterSyncAgent did not edit those artifacts |
-| Readiness publication | `publication_commit_sha = commit containing the exact blobs of this report, ISSUE_REGISTER and HOF-0020` | Deliberately resolved externally after commit; embedding its own SHA would change the commit and create impossible self-reference |
-| RC2 head | exact `publication_commit_sha` after fast-forward publication to `agent/issue-82-menu-docs` | Object on which the Issue #82 workflow must succeed and which the next IndependentVerifier must inspect |
+| Domain/workbook/QA data | `candidate_data_sha=0d22ac8d0bb1ab198dcd18da21f3a8b741d186c1` | Exact inputs; unchanged by register sync and IndependentVerifier |
+| Verified RC2 candidate | `verified_candidate_sha=88859b25963f8d2f99883901201a81ce0fbf0257` | Candidate independently verified with exact-head workflow run `30832433440` |
+| IV publication | `iv_publication_commit_sha=407105648fa4d58f09027fe6a7967b53823c7e78` | Commit containing immutable RC2 report blob `7eb1a4182514cdb89b92b3849d60ef9317e9a507` and HOF-0021 blob `e522f3428ce1c0936e93271f353a0830ab749802` |
+| Final register sync | `final_register_sync_publication_commit_sha = commit containing exact blobs of this report, ISSUE_REGISTER, DEFECT_REGISTER and HOF-0022` | Resolved externally after commit; embedding its own SHA would create impossible Git self-reference |
 
-The external GitHub attestation must bind the final publication commit, the
-three exact file blob SHAs and the exact-head workflow run. Updating PR body
-or existing comments after that is metadata-only and does not change RC2.
+PR body/comment updates after publication are metadata-only. They do not
+change the verified candidate, IV publication or final register-sync commit.
 
-## 2. Preserved RC1 result
+## Preserved verification history
 
-- RC1 subject candidate:
-  `49cd9f4bd896ea11dc8afbce3a93539f761b52a6`.
-- RC1 Issue #82 workflow:
-  [run 30830497424](https://github.com/slavagrachov/varshavka-cafe-usali-model/actions/runs/30830497424),
-  `success`.
-- RC1 final Independent Verification:
-  [`FAIL / NOT_MERGE_READY`](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/4fec6712b16a8b20d4fe8036d802537da63aff20/docs/07-operations/issue-82/FINAL_INDEPENDENT_VERIFICATION_REPORT_RC1.md).
-- RC1 failed because IV-016 and IV-017 remained open. Its historical verdict
-  is not overwritten by RC2 remediation.
+- [RC1 report](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/4fec6712b16a8b20d4fe8036d802537da63aff20/docs/07-operations/issue-82/FINAL_INDEPENDENT_VERIFICATION_REPORT_RC1.md):
+  `FAIL / NOT_MERGE_READY`, candidate `49cd9f4bd896ea11dc8afbce3a93539f761b52a6`.
+- [RC2 report](https://github.com/slavagrachov/varshavka-cafe-usali-model/blob/407105648fa4d58f09027fe6a7967b53823c7e78/docs/07-operations/issue-82/FINAL_INDEPENDENT_VERIFICATION_REPORT_RC2.md):
+  `CONDITIONAL / NOT_MERGE_READY`.
+- RC2 verified remediated: `IV-013`, `IV-015`, `IV-016`, `IV-017`.
+- RC2 open subject blockers: `IV-002/S1`; `IV-003`, `IV-004`, `IV-006`,
+  `IV-007/S2`.
 
-## 3. Canonical readiness taxonomy
+## Canonical readiness
 
-| Dimension | Metric | RC2 pre-IV status |
+| Dimension | Metric | Final RC2 status |
 |---|---:|---|
-| Structural coverage | 28/28 positions; 364/364 controlled cells; TECH_CARDS mandatory schema 28/28 | STRUCTURAL_COMPLETE |
-| Substantive recipes | approved recipes 0/28; recipe version `0.1.0-DRAFT` | NOT_READY |
-| Evidence economics | complete evidence COGS 0/28; approved project prices 0/101 | BLOCKED |
-| Scenario economics | LOW_CONFIDENCE proxy COGS 28/28; proxy channel economics 101/101 | ASSUMPTION_BLOCKED_PENDING_VALIDATION |
+| Structural coverage | 28/28 positions; 364/364 controlled cells; TECH_CARDS schema 28/28; workbook 17/17 | PASS_STRUCTURE |
+| Substantive recipes | approved recipes 0/28; recipe `0.1.0-DRAFT` | NOT_READY |
+| Evidence economics | complete evidence COGS 0/28; approved prices 0/101 | BLOCKED |
+| Scenario economics | LOW_CONFIDENCE proxy COGS 28/28; channel economics 101/101 | ASSUMPTION_BLOCKED_PENDING_VALIDATION |
 | Nutrition | calculated draft 28/28; laboratory confirmed 0/28; release-ready 0/28 | CALCULATED_DRAFT / BLOCKED_FOR_RELEASE |
-| Safety | profiles 28/28; veto `BLOCK` 28/28 | BLOCKED |
-| Equipment | functional maps 28/28; passport-backed suitability 0/28; actual capacity proof 0/28 | BLOCKED |
-| Excel | 17/17 sheets; `freeze_panes` 17/17; workbook unchanged from HOF-0016 | STRUCTURAL_PASS |
-| IV-016 QA remediation | repository IV contract QA updated and added as fourth workflow step at `candidate_data_sha` | READY_FOR_EXACT_HEAD_CI_AND_IV_RETEST |
-| Owner/Chef Gate | required decisions, documents and trials incomplete | NOT_READY |
-| RC2 Independent Verification | not yet issued | PENDING |
+| Safety | profiles 28/28; veto `BLOCK` 28/28 | OPEN_BLOCKING |
+| Equipment | functional maps 28/28; passport suitability 0/28; actual capacity proof 0/28 | BLOCKED |
+| Exact-head CI | run `30832433440`; 4/4 substantive steps success on verified candidate | PASS_AUTOMATION |
+| Owner/Chef Gate | decisions, documents and physical trials incomplete | NOT_READY |
+| Final RC2 Independent Verification | exact RC2 report/HOF-0021 | CONDITIONAL / NOT_MERGE_READY |
 
-`364/364` means structural controlled cells only. `DRAFT`, `ASSUMPTION`,
-`BLOCKED` and `BLOCKED_PENDING_VALIDATION` are not completed documents.
+`364/364` is structural coverage only. Draft, assumption or blocked results
+are not completed or approved documents.
 
-## 4. GitHub status
+## GitHub status and next gate
 
 | Object | Status |
 |---|---|
-| Issue #69 | OPEN; #82 remains an urgent child contour and does not close Gate 0 |
+| Issue #69 | OPEN; #82 does not close Gate 0 |
 | Issue #80 | OPEN; no restart in this session |
-| Issue #82 | OPEN / RC2 REMEDIATION |
-| PR #81 | OPEN / DRAFT / NOT MERGED / reference-only; no authorized `SUPERSEDED` closure |
-| PR #83 | OPEN / DRAFT / NOT_MERGE_READY; RC1 `FAIL` preserved; RC2 IV `PENDING` |
+| Issue #82 | OPEN; controlled draft with `CONDITIONAL` verdict |
+| PR #81 | OPEN / DRAFT / reference-only; no authorized `SUPERSEDED` closure |
+| PR #83 | OPEN / DRAFT / NOT_MERGE_READY; RC1 FAIL preserved; RC2 CONDITIONAL |
 
-## 5. RC2 acceptance sequence
+Next gate is the immutable governance SESSION HANDOFF and an Owner decision
+on controlled-draft acceptance. Subject blockers require Chef, Procurement,
+PPK and Engineering evidence/tests. They are not transferred to new Issues.
 
-1. Publish the register-sync commit; it becomes `publication_commit_sha` and
-   exact RC2 head.
-2. Obtain `Validate Issue 82 menu package = success` on that exact head,
-   including all four substantive QA steps.
-3. Update PR #83 body and the prior synchronization comments in place with
-   exact RC2 head/run and `RC2 IV=PENDING`; this is metadata-only.
-4. Submit exact RC2 to a separate IndependentVerifier.
-5. Treat IV-017, IV-013 and IV-015 only as `READY_FOR_IV_RETEST`, not resolved.
+## Prohibitions
 
-## 6. Prohibitions
-
-- no merge or closure;
-- no `PASS` or merge-ready claim before RC2 Independent Verification;
-- no approval claim for recipes, cards, prices, nutrition release, safety or equipment;
-- no substitution of proxy values for evidence;
-- no removal of safety/equipment/economics blockers;
-- no rewriting of the RC1 `FAIL` history.
+- no merge, closure, `PASS` or merge-ready claim;
+- no recipe, card, price, nutrition, safety or equipment approval claim;
+- no proxy-to-evidence promotion;
+- no removal of open subject blockers;
+- no rewriting of RC1 FAIL or RC2 CONDITIONAL history.
