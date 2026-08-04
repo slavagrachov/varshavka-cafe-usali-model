@@ -1,6 +1,6 @@
 # Единый реестр вопросов и контрольных действий VARSHAVKA
 
-Дата среза: 3 августа 2026 года.
+Дата среза: 4 августа 2026 года.
 
 ## Назначение и статус реестра
 
@@ -71,6 +71,8 @@
 | [#69](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/69) | Родительская программа VAR-000 | OPEN; Issue #82 остаётся дочерним срочным контуром и не закрывает Gate 0 |
 | [#80](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/80) | Комплект 31 позиции для итогового рассмотрения шеф-поваром | OPEN; повторная работа запрещена до отдельной новой сессии после решения по #82 |
 | [#82](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/82) | Рецептурные, калькуляционные, технологические, ресурсные и контрольные документы для 28 позиций | OPEN; RC2 Independent Verification `CONDITIONAL / NOT_MERGE_READY`; controlled draft; предметные S1/S2 блокеры открыты |
+| [#88](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/88) | VKM-001 «Маргарита»: пакет для согласования | OPEN; product head `af7e9ed…`; IndependentVerifier `PASS`; handoff `VERIFIED_WITH_REMARKS`; ожидается Owner/Merge Gate; не `READY_FOR_PRODUCTION` |
+| [#89](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/89) | VKM-001 «Маргарита»: фактическое согласование и производственная валидация | OPEN / NOT STARTED; blocked by #88 и внешними входами шефа/управляющего |
 | [PR #81](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/81) | Исторический checkpoint Issue #80: 3 эталонных завтрака и 28 `BLOCKED`-каркасов | OPEN / DRAFT / NOT MERGED; reference-only; не закрыт как `SUPERSEDED` без разрешения владельца |
 | [PR #83](https://github.com/slavagrachov/varshavka-cafe-usali-model/pull/83) | Рабочий пакет Issue #82 | OPEN / DRAFT / NOT_MERGE_READY; RC1 `FAIL` сохранён; RC2 `CONDITIONAL` |
 | [#36](https://github.com/slavagrachov/varshavka-cafe-usali-model/issues/36) | Актуализация S03 и документации по VARSHAVKA 3.0.0 | CLOSED |
