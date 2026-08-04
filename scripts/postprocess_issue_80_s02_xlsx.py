@@ -7,6 +7,58 @@ ET.register_namespace("",NS);ET.register_namespace("r",REL)
 q=lambda x:"{%s}%s"%(NS,x)
 src=Path(sys.argv[1]); tmp=src.with_suffix(".patched.xlsx")
 with zipfile.ZipFile(src) as z: data={n:z.read(n) for n in z.namelist()}
+plain_ranges=os.environ.get("ISSUE80_PLAIN_RANGES","1")=="1"
+legacy_mac=os.environ.get("ISSUE80_LEGACY_MAC","1")=="1"
+
+# MAC_EXCEL_LTSC_2021_SAFE is the default compatibility profile. Structured
+# tables and empty drawing parts produced by the primary exporter are removed;
+# values, formulas, styles and ordinary range filters stay in worksheet XML.
+table_sheets=set()
+for name,payload in list(data.items()):
+ if name.startswith("xl/worksheets/sheet") and name.endswith(".xml"):
+  root=ET.fromstring(payload)
+  if root.find(q("tableParts")) is not None:table_sheets.add(name)
+
+if plain_ranges:
+ for name in list(data):
+  if name.startswith("xl/tables/"):del data[name]
+ for name,payload in list(data.items()):
+  if name.startswith("xl/worksheets/sheet") and name.endswith(".xml"):
+   root=ET.fromstring(payload);tp=root.find(q("tableParts"))
+   if tp is not None:root.remove(tp)
+   data[name]=ET.tostring(root,encoding="utf-8",xml_declaration=True)
+  elif name.startswith("xl/worksheets/_rels/sheet") and name.endswith(".xml.rels"):
+   root=ET.fromstring(payload)
+   for rel in list(root):
+    if rel.attrib.get("Type","").endswith("/table"):root.remove(rel)
+   data[name]=ET.tostring(root,encoding="utf-8",xml_declaration=True)
+ ct=ET.fromstring(data["[Content_Types].xml"])
+ for item in list(ct):
+  if item.attrib.get("PartName","").startswith("/xl/tables/"):ct.remove(item)
+ data["[Content_Types].xml"]=ET.tostring(ct,encoding="utf-8",xml_declaration=True)
+ table_sheets.clear()
+
+if legacy_mac:
+ for name in list(data):
+  if name.startswith("xl/drawings/"):del data[name]
+ for name,payload in list(data.items()):
+  if name.startswith("xl/worksheets/sheet") and name.endswith(".xml"):
+   root=ET.fromstring(payload)
+   drawing=root.find(q("drawing"));ext=root.find(q("extLst"))
+   if drawing is not None:root.remove(drawing)
+   if ext is not None:root.remove(ext)
+   data[name]=ET.tostring(root,encoding="utf-8",xml_declaration=True)
+  elif name.startswith("xl/worksheets/_rels/sheet") and name.endswith(".xml.rels"):
+   root=ET.fromstring(payload)
+   for rel in list(root):
+    if rel.attrib.get("Type","").endswith("/drawing"):root.remove(rel)
+   if len(root):data[name]=ET.tostring(root,encoding="utf-8",xml_declaration=True)
+   else:del data[name]
+ ct=ET.fromstring(data["[Content_Types].xml"])
+ for item in list(ct):
+  if item.attrib.get("PartName","").startswith("/xl/drawings/"):ct.remove(item)
+  elif item.tag.endswith("Default") and item.attrib.get("Extension") in {"fntdata","jpeg","png"}:ct.remove(item)
+ data["[Content_Types].xml"]=ET.tostring(ct,encoding="utf-8",xml_declaration=True)
 wb=ET.fromstring(data["xl/workbook.xml"]); rels=ET.fromstring(data["xl/_rels/workbook.xml.rels"])
 targets={r.attrib["Id"]:(r.attrib["Target"].lstrip("/") if r.attrib["Target"].lstrip("/").startswith("xl/") else "xl/"+r.attrib["Target"].lstrip("/")) for r in rels}
 shared=[]
@@ -47,8 +99,12 @@ for idx,s in enumerate(wb.find(q("sheets"))):
  for p in list(view.findall(q("pane"))):view.remove(p)
  view.insert(0,ET.Element(q("pane"),{"ySplit":"4","topLeftCell":"A5","activePane":"bottomLeft","state":"frozen"}))
  af=root.find(q("autoFilter"))
- if af is None:
-  sd=root.find(q("sheetData"));pos=list(root).index(sd)+1 if sd is not None else len(root);root.insert(pos,ET.Element(q("autoFilter"),{"ref":ref}))
+ if target in table_sheets:
+  if af is not None:root.remove(af)
+ else:
+  if af is None:
+   sd=root.find(q("sheetData"));pos=list(root).index(sd)+1 if sd is not None else len(root);root.insert(pos,ET.Element(q("autoFilter"),{"ref":ref}))
+  else:af.attrib["ref"]=ref
  status_cols=[];sheetdata=root.find(q("sheetData"))
  if sheetdata is not None:
   best=[]

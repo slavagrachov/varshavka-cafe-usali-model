@@ -3,7 +3,7 @@ import path from "node:path";
 import { Workbook, SpreadsheetFile } from "@oai/artifact-tool";
 const root=process.env.ISSUE80_ROOT;
 const dir=path.join(root,"docs/07-operations/issue-80/s02");
-const out=path.join(dir,"VARSHAVKA_MENU_COSTING_TECH_CARDS_31_DRAFT_v3.0.0.xlsx");
+const out=process.env.ISSUE80_XLSX_OUT || path.join(dir,"VARSHAVKA_MENU_COSTING_TECH_CARDS_31_DRAFT_v3.0.0.xlsx");
 const preview=path.join(process.env.ISSUE80_TMP,"previews");
 await fs.mkdir(preview,{recursive:true});
 function parse(s){let rows=[],row=[],v="",q=false;for(let i=0;i<s.length;i++){let c=s[i];if(q){if(c=='"'&&s[i+1]=='"'){v+='"';i++;}else if(c=='"')q=false;else v+=c;}else if(c=='"')q=true;else if(c==","){row.push(v);v="";}else if(c=="\n"){row.push(v.replace(/\r$/,""));rows.push(row);row=[];v="";}else v+=c;}if(v||row.length){row.push(v);rows.push(row)}return rows.filter(r=>r.some(x=>x!==""));}
