@@ -1,0 +1,6 @@
+defect_id,severity,domain,finding,status,resolution
+IV80-S02-001,S2,FORMULA_SEMANTICS,Mixed channel food-cost semantics,CLOSED,Normalized 104/104 to kitchen COGS over price and preserved source ratio
+IV80-S02-002,S2,INDEPENDENT_ENGINE,Independent recalculation not completed,CLOSED,LibreOffice Calc recalculated isolated copy with 17 sheets 270 formulas and zero errors
+IV80-S02-003,S2,VISUAL_QA,Exact SHA not visually rendered,CLOSED,Exact frozen SHA imported and rendered 17/17 then visually inspected
+IV80-S02-004,S2,SCREEN_RECONCILIATION,Owner screen summary not reconciled,CLOSED,Counts names costs statuses sheets and actions reconciled against frozen CSV/XLSX
+IV80-S02-008,S3,SCREEN_PRESENTATION,Per-row safety column blank,CLOSED_VERIFIED,Populated BLOCK for 28 and NOT_PRODUCTION_RELEASED for three breakfasts

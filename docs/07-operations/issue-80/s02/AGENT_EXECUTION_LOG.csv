@@ -1,0 +1,12 @@
+agent_id,role,wave,status,handoff
+/root,Orchestrator,0-5,COMPLETED,Integrated package; not independent verifier
+/root/handoff_auditor,HandoffAuditor,0,ACCEPTED,PASS_WITH_CONDITIONS / GATE A READY
+/root/source_auditor,SourceAuditor,0,ACCEPTED,PASS_WITH_CONTROLS / NO MATERIAL DRIFT
+MenuIntegrationAgent-VAR80-S02-A04,MenuIntegrationAgent,1,ACCEPTED_AFTER_INTEGRATION,31/31 exact; breakfast and dessert bases normalized
+CTA-VAR-80-S02-01,ChefTechnologyAgent,1,ACCEPTED_AFTER_REMEDIATION,CONDITIONAL findings integrated without status elevation
+/root/semi_finished,SemiFinishedProductsAgent,1,ACCEPTED_RETEST,45-edge DAG PASS
+/root/food_safety,FoodSafetyAgent,1,ACCEPTED_RETEST,BLOCK preserved; breakfast blockers linked
+/root/costing_pricing,CostingPricingAgent,2,ACCEPTED_RETEST,PASS_WITH_REMARKS / model-only
+/root/excel_builder,ExcelBuilder,3,ACCEPTED_FINAL_RETEST,Gate D PASS exact SHA a8d394811f2aa70668ee715118280b06661dd4cb31a6e84497b12d6c08c21433
+/root/independent_verifier,IndependentVerifier,4,ACCEPTED_FINAL_RETEST,PASS_FOR_CHEF_REVIEW / SUBJECT_EVIDENCE_OPEN
+/root/register_sync,RegisterSyncAgent,5,ACCEPTED_DRAFT,No Issues closed; defects remain in #82

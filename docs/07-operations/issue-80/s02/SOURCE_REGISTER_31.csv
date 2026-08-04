@@ -1,0 +1,5 @@
+source_id,tier,ref,path,coverage,status,restriction
+SRC-MAIN,1,cd23852fda61d9ee42dc7bae453e164c8f4d130c,docs/07-operations/issue-82/*,28 dishes and accepted bridges,CURRENT_MAIN,No status elevation
+SRC-HO,2,c07eda2ce38cb1b84d3d1db3aa675c6386368a89,SESSION-20260804-03-HANDOFF.md,transfer contract,ACCEPTED_WITH_CONDITIONS,Not subject approval
+SRC-VA,2,7585632c64e53e22c6f8b1273ee6239b659d6836,SESSION-20260804-03-VERIFICATION.md,handoff quality,PASS_WITH_REMARKS,Not subject PASS
+SRC-PR81,4,1e0722ad7eef9d9e8be591a6302e9d3f5dd73a23,scripts/releases/build_issue_80_menu_cards.mjs,VKM-026..028,HISTORICAL_DRAFT,Breakfast only
