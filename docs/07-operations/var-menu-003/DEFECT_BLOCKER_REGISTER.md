@@ -4,9 +4,9 @@
 
 - S1: 0.
 - S2: 0.
-- S3: 0.
+- S3: 1.
 
-Ранее зафиксированный `S3 / NON-BLOCKING_PUBLICATION_ENVIRONMENT_BLOCKER` снят: бинарный XLSX опубликован через GitHub Git Data API без использования `gh`.
+`PUB-003-001 / S3 / NON-BLOCKING`: ветка, текстовые коммиты и draft PR созданы, но бинарный XLSX ещё не добавлен в ветку. PR обязан оставаться draft до публикации файла `VKM-003_MUSHROOM_HAM_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.1.xlsx` и проверки его SHA-256.
 
 ## Исправленный дефект XLSX
 
