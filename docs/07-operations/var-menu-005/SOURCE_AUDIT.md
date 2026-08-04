@@ -1,0 +1,7 @@
+# Source Audit
+
+Base SHA: `9a7f872aa687640b42570eb042aaa026c4df2046`.
+
+Основные источники: Issue #98; `VAR-PROMPT-DISH-001`; `VAR-XLSX-QA-001`; результаты VKM-001…VKM-004; Issue #82; `KITCHEN_MENU_3.0.0.md`; реестр оборудования и мощности.
+
+Owner-решения имеют статус `OWNER_APPROVED_PROJECT_BASIS`. Неподтверждённые нормы — `EXPERT_ASSUMPTION_PENDING_CHEF_MANAGER_VERIFICATION`, `EXPERT_NORMATIVE_PENDING_CHEF_VERIFICATION`, `UNKNOWN_NOT_ZERO` или `BLOCKED_PENDING_VALIDATION`.
