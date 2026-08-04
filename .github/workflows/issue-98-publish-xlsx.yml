@@ -1,5 +1,6 @@
 name: Issue 98 publish exact XLSX
 
+# Second commit intentionally triggers this branch-local workflow after registration.
 on:
   push:
     branches:
