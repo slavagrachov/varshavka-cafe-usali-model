@@ -1,13 +1,17 @@
 # VAR-MENU-004 — VKM-004 «Пепперони»
 
-Issue: #93  
-Branch: `agent/issue-93-pepperoni`  
-Base: `main` at `a37a6028ed66351d71258361f72e79cf40e6ac1d`  
-Scope: `VKM-004 / VKC-004 / VKT-004` only  
-Project output: `500 g`  
-Production and sales unit: `1 pizza`  
-Product status: `PENDING_CHEF_MANAGER_VERIFICATION`  
-Approval status: `NOT_APPROVED`  
-Production readiness: `NOT_READY_FOR_PRODUCTION`
+Статус продукта: `PENDING_CHEF_MANAGER_VERIFICATION`  
+Safety: `SAFETY_BLOCKED_PENDING_VALIDATION`  
+Owner Gate 3: `ACCEPTED_WITH_CONDITIONS`
 
-Wave 0 is initialized. Concept, recipe, costing, technology and XLSX remain pending Owner Gates.
+## Итоговые параметры
+
+- Выход: 500 г.
+- Единица: 1 пицца.
+- Recipe COGS: 258,60 ₽ (`CALCULATED_FROM_OWNER_APPROVED_ASSUMPTIONS`).
+- Единая проектная цена: 890 ₽.
+- Норматив: 10,5 / 10,5 / 12,0 мин.
+- XLSX: `VKM-004_PEPPERONI_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.0.xlsx`.
+- SHA-256: `9da67cc9297ccb0c16b6872c1cdbdde002a63455b5bd466e488bafb3a2fd3897`.
+
+Пакет не является `APPROVED` или `READY_FOR_PRODUCTION`.
