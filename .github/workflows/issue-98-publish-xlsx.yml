@@ -1,0 +1,39 @@
+name: Issue 98 publish exact XLSX
+
+on:
+  push:
+    branches:
+      - agent/issue-98-white-ciabatta
+    paths:
+      - .github/workflows/issue-98-publish-xlsx.yml
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-98-white-ciabatta
+      - name: Assemble and verify exact binary XLSX
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="docs/07-operations/var-menu-005/VKM-005_WHITE_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.0.xlsx"
+          mkdir -p "$(dirname "$OUT")"
+          cat .issue98_tmp/xlsx.b64.part* | base64 -d > "$OUT"
+          echo "d86c55f63c75fa7c71ab9b9b4918db1e32f7b3ff17753982edf1fafad4696c73  $OUT" | sha256sum -c -
+          python - <<'PY'
+          import zipfile
+          p = 'docs/07-operations/var-menu-005/VKM-005_WHITE_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.0.xlsx'
+          with zipfile.ZipFile(p) as z:
+              assert z.testzip() is None
+          PY
+          rm -rf .issue98_tmp
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Issue #98: publish exact binary XLSX"
+          git push
