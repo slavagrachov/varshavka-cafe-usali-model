@@ -13,6 +13,7 @@
 7. оборудование и инвентарь;
 8. интеграционная проверка;
 9. проверка Excel;
-10. `STANDARD_AGENT_VERIFICATION`.
+10. STANDARD_AGENT_VERIFICATION;
+11. контролируемая GitHub-публикация исправленного XLSX v1.0.1.
 
 Не является Agent Execution Log фактического мультиагента.
