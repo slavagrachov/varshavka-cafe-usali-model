@@ -1,0 +1,7 @@
+# SHA256 Registry — Issue #106
+
+| File | SHA-256 | Status |
+|---|---|---|
+| `VKM-006_TOMATO_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.1.xlsx` | `571d33be85c28a0a2c50dd8428831afb15769ec9e6eb0a623438c6c096b0edc3` | `GITHUB_PUBLISHED_EXACT_SHA_VERIFIED` |
+
+The XLSX is a standalone Issue #106 workbook, not a TEMPLATE-BASED DELTA BUILD artifact.
