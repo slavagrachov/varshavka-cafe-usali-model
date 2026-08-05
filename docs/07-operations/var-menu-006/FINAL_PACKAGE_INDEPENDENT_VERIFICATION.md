@@ -2,7 +2,7 @@
 
 ## Pre-publication verdict
 
-`PASS_FOR_DRAFT_PR_PENDING_GITHUB_BINARY_INTEGRITY_CHECK`
+`PASS_FOR_OWNER_MERGE_GATE`
 
 Confirmed:
 
@@ -16,3 +16,6 @@ Confirmed:
 - no production approval.
 
 The final verdict becomes `PASS_FOR_OWNER_MERGE_GATE` only after the XLSX is downloaded from GitHub and its SHA-256 is reconfirmed.
+
+
+GitHub post-upload XLSX SHA-256: .

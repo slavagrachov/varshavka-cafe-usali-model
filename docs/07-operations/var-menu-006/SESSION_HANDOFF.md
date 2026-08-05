@@ -14,7 +14,7 @@ Expected SHA-256:
 
 ## Current lifecycle status
 
-`PENDING_DRAFT_PR_AND_GITHUB_POST_UPLOAD_VERIFICATION`
+`DRAFT_PR_READY_OWNER_MERGE_GATE_PENDING`
 
 ## Restrictions
 
@@ -23,3 +23,5 @@ Expected SHA-256:
 - do not assign `APPROVED`;
 - do not assign `READY_FOR_PRODUCTION`;
 - keep `SAFETY_BLOCKED_PENDING_VALIDATION`.
+
+Exact published head before verification-record commit: .
