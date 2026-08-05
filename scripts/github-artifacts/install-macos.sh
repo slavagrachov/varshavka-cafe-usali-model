@@ -19,13 +19,9 @@ if ! gh auth status -h github.com 2>&1 | tee -a "$LOG_FILE"; then
   blocked "GitHub CLI не авторизован." "Выполните gh auth login."
 fi
 
-stage "Подготовка исполняемых программ"
-chmod +x \
-  "$ROOT/publish-artifact.sh" \
-  "$ROOT/verify-artifact.sh" \
-  "$ROOT/complete-artifact-publication.sh" \
-  "$ROOT/install-macos.sh"
-
+# Не изменяем права файлов внутри рабочей копии репозитория.
+# Короткие команды запускают целевые программы через bash, поэтому executable bit
+# у файлов репозитория не требуется. Это сохраняет рабочее дерево чистым.
 BIN="$HOME/bin"
 mkdir -p "$BIN"
 
