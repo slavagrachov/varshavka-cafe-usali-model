@@ -1,0 +1,4 @@
+conflict_id,severity,finding,resolution,status
+CON-001,S1,Proxy values may be mistaken for evidence,Preserve model/evidence fields and status,OPEN_CONTROLLED
+CON-002,S2,PR81 breakfast regimes lack approved evidence,DRAFT/BLOCKED only,OPEN_CONTROLLED
+CON-003,S2,Dessert batch basis differs from sale-unit basis,Preserve both; Chef/Costing reconciliation required,OPEN
