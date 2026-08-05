@@ -1,39 +1,25 @@
-# SESSION HANDOFF — Issue #106
+# Session Handoff — Issue #106
 
-## Current state
+## Branch
 
-- Branch: `issue-106-var-menu-006-tomato-ciabatta`.
-- Owner Gate 4: `ACCEPTED_WITH_CONDITIONS`.
-- XLSX local QA: PASS.
-- XLSX local SHA-256: `f5aae4e58bdc7c7839ee2788fd9b57fb10d935dbfb9a27998176c7e8ebd48988`.
-- Binary XLSX in GitHub: NOT YET PUBLISHED.
-- Draft PR: NOT CREATED.
-- Merge: PROHIBITED WITHOUT OWNER DECISION.
-- Issue close: PROHIBITED WITHOUT OWNER DECISION.
+`issue-106-var-menu-006-tomato-ciabatta`
 
-## Required next action
+## Approved XLSX
 
-Upload the exact binary file:
+`docs/07-operations/var-menu-006/VKM-006_TOMATO_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.1.xlsx`
 
-`VKM-006_TOMATO_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.0_TEMPLATE_DELTA.xlsx`
+Expected SHA-256:
 
-to:
+`571d33be85c28a0a2c50dd8428831afb15769ec9e6eb0a623438c6c096b0edc3`
 
-`docs/07-operations/var-menu-006/`
+## Current lifecycle status
 
-and verify its SHA-256 equals:
+`PENDING_DRAFT_PR_AND_GITHUB_POST_UPLOAD_VERIFICATION`
 
-`f5aae4e58bdc7c7839ee2788fd9b57fb10d935dbfb9a27998176c7e8ebd48988`.
+## Restrictions
 
-After that:
-
-1. fetch exact branch head SHA;
-2. fetch the GitHub binary and verify checksum;
-3. update Independent Verification to PASS or CONDITIONAL;
-4. create draft PR to `main`;
-5. present Owner/Merge Gate;
-6. do not merge without owner approval.
-
-## Downloadable local artifact
-
-The validated file remains available in the originating ChatGPT session for direct download and manual upload if required.
+- no merge without Owner/Merge Gate;
+- do not close Issue #106;
+- do not assign `APPROVED`;
+- do not assign `READY_FOR_PRODUCTION`;
+- keep `SAFETY_BLOCKED_PENDING_VALIDATION`.

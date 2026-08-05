@@ -1,75 +1,37 @@
-# XLSX QA REPORT — Issue #106
+# XLSX QA Report — Issue #106
 
-## Файл
+## File
 
-`VKM-006_TOMATO_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.0_TEMPLATE_DELTA.xlsx`
+`VKM-006_TOMATO_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.1.xlsx`
 
-SHA-256:
+## Structure
 
-`f5aae4e58bdc7c7839ee2788fd9b57fb10d935dbfb9a27998176c7e8ebd48988`
+- `КАЛЬКУЛЯЦИЯ`
+- `ТЕХКАРТА`
+- `АНКЕТА`
 
-Размер локального проверенного файла: `49 821` байт.
+Exactly three sheets: `PASS`.
 
-## Метод сборки
+## Formula QA
 
-`TEMPLATE-BASED DELTA BUILD` на основе:
+- `#REF!`: 0
+- `#NAME?`: 0
+- `#DIV/0!`: 0
+- `#VALUE!`: 0
+- `#N/A`: 0
 
-`VKM-005_WHITE_CIABATTA_CHEF_MANAGER_APPROVAL_DRAFT_v1.0.0.xlsx`.
+## Functional checks
 
-## Структурный QA
+- V1/V2 scenarios: `PASS`
+- Paste water deducted from base water: `PASS`
+- Cross-sheet references: `PASS`
+- Project price 120 RUB: `PASS`
+- Unknown values are not replaced with zeros: `PASS`
+- Round-trip open/save/open: `PASS`
+- Visual review: `PASS`
 
-- ровно три листа: PASS;
-- `КАЛЬКУЛЯЦИЯ`: PASS;
-- `ТЕХКАРТА`: PASS;
-- `АНКЕТА`: PASS;
-- структура шаблона VKM-005 сохранена: PASS;
-- дельта-блок сценариев V1/V2 добавлен без перестройки базовых разделов: PASS.
+## Status
 
-## Формульный QA
+`PASS_FOR_PUBLICATION_VERIFICATION`
 
-Поиск ошибок:
-
-- `#REF!`;
-- `#NAME?`;
-- `#DIV/0!`;
-- `#VALUE!`;
-- `#N/A`.
-
-Результат: `0` совпадений.
-
-## Проверенные расчёты
-
-| Сценарий | Ингредиент | Выпуск | COGS | Food cost при 120 ₽ |
-|---|---:|---:|---:|---:|
-| V1-03 | 150 г порошка | 80 | 17,40 ₽ | 14,5% |
-| V1-045 | 225 г порошка | 80 | 17,90 ₽ | 14,9% |
-| V1-06 | 300 г порошка | 81 | 18,17 ₽ | 15,1% |
-| V2-03 | 517,24 г пасты | 80 | 18,65 ₽ | 15,5% |
-| V2-045 | 775,86 г пасты | 80 | 19,77 ₽ | 16,5% |
-| V2-06 | 1 034,48 г пасты | 81 | 20,63 ₽ | 17,2% |
-
-Вода пасты вычитается из базовых 4 000 г воды: PASS.
-
-## Round-trip
-
-- экспорт XLSX: PASS;
-- повторный импорт: PASS;
-- повторное сохранение: PASS;
-- повторное открытие: PASS;
-- три листа после round-trip: PASS.
-
-## Визуальный QA
-
-Изменённые диапазоны проверены рендером:
-
-- сценарный блок V1/V2;
-- рецептурная калькуляция;
-- экономика каналов;
-- технологические отличия;
-- safety-блокеры;
-- анкета;
-- форма контрольных прогонов.
-
-Вердикт: `PASS_WITH_REMARKS`.
-
-Замечание: сценарный блок расширяет `КАЛЬКУЛЯЦИЯ` до столбца `Q`; это осознанная дельта без перестройки шаблона.
+The workbook is not `APPROVED` and not `READY_FOR_PRODUCTION`.
